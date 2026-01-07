@@ -1,0 +1,106 @@
+{
+  "areas": [
+    {
+      "name": "定老城",
+      "prestige_rate": 1.9136,
+      "beast_exp_rate": 0.8185,
+      "stone_rate": 0.4811,
+      "can_cultivate": true,
+      "dungeons": [
+        {
+          "name": "幻灵湖畔",
+          "capture_balls": ["水草兽召唤球", "巨齿鳄召唤球", "蓝灵鱼召唤球", "厚甲龟召唤球"]
+        },
+        {
+          "name": "石工矿场",
+          "capture_balls": ["大嘴蛇召唤球", "吞岩兽召唤球", "采矿猴召唤球", "弑魂蚁召唤球"]
+        }
+      ]
+    },
+    {
+      "name": "迷雾城",
+      "prestige_rate": 2.8392,
+      "beast_exp_rate": 1.2754,
+      "stone_rate": 0.9267,
+      "can_cultivate": true,
+      "dungeons": [
+        {
+          "name": "回音之谷",
+          "capture_balls": ["荒原豹召唤球", "雷翼雕召唤球", "苍山鹫召唤球", "血蝙蝠召唤球"]
+        },
+        {
+          "name": "死亡沼泽",
+          "capture_balls": ["巨甲虫召唤球", "紫雾虫召唤球", "水蜥蜴召唤球", "沼泽蛙召唤球"]
+        }
+      ]
+    },
+    {
+      "name": "飞龙港",
+      "prestige_rate": 3.7753,
+      "beast_exp_rate": 1.9452,
+      "stone_rate": 1.1478,
+      "can_cultivate": true,
+      "dungeons": [
+        {
+          "name": "聚灵孤岛",
+          "capture_balls": ["落魂兽召唤球", "幻灵狐召唤球", "风雷蛛召唤球", "飞泪蝶召唤球"]
+        },
+        {
+          "name": "日落海峡",
+          "capture_balls": ["海龙鱼召唤球", "大钳蟹召唤球", "双吻鱼召唤球", "落日豚召唤球"]
+        }
+      ]
+    },
+    {
+      "name": "落龙镇",
+      "prestige_rate": 4.9436,
+      "beast_exp_rate": 2.6389,
+      "stone_rate": 1.3457,
+      "can_cultivate": true,
+      "dungeons": [
+        {
+          "name": "龙骨墓地",
+          "capture_balls": ["龙翼兽召唤球", "蚀骨狼召唤球", "半龙羽召唤球", "巡游使召唤球"]
+        },
+        {
+          "name": "巨龙冰原",
+          "capture_balls": ["雪人怪召唤球", "冰晶猿召唤球", "噬天虎召唤球", "龙魂龟召唤球"]
+        }
+      ]
+    },
+    {
+      "name": "圣龙城",
+      "prestige_rate": 5.7826,
+      "beast_exp_rate": 3.3513,
+      "stone_rate": 1.5213,
+      "can_cultivate": true,
+      "dungeons": [
+        {
+          "name": "圣龙城郊",
+          "capture_balls": ["巨盾兽召唤球", "黑灵虎召唤球", "金甲虫召唤球", "双头雕召唤球"]
+        },
+        {
+          "name": "皇城迷宫",
+          "capture_balls": ["幽冥蚁召唤球", "圣晶怪召唤球", "半人鱼召唤球", "龙吼鸟召唤球"]
+        }
+      ]
+    },
+    {
+      "name": "乌托邦",
+      "prestige_rate": 6.6261,
+      "beast_exp_rate": 4.0934,
+      "stone_rate": 1.6696,
+      "can_cultivate": true,
+      "dungeons": [
+        {
+          "name": "梦幻海湾",
+          "capture_balls": ["软泥虫召唤球", "啸海螺召唤球", "逐浪鲨召唤球", "浴火龟召唤球"]
+        },
+        {
+          "name": "幻光公园",
+          "capture_balls": ["九霄鹰召唤球", "圣灵蚁召唤球", "幻光兔召唤球", "飞翼蛇召唤球"]
+        }
+      ]
+    }
+  ]
+}
