@@ -1,0 +1,134 @@
+{
+  "description": "战灵系统配置：元素孔位解锁、灵石开启、词条生成/解锁、洗练消耗、出售回收与仓库容量。所有百分比用 basis_points 表示：1 = 0.01%。",
+  "warehouse_capacity": 100,
+  "elements": [
+    {"key": "earth", "name": "土"},
+    {"key": "fire", "name": "火"},
+    {"key": "water", "name": "水"},
+    {"key": "wood", "name": "木"},
+    {"key": "metal", "name": "金"},
+    {"key": "god", "name": "神"}
+  ],
+  "default_unlocked_elements": ["earth"],
+  "unlock_requirements_by_element": {
+    "earth": {"tower_type": "zhanling", "min_floor_record": 1, "gold_cost": 0},
+    "fire": {"tower_type": "zhanling", "min_floor_record": 10, "gold_cost": 10000},
+    "water": {"tower_type": "zhanling", "min_floor_record": 20, "gold_cost": 20000},
+    "wood": {"tower_type": "zhanling", "min_floor_record": 30, "gold_cost": 40000},
+    "metal": {"tower_type": "zhanling", "min_floor_record": 40, "gold_cost": 80000},
+    "god": {"tower_type": "zhanling", "min_floor_record": 50, "gold_cost": 160000}
+  },
+  "items": {
+    "spirit_key_item_id": 6006,
+    "unopened_stone_item_ids_by_element": {
+      "earth": 7101,
+      "fire": 7102,
+      "water": 7103,
+      "wood": 7104,
+      "metal": 7105,
+      "god": 7106
+    }
+  },
+  "races": ["虫族", "兽族", "水族", "羽族"],
+  "open_stone_rules": {
+    "race_weights_by_element": {
+      "earth": {"虫族": 25, "兽族": 25, "水族": 25, "羽族": 25},
+      "fire": {"虫族": 25, "兽族": 25, "水族": 25, "羽族": 25},
+      "water": {"虫族": 275, "兽族": 200, "水族": 275, "羽族": 250},
+      "wood": {"虫族": 30, "兽族": 16, "水族": 30, "羽族": 24},
+      "metal": {"虫族": 35, "兽族": 12, "水族": 35, "羽族": 18},
+      "god": {"虫族": 375, "兽族": 80, "水族": 375, "羽族": 170}
+    },
+    "line_count": 1,
+    "initial_unlocked_lines": 1,
+    "attr_pool": [
+      {"key": "hp_pct", "name": "气血%", "weight": 1},
+      {"key": "physical_attack_pct", "name": "物攻%", "weight": 1},
+      {"key": "magic_attack_pct", "name": "法攻%", "weight": 1},
+      {"key": "physical_defense_pct", "name": "物防%", "weight": 1},
+      {"key": "magic_defense_pct", "name": "法防%", "weight": 1},
+      {"key": "speed_pct", "name": "速度%", "weight": 1}
+    ],
+    "value_ranges_bp_by_element": {
+      "earth": {"min": 500, "max": 2500},
+      "fire": {"min": 1000, "max": 3000},
+      "water": {"min": 1500, "max": 3500},
+      "wood": {"min": 2500, "max": 4500},
+      "metal": {"min": 3500, "max": 6000},
+      "god": {"min": 4500, "max": 7000}
+    },
+    "quality_tiers_by_element": {
+      "earth": [
+        {"name": "普通", "min": 500, "max": 1000},
+        {"name": "精良", "min": 1000, "max": 1900},
+        {"name": "优秀", "min": 1900, "max": 2300},
+        {"name": "传奇", "min": 2300, "max": 2500}
+      ],
+      "fire": [
+        {"name": "普通", "min": 1000, "max": 1400},
+        {"name": "精良", "min": 1400, "max": 2300},
+        {"name": "优秀", "min": 2300, "max": 2800},
+        {"name": "传奇", "min": 2800, "max": 3000}
+      ],
+      "water": [
+        {"name": "普通", "min": 1500, "max": 1800},
+        {"name": "精良", "min": 1800, "max": 2900},
+        {"name": "优秀", "min": 2900, "max": 3300},
+        {"name": "传奇", "min": 3300, "max": 3500}
+      ],
+      "wood": [
+        {"name": "普通", "min": 2500, "max": 3000},
+        {"name": "精良", "min": 3000, "max": 3900},
+        {"name": "优秀", "min": 3900, "max": 4300},
+        {"name": "传奇", "min": 4300, "max": 4500}
+      ],
+      "metal": [
+        {"name": "普通", "min": 3500, "max": 4000},
+        {"name": "精良", "min": 4000, "max": 5100},
+        {"name": "优秀", "min": 5100, "max": 5700},
+        {"name": "传奇", "min": 5700, "max": 6000}
+      ],
+      "god": [
+        {"name": "普通", "min": 4500, "max": 5000},
+        {"name": "精良", "min": 5000, "max": 6000},
+        {"name": "优秀", "min": 6000, "max": 6600},
+        {"name": "传奇", "min": 6600, "max": 7000}
+      ]
+    }
+  },
+  "line_unlock_costs": {
+    "2": {"key_item_id": 6006, "quantity": 1},
+    "3": {"key_item_id": 6006, "quantity": 2}
+  },
+  "refine_rules": {
+    "spirit_power_cost_by_element_and_locked": {
+      "earth": {"0": 1, "1": 3, "2": 9},
+      "fire": {"0": 3, "1": 9, "2": 27},
+      "water": {"0": 6, "1": 18, "2": 54},
+      "wood": {"0": 9, "1": 27, "2": 81},
+      "metal": {"0": 15, "1": 45, "2": 135},
+      "god": {"0": 30, "1": 90, "2": 270}
+    },
+    "vip_free_refines_per_day": {
+      "0": 1,
+      "1": 1,
+      "2": 1,
+      "3": 1,
+      "4": 1,
+      "5": 1,
+      "6": 1,
+      "7": 5,
+      "8": 6,
+      "9": 8,
+      "10": 10
+    }
+  },
+  "sell_spirit_power_by_element": {
+    "earth": 10,
+    "fire": 10,
+    "water": 10,
+    "wood": 10,
+    "metal": 10,
+    "god": 20
+  }
+}

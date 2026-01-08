@@ -1,0 +1,187 @@
+{
+  "tongtian": {
+    "floor_rewards": [
+      {
+        "floor_range": [1, 120],
+        "gold": 1270,
+        "exp": 0
+      }
+    ],
+    "milestone_rewards": [
+      { "floor": 10, "gold": 500 },
+      { "floor": 30, "gold": 1000 },
+      { "floor": 50, "gold": 2000 },
+      { "floor": 80, "gold": 5000 },
+      { "floor": 100, "gold": 10000 },
+      { "floor": 120, "gold": 50000 }
+    ],
+    "special_reward": {
+      "every_n_floors": 5,
+      "quantity": 1,
+      "item_pool": [
+        { "item_id": 1001, "name": "金之结晶", "weight": 10 },
+        { "item_id": 1002, "name": "木之结晶", "weight": 10 },
+        { "item_id": 1003, "name": "水之结晶", "weight": 10 },
+        { "item_id": 1004, "name": "火之结晶", "weight": 10 },
+        { "item_id": 1005, "name": "土之结晶", "weight": 10 },
+        { "item_id": 1006, "name": "风之结晶", "weight": 10 },
+        { "item_id": 1007, "name": "电之结晶", "weight": 10 },
+        { "item_id": 4004, "name": "喇叭", "weight": 10 },
+        { "item_id": 4001, "name": "活力草", "weight": 10 },
+        { "item_id": 6018, "name": "传送符", "weight": 10 }
+      ]
+    }
+  },
+  "longwen": {
+    "floor_rewards": [
+      {
+        "floor_range": [1, 100],
+        "gold": 1325,
+        "exp": 0
+      }
+    ],
+    "milestone_rewards": [],
+    "special_rewards_by_floor": [
+      {
+        "floor_range": [1, 11],
+        "every_n_floors": 5,
+        "quantity": 1,
+        "item_pool": [
+          { "item_id": 5001, "name": "碎空头骨卷轴", "weight": 1 },
+          { "item_id": 5002, "name": "碎空尾骨卷轴", "weight": 1 },
+          { "item_id": 5003, "name": "碎空手骨卷轴", "weight": 1 },
+          { "item_id": 5004, "name": "碎空腿骨卷轴", "weight": 1 },
+          { "item_id": 5005, "name": "碎空胸骨卷轴", "weight": 1 },
+          { "item_id": 5006, "name": "碎空臂骨卷轴", "weight": 1 }
+        ]
+      },
+      {
+        "floor_range": [12, 22],
+        "every_n_floors": 5,
+        "quantity": 1,
+        "item_pool": [
+          { "item_id": 5011, "name": "猎魔头骨卷轴", "weight": 1 },
+          { "item_id": 5012, "name": "猎魔尾骨卷轴", "weight": 1 },
+          { "item_id": 5013, "name": "猎魔手骨卷轴", "weight": 1 },
+          { "item_id": 5014, "name": "猎魔腿骨卷轴", "weight": 1 },
+          { "item_id": 5015, "name": "猎魔胸骨卷轴", "weight": 1 },
+          { "item_id": 5016, "name": "猎魔臂骨卷轴", "weight": 1 }
+        ]
+      },
+      {
+        "floor_range": [23, 33],
+        "every_n_floors": 5,
+        "quantity": 1,
+        "item_pool": [
+          { "item_id": 5021, "name": "龙炎头骨卷轴", "weight": 1 },
+          { "item_id": 5022, "name": "龙炎尾骨卷轴", "weight": 1 },
+          { "item_id": 5023, "name": "龙炎手骨卷轴", "weight": 1 },
+          { "item_id": 5024, "name": "龙炎腿骨卷轴", "weight": 1 },
+          { "item_id": 5025, "name": "龙炎胸骨卷轴", "weight": 1 },
+          { "item_id": 5026, "name": "龙炎臂骨卷轴", "weight": 1 }
+        ]
+      },
+      {
+        "floor_range": [34, 44],
+        "every_n_floors": 5,
+        "quantity": 1,
+        "item_pool": [
+          { "item_id": 5031, "name": "奔雷头骨卷轴", "weight": 1 },
+          { "item_id": 5032, "name": "奔雷尾骨卷轴", "weight": 1 },
+          { "item_id": 5033, "name": "奔雷手骨卷轴", "weight": 1 },
+          { "item_id": 5034, "name": "奔雷腿骨卷轴", "weight": 1 },
+          { "item_id": 5035, "name": "奔雷胸骨卷轴", "weight": 1 },
+          { "item_id": 5036, "name": "奔雷臂骨卷轴", "weight": 1 }
+        ]
+      },
+      {
+        "floor_range": [45, 55],
+        "every_n_floors": 5,
+        "quantity": 1,
+        "item_pool": [
+          { "item_id": 5041, "name": "凌霄头骨卷轴", "weight": 1 },
+          { "item_id": 5042, "name": "凌霄尾骨卷轴", "weight": 1 },
+          { "item_id": 5043, "name": "凌霄手骨卷轴", "weight": 1 },
+          { "item_id": 5044, "name": "凌霄腿骨卷轴", "weight": 1 },
+          { "item_id": 5045, "name": "凌霄胸骨卷轴", "weight": 1 },
+          { "item_id": 5046, "name": "凌霄臂骨卷轴", "weight": 1 }
+        ]
+      },
+      {
+        "floor_range": [56, 66],
+        "every_n_floors": 5,
+        "quantity": 1,
+        "item_pool": [
+          { "item_id": 5051, "name": "麒麟头骨卷轴", "weight": 1 },
+          { "item_id": 5052, "name": "麒麟尾骨卷轴", "weight": 1 },
+          { "item_id": 5053, "name": "麒麟手骨卷轴", "weight": 1 },
+          { "item_id": 5054, "name": "麒麟腿骨卷轴", "weight": 1 },
+          { "item_id": 5055, "name": "麒麟胸骨卷轴", "weight": 1 },
+          { "item_id": 5056, "name": "麒麟臂骨卷轴", "weight": 1 }
+        ]
+      },
+      {
+        "floor_range": [67, 77],
+        "every_n_floors": 5,
+        "quantity": 1,
+        "item_pool": [
+          { "item_id": 5061, "name": "武神头骨卷轴", "weight": 1 },
+          { "item_id": 5062, "name": "武神尾骨卷轴", "weight": 1 },
+          { "item_id": 5063, "name": "武神手骨卷轴", "weight": 1 },
+          { "item_id": 5064, "name": "武神腿骨卷轴", "weight": 1 },
+          { "item_id": 5065, "name": "武神胸骨卷轴", "weight": 1 },
+          { "item_id": 5066, "name": "武神臂骨卷轴", "weight": 1 }
+        ]
+      },
+      {
+        "floor_range": [78, 88],
+        "every_n_floors": 5,
+        "quantity": 1,
+        "item_pool": [
+          { "item_id": 5071, "name": "弑天头骨卷轴", "weight": 1 },
+          { "item_id": 5072, "name": "弑天尾骨卷轴", "weight": 1 },
+          { "item_id": 5073, "name": "弑天手骨卷轴", "weight": 1 },
+          { "item_id": 5074, "name": "弑天腿骨卷轴", "weight": 1 },
+          { "item_id": 5075, "name": "弑天胸骨卷轴", "weight": 1 },
+          { "item_id": 5076, "name": "弑天臂骨卷轴", "weight": 1 }
+        ]
+      },
+      {
+        "floor_range": [89, 100],
+        "every_n_floors": 5,
+        "quantity": 1,
+        "item_pool": [
+          { "item_id": 5081, "name": "毁灭头骨卷轴", "weight": 1 },
+          { "item_id": 5082, "name": "毁灭尾骨卷轴", "weight": 1 },
+          { "item_id": 5083, "name": "毁灭手骨卷轴", "weight": 1 },
+          { "item_id": 5084, "name": "毁灭腿骨卷轴", "weight": 1 },
+          { "item_id": 5085, "name": "毁灭胸骨卷轴", "weight": 1 },
+          { "item_id": 5086, "name": "毁灭臂骨卷轴", "weight": 1 }
+        ]
+      }
+    ]
+  },
+  "zhanling": {
+    "floor_rewards": [
+      {
+        "floor_range": [1, 100],
+        "gold": 1942,
+        "exp": 55
+      }
+    ],
+    "milestone_rewards": [],
+    "special_reward": {
+      "every_n_floors": 2,
+      "drop_rate": 50,
+      "quantity": 1,
+      "item_pool": [
+        { "item_id": 6101, "name": "灵力水晶", "weight": 1 }
+      ]
+    },
+    "spirit_drop": {
+      "floors": [],
+      "drop_rate": 0,
+      "item_pool": []
+    }
+  }
+}

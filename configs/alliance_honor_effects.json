@@ -1,0 +1,26 @@
+[
+  {
+    "key": "xp_5",
+    "name": "全盟修行经验加成5%",
+    "type": "xp",
+    "bonus": 0.05,
+    "cost": 20,
+    "description": "全盟在接下来的1天内修行经验+5%"
+  },
+  {
+    "key": "xp_10",
+    "name": "全盟修行经验加成10%",
+    "type": "xp",
+    "bonus": 0.1,
+    "cost": 45,
+    "description": "全盟在接下来的1天内修行经验+10%"
+  },
+  {
+    "key": "fire_20",
+    "name": "全盟火修焚火晶加成20%",
+    "type": "fire",
+    "bonus": 0.2,
+    "cost": 5,
+    "description": "全盟接下来的1天内火修焚火晶收益+20%"
+  }
+]
