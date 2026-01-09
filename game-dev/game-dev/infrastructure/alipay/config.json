@@ -1,0 +1,11 @@
+{
+    "alipay": {
+        "app_id": "2021006122619037",
+        "notify_url": "https://mengzhiyun.zhmcy.top/api/pay/notify",
+        "return_url": "https://mengzhiyun.zhmcy.top/sponsor",
+        "sign_type": "RSA2",
+        "sandbox": false,
+        "private_key_path": "./cert/app_private_key.pem",
+        "alipay_public_key_path": "./cert/alipay_public_key.pem"
+    }
+}

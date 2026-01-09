@@ -1,0 +1,542 @@
+{
+  "slots": ["头骨", "胸骨", "臂骨", "手骨", "腿骨", "尾骨", "元魂"],
+  "stages": [
+    {"stage": 1, "key": "original", "name": "原始战骨", "stars": 0, "min_player_level": 1, "min_level": 1, "max_level": 10},
+    {"stage": 2, "key": "suikong", "name": "碎空战骨", "stars": 1, "min_player_level": 10, "min_level": 10, "max_level": 20},
+    {"stage": 3, "key": "liemo", "name": "猎魔战骨", "stars": 2, "min_player_level": 20, "min_level": 20, "max_level": 30},
+    {"stage": 4, "key": "longyan", "name": "龙炎战骨", "stars": 3, "min_player_level": 30, "min_level": 30, "max_level": 40},
+    {"stage": 5, "key": "benlei", "name": "奔雷战骨", "stars": 4, "min_player_level": 40, "min_level": 40, "max_level": 50},
+    {"stage": 6, "key": "lingxiao", "name": "凌霄战骨", "stars": 5, "min_player_level": 50, "min_level": 50, "max_level": 60},
+    {"stage": 7, "key": "qilin", "name": "麒麟战骨", "stars": 6, "min_player_level": 60, "min_level": 60, "max_level": 70},
+    {"stage": 8, "key": "wushen", "name": "武神战骨", "stars": 7, "min_player_level": 70, "min_level": 70, "max_level": 80},
+    {"stage": 9, "key": "shitian", "name": "弑天战骨", "stars": 8, "min_player_level": 80, "min_level": 80, "max_level": 90},
+    {"stage": 10, "key": "huimie", "name": "毁灭战骨", "stars": 9, "min_player_level": 90, "min_level": 90, "max_level": 100}
+  ],
+  "scroll_item_ids_by_stage": {
+    "2": {"头骨": 5001, "尾骨": 5002, "手骨": 5003, "腿骨": 5004, "胸骨": 5005, "臂骨": 5006, "元魂": 5007},
+    "3": {"头骨": 5011, "尾骨": 5012, "手骨": 5013, "腿骨": 5014, "胸骨": 5015, "臂骨": 5016, "元魂": 5017},
+    "4": {"头骨": 5021, "尾骨": 5022, "手骨": 5023, "腿骨": 5024, "胸骨": 5025, "臂骨": 5026, "元魂": 5027},
+    "5": {"头骨": 5031, "尾骨": 5032, "手骨": 5033, "腿骨": 5034, "胸骨": 5035, "臂骨": 5036, "元魂": 5037},
+    "6": {"头骨": 5041, "尾骨": 5042, "手骨": 5043, "腿骨": 5044, "胸骨": 5045, "臂骨": 5046, "元魂": 5047},
+    "7": {"头骨": 5051, "尾骨": 5052, "手骨": 5053, "腿骨": 5054, "胸骨": 5055, "臂骨": 5056, "元魂": 5057},
+    "8": {"头骨": 5061, "尾骨": 5062, "手骨": 5063, "腿骨": 5064, "胸骨": 5065, "臂骨": 5066, "元魂": 5067},
+    "9": {"头骨": 5071, "尾骨": 5072, "手骨": 5073, "腿骨": 5074, "胸骨": 5075, "臂骨": 5076, "元魂": 5077},
+    "10": {"头骨": 5081, "尾骨": 5082, "手骨": 5083, "腿骨": 5084, "胸骨": 5085, "臂骨": 5086, "元魂": 5087}
+  },
+  "bone_soul_item_id_by_stage": {
+    "2": 2001,
+    "3": 2002,
+    "4": 2003,
+    "5": 2004,
+    "6": 2005,
+    "7": 2006,
+    "8": 2007,
+    "9": 2008,
+    "10": 2009
+  },
+  "refine_costs": {
+    "require_current_stage_max_level": true,
+    "bone_soul_qty_by_stage": {"2": 1, "3": 2, "4": 3, "5": 4, "6": 5, "7": 6, "8": 7, "9": 8, "10": 9},
+    "crystal_qty_by_stage": {
+      "2": {"primary": 6, "secondary": 3},
+      "3": {"primary": 12, "secondary": 6},
+      "4": {"primary": 18, "secondary": 9},
+      "5": {"primary": 18, "secondary": 9},
+      "6": {"primary": 24, "secondary": 12},
+      "7": {"primary": 30, "secondary": 15},
+      "8": {"primary": 36, "secondary": 18},
+      "9": {"primary": 42, "secondary": 21},
+      "10": {"primary": 48, "secondary": 24}
+    },
+    "slot_crystal_pairs": {
+      "头骨": {"primary_item_id": 1001, "secondary_item_id": 1002},
+      "胸骨": {"primary_item_id": 1002, "secondary_item_id": 1006},
+      "臂骨": {"primary_item_id": 1004, "secondary_item_id": 1003},
+      "手骨": {"primary_item_id": 1003, "secondary_item_id": 1001},
+      "腿骨": {"primary_item_id": 1007, "secondary_item_id": 1005},
+      "尾骨": {"primary_item_id": 1005, "secondary_item_id": 1004},
+      "元魂": {"primary_item_id": 1006, "secondary_item_id": 1007}
+    },
+    "description": "战骨炼制（升星/进阶）材料配置：炼制到某一系列（stage）时，需要对应卷轴×1 + 对应骨魂×N + 两种结晶×(primary/secondary)。其中结晶数量按 stage 在 crystal_qty_by_stage 中配置；骨魂数量按 bone_soul_qty_by_stage。"
+  },
+  "stat_rules": {
+    "1": {
+      "头骨": {
+        "base_level": 1,
+        "base": {"hp": 12, "physical_attack": 0, "magic_attack": 0, "physical_defense": 0, "magic_defense": 4, "speed": 0},
+        "per_level_add": {"hp": 3, "physical_attack": 0, "magic_attack": 0, "physical_defense": 0, "magic_defense": 1, "speed": 0}
+      },
+      "胸骨": {
+        "base_level": 1,
+        "base": {"hp": 0, "physical_attack": 0, "magic_attack": 0, "physical_defense": 6, "magic_defense": 6, "speed": 0},
+        "per_level_add": {"hp": 0, "physical_attack": 0, "magic_attack": 0, "physical_defense": 2, "magic_defense": 2, "speed": 0}
+      },
+      "臂骨": {
+        "base_level": 1,
+        "base": {"hp": 0, "physical_attack": 10, "magic_attack": 10, "physical_defense": 0, "magic_defense": 0, "speed": 0},
+        "per_level_add": {"hp": 0, "physical_attack": 3, "magic_attack": 3, "physical_defense": 0, "magic_defense": 0, "speed": 0}
+      },
+      "手骨": {
+        "base_level": 1,
+        "base": {"hp": 0, "physical_attack": 6, "magic_attack": 6, "physical_defense": 0, "magic_defense": 0, "speed": 0},
+        "per_level_add": {"hp": 0, "physical_attack": 1, "magic_attack": 1, "physical_defense": 0, "magic_defense": 0, "speed": 0}
+      },
+      "腿骨": {
+        "base_level": 1,
+        "base": {"hp": 0, "physical_attack": 0, "magic_attack": 0, "physical_defense": 4, "magic_defense": 0, "speed": 2},
+        "per_level_add": {"hp": 0, "physical_attack": 0, "magic_attack": 0, "physical_defense": 1, "magic_defense": 0, "speed": 1}
+      },
+      "尾骨": {
+        "base_level": 1,
+        "base": {"hp": 0, "physical_attack": 0, "magic_attack": 0, "physical_defense": 0, "magic_defense": 0, "speed": 4},
+        "per_level_add": {"hp": 0, "physical_attack": 0, "magic_attack": 0, "physical_defense": 0, "magic_defense": 0, "speed": 2}
+      },
+      "元魂": {
+        "base_level": 1,
+        "base": {"hp": 2, "physical_attack": 8, "magic_attack": 8, "physical_defense": 0, "magic_defense": 0, "speed": 0},
+        "per_level_add": {"hp": 2, "physical_attack": 2, "magic_attack": 2, "physical_defense": 0, "magic_defense": 0, "speed": 0}
+      }
+    },
+    "2": {
+      "头骨": {
+        "base_level": 10,
+        "base": {"hp": 88, "physical_attack": 0, "magic_attack": 0, "physical_defense": 0, "magic_defense": 42, "speed": 0},
+        "per_level_add": {"hp": 4, "physical_attack": 0, "magic_attack": 0, "physical_defense": 0, "magic_defense": 2, "speed": 0}
+      },
+      "胸骨": {
+        "base_level": 10,
+        "base": {"hp": 0, "physical_attack": 0, "magic_attack": 0, "physical_defense": 53, "magic_defense": 53, "speed": 0},
+        "per_level_add": {"hp": 0, "physical_attack": 0, "magic_attack": 0, "physical_defense": 3, "magic_defense": 3, "speed": 0}
+      },
+      "臂骨": {
+        "base_level": 10,
+        "base": {"hp": 0, "physical_attack": 81, "magic_attack": 81, "physical_defense": 0, "magic_defense": 0, "speed": 0},
+        "per_level_add": {"hp": 0, "physical_attack": 4, "magic_attack": 4, "physical_defense": 0, "magic_defense": 0, "speed": 0}
+      },
+      "手骨": {
+        "base_level": 10,
+        "base": {"hp": 0, "physical_attack": 54, "magic_attack": 54, "physical_defense": 0, "magic_defense": 0, "speed": 0},
+        "per_level_add": {"hp": 0, "physical_attack": 2, "magic_attack": 2, "physical_defense": 0, "magic_defense": 0, "speed": 0}
+      },
+      "腿骨": {
+        "base_level": 10,
+        "base": {"hp": 0, "physical_attack": 0, "magic_attack": 0, "physical_defense": 42, "magic_defense": 0, "speed": 35},
+        "per_level_add": {"hp": 0, "physical_attack": 0, "magic_attack": 0, "physical_defense": 2, "magic_defense": 0, "speed": 2}
+      },
+      "尾骨": {
+        "base_level": 10,
+        "base": {"hp": 0, "physical_attack": 0, "magic_attack": 0, "physical_defense": 0, "magic_defense": 0, "speed": 46},
+        "per_level_add": {"hp": 0, "physical_attack": 0, "magic_attack": 0, "physical_defense": 0, "magic_defense": 0, "speed": 3}
+      },
+      "元魂": {
+        "base_level": 10,
+        "base": {"hp": 37, "physical_attack": 65, "magic_attack": 65, "physical_defense": 0, "magic_defense": 0, "speed": 0},
+        "per_level_add": {"hp": 3, "physical_attack": 3, "magic_attack": 3, "physical_defense": 0, "magic_defense": 0, "speed": 0}
+      }
+    },
+    "3": {
+      "头骨": {
+        "base_level": 20,
+        "base": {"hp": 187, "physical_attack": 0, "magic_attack": 0, "physical_defense": 0, "magic_defense": 101, "speed": 0},
+        "per_level_add": {"hp": 5, "physical_attack": 0, "magic_attack": 0, "physical_defense": 0, "magic_defense": 3, "speed": 0}
+      },
+      "胸骨": {
+        "base_level": 20,
+        "base": {"hp": 0, "physical_attack": 0, "magic_attack": 0, "physical_defense": 122, "magic_defense": 122, "speed": 0},
+        "per_level_add": {"hp": 0, "physical_attack": 0, "magic_attack": 0, "physical_defense": 4, "magic_defense": 4, "speed": 0}
+      },
+      "臂骨": {
+        "base_level": 20,
+        "base": {"hp": 0, "physical_attack": 175, "magic_attack": 175, "physical_defense": 0, "magic_defense": 0, "speed": 0},
+        "per_level_add": {"hp": 0, "physical_attack": 5, "magic_attack": 5, "physical_defense": 0, "magic_defense": 0, "speed": 0}
+      },
+      "手骨": {
+        "base_level": 20,
+        "base": {"hp": 0, "physical_attack": 123, "magic_attack": 123, "physical_defense": 0, "magic_defense": 0, "speed": 0},
+        "per_level_add": {"hp": 0, "physical_attack": 3, "magic_attack": 3, "physical_defense": 0, "magic_defense": 0, "speed": 0}
+      },
+      "腿骨": {
+        "base_level": 20,
+        "base": {"hp": 0, "physical_attack": 0, "magic_attack": 0, "physical_defense": 101, "magic_defense": 0, "speed": 89},
+        "per_level_add": {"hp": 0, "physical_attack": 0, "magic_attack": 0, "physical_defense": 3, "magic_defense": 0, "speed": 3}
+      },
+      "尾骨": {
+        "base_level": 20,
+        "base": {"hp": 0, "physical_attack": 0, "magic_attack": 0, "physical_defense": 0, "magic_defense": 0, "speed": 110},
+        "per_level_add": {"hp": 0, "physical_attack": 0, "magic_attack": 0, "physical_defense": 0, "magic_defense": 0, "speed": 4}
+      },
+      "元魂": {
+        "base_level": 20,
+        "base": {"hp": 94, "physical_attack": 144, "magic_attack": 144, "physical_defense": 0, "magic_defense": 0, "speed": 0},
+        "per_level_add": {"hp": 4, "physical_attack": 4, "magic_attack": 4, "physical_defense": 0, "magic_defense": 0, "speed": 0}
+      }
+    },
+    "4": {
+      "头骨": {
+        "base_level": 30,
+        "base": {"hp": 306, "physical_attack": 0, "magic_attack": 0, "physical_defense": 0, "magic_defense": 180, "speed": 0},
+        "per_level_add": {"hp": 6, "physical_attack": 0, "magic_attack": 0, "physical_defense": 0, "magic_defense": 4, "speed": 0}
+      },
+      "胸骨": {
+        "base_level": 30,
+        "base": {"hp": 0, "physical_attack": 0, "magic_attack": 0, "physical_defense": 211, "magic_defense": 211, "speed": 0},
+        "per_level_add": {"hp": 0, "physical_attack": 0, "magic_attack": 0, "physical_defense": 5, "magic_defense": 5, "speed": 0}
+      },
+      "臂骨": {
+        "base_level": 30,
+        "base": {"hp": 0, "physical_attack": 289, "magic_attack": 289, "physical_defense": 0, "magic_defense": 0, "speed": 0},
+        "per_level_add": {"hp": 0, "physical_attack": 6, "magic_attack": 6, "physical_defense": 0, "magic_defense": 0, "speed": 0}
+      },
+      "手骨": {
+        "base_level": 30,
+        "base": {"hp": 0, "physical_attack": 212, "magic_attack": 212, "physical_defense": 0, "magic_defense": 0, "speed": 0},
+        "per_level_add": {"hp": 0, "physical_attack": 4, "magic_attack": 4, "physical_defense": 0, "magic_defense": 0, "speed": 0}
+      },
+      "腿骨": {
+        "base_level": 30,
+        "base": {"hp": 0, "physical_attack": 0, "magic_attack": 0, "physical_defense": 180, "magic_defense": 0, "speed": 163},
+        "per_level_add": {"hp": 0, "physical_attack": 0, "magic_attack": 0, "physical_defense": 4, "magic_defense": 0, "speed": 4}
+      },
+      "尾骨": {
+        "base_level": 30,
+        "base": {"hp": 0, "physical_attack": 0, "magic_attack": 0, "physical_defense": 0, "magic_defense": 0, "speed": 194},
+        "per_level_add": {"hp": 0, "physical_attack": 0, "magic_attack": 0, "physical_defense": 0, "magic_defense": 0, "speed": 5}
+      },
+      "元魂": {
+        "base_level": 30,
+        "base": {"hp": 171, "physical_attack": 243, "magic_attack": 243, "physical_defense": 0, "magic_defense": 0, "speed": 0},
+        "per_level_add": {"hp": 5, "physical_attack": 5, "magic_attack": 5, "physical_defense": 0, "magic_defense": 0, "speed": 0}
+      }
+    },
+    "5": {
+      "头骨": {
+        "base_level": 40,
+        "base": {"hp": 445, "physical_attack": 0, "magic_attack": 0, "physical_defense": 0, "magic_defense": 279, "speed": 0},
+        "per_level_add": {"hp": 7, "physical_attack": 0, "magic_attack": 0, "physical_defense": 0, "magic_defense": 5, "speed": 0}
+      },
+      "胸骨": {
+        "base_level": 40,
+        "base": {"hp": 0, "physical_attack": 0, "magic_attack": 0, "physical_defense": 320, "magic_defense": 320, "speed": 0},
+        "per_level_add": {"hp": 0, "physical_attack": 0, "magic_attack": 0, "physical_defense": 6, "magic_defense": 6, "speed": 0}
+      },
+      "臂骨": {
+        "base_level": 40,
+        "base": {"hp": 0, "physical_attack": 423, "magic_attack": 423, "physical_defense": 0, "magic_defense": 0, "speed": 0},
+        "per_level_add": {"hp": 0, "physical_attack": 7, "magic_attack": 7, "physical_defense": 0, "magic_defense": 0, "speed": 0}
+      },
+      "手骨": {
+        "base_level": 40,
+        "base": {"hp": 0, "physical_attack": 321, "magic_attack": 321, "physical_defense": 0, "magic_defense": 0, "speed": 0},
+        "per_level_add": {"hp": 0, "physical_attack": 8, "magic_attack": 8, "physical_defense": 0, "magic_defense": 0, "speed": 0}
+      },
+      "腿骨": {
+        "base_level": 40,
+        "base": {"hp": 0, "physical_attack": 0, "magic_attack": 0, "physical_defense": 279, "magic_defense": 0, "speed": 257},
+        "per_level_add": {"hp": 0, "physical_attack": 0, "magic_attack": 0, "physical_defense": 5, "magic_defense": 0, "speed": 5}
+      },
+      "尾骨": {
+        "base_level": 40,
+        "base": {"hp": 0, "physical_attack": 0, "magic_attack": 0, "physical_defense": 0, "magic_defense": 0, "speed": 298},
+        "per_level_add": {"hp": 0, "physical_attack": 0, "magic_attack": 0, "physical_defense": 0, "magic_defense": 0, "speed": 6}
+      },
+      "元魂": {
+        "base_level": 40,
+        "base": {"hp": 268, "physical_attack": 362, "magic_attack": 362, "physical_defense": 0, "magic_defense": 0, "speed": 0},
+        "per_level_add": {"hp": 6, "physical_attack": 6, "magic_attack": 6, "physical_defense": 0, "magic_defense": 0, "speed": 0}
+      }
+    },
+    "6": {
+      "头骨": {
+        "base_level": 50,
+        "base": {"hp": 604, "physical_attack": 0, "magic_attack": 0, "physical_defense": 0, "magic_defense": 398, "speed": 0},
+        "per_level_add": {"hp": 8, "physical_attack": 0, "magic_attack": 0, "physical_defense": 0, "magic_defense": 6, "speed": 0}
+      },
+      "胸骨": {
+        "base_level": 50,
+        "base": {"hp": 0, "physical_attack": 0, "magic_attack": 0, "physical_defense": 449, "magic_defense": 449, "speed": 0},
+        "per_level_add": {"hp": 0, "physical_attack": 0, "magic_attack": 0, "physical_defense": 7, "magic_defense": 7, "speed": 0}
+      },
+      "臂骨": {
+        "base_level": 50,
+        "base": {"hp": 0, "physical_attack": 577, "magic_attack": 577, "physical_defense": 0, "magic_defense": 0, "speed": 0},
+        "per_level_add": {"hp": 0, "physical_attack": 8, "magic_attack": 8, "physical_defense": 0, "magic_defense": 0, "speed": 0}
+      },
+      "手骨": {
+        "base_level": 50,
+        "base": {"hp": 0, "physical_attack": 450, "magic_attack": 450, "physical_defense": 0, "magic_defense": 0, "speed": 0},
+        "per_level_add": {"hp": 0, "physical_attack": 9, "magic_attack": 9, "physical_defense": 0, "magic_defense": 0, "speed": 0}
+      },
+      "腿骨": {
+        "base_level": 50,
+        "base": {"hp": 0, "physical_attack": 0, "magic_attack": 0, "physical_defense": 398, "magic_defense": 0, "speed": 371},
+        "per_level_add": {"hp": 0, "physical_attack": 0, "magic_attack": 0, "physical_defense": 6, "magic_defense": 0, "speed": 6}
+      },
+      "尾骨": {
+        "base_level": 50,
+        "base": {"hp": 0, "physical_attack": 0, "magic_attack": 0, "physical_defense": 0, "magic_defense": 0, "speed": 422},
+        "per_level_add": {"hp": 0, "physical_attack": 0, "magic_attack": 0, "physical_defense": 0, "magic_defense": 0, "speed": 7}
+      },
+      "元魂": {
+        "base_level": 50,
+        "base": {"hp": 385, "physical_attack": 501, "magic_attack": 501, "physical_defense": 0, "magic_defense": 0, "speed": 0},
+        "per_level_add": {"hp": 7, "physical_attack": 7, "magic_attack": 7, "physical_defense": 0, "magic_defense": 0, "speed": 0}
+      }
+    },
+    "7": {
+      "头骨": {
+        "base_level": 60,
+        "base": {"hp": 783, "physical_attack": 0, "magic_attack": 0, "physical_defense": 0, "magic_defense": 537, "speed": 0},
+        "per_level_add": {"hp": 9, "physical_attack": 0, "magic_attack": 0, "physical_defense": 0, "magic_defense": 7, "speed": 0}
+      },
+      "胸骨": {
+        "base_level": 60,
+        "base": {"hp": 0, "physical_attack": 0, "magic_attack": 0, "physical_defense": 598, "magic_defense": 598, "speed": 0},
+        "per_level_add": {"hp": 0, "physical_attack": 0, "magic_attack": 0, "physical_defense": 8, "magic_defense": 8, "speed": 0}
+      },
+      "臂骨": {
+        "base_level": 60,
+        "base": {"hp": 0, "physical_attack": 751, "magic_attack": 751, "physical_defense": 0, "magic_defense": 0, "speed": 0},
+        "per_level_add": {"hp": 0, "physical_attack": 9, "magic_attack": 9, "physical_defense": 0, "magic_defense": 0, "speed": 0}
+      },
+      "手骨": {
+        "base_level": 60,
+        "base": {"hp": 0, "physical_attack": 599, "magic_attack": 599, "physical_defense": 0, "magic_defense": 0, "speed": 0},
+        "per_level_add": {"hp": 0, "physical_attack": 10, "magic_attack": 10, "physical_defense": 0, "magic_defense": 0, "speed": 0}
+      },
+      "腿骨": {
+        "base_level": 60,
+        "base": {"hp": 0, "physical_attack": 0, "magic_attack": 0, "physical_defense": 537, "magic_defense": 0, "speed": 505},
+        "per_level_add": {"hp": 0, "physical_attack": 0, "magic_attack": 0, "physical_defense": 7, "magic_defense": 0, "speed": 7}
+      },
+      "尾骨": {
+        "base_level": 60,
+        "base": {"hp": 0, "physical_attack": 0, "magic_attack": 0, "physical_defense": 0, "magic_defense": 0, "speed": 566},
+        "per_level_add": {"hp": 0, "physical_attack": 0, "magic_attack": 0, "physical_defense": 0, "magic_defense": 0, "speed": 8}
+      },
+      "元魂": {
+        "base_level": 60,
+        "base": {"hp": 522, "physical_attack": 660, "magic_attack": 660, "physical_defense": 0, "magic_defense": 0, "speed": 0},
+        "per_level_add": {"hp": 8, "physical_attack": 8, "magic_attack": 8, "physical_defense": 0, "magic_defense": 0, "speed": 0}
+      }
+    },
+    "8": {
+      "头骨": {
+        "base_level": 70,
+        "base": {"hp": 982, "physical_attack": 0, "magic_attack": 0, "physical_defense": 0, "magic_defense": 696, "speed": 0},
+        "per_level_add": {"hp": 10, "physical_attack": 0, "magic_attack": 0, "physical_defense": 0, "magic_defense": 8, "speed": 0}
+      },
+      "胸骨": {
+        "base_level": 70,
+        "base": {"hp": 0, "physical_attack": 0, "magic_attack": 0, "physical_defense": 767, "magic_defense": 767, "speed": 0},
+        "per_level_add": {"hp": 0, "physical_attack": 0, "magic_attack": 0, "physical_defense": 9, "magic_defense": 9, "speed": 0}
+      },
+      "臂骨": {
+        "base_level": 70,
+        "base": {"hp": 0, "physical_attack": 945, "magic_attack": 945, "physical_defense": 0, "magic_defense": 0, "speed": 0},
+        "per_level_add": {"hp": 0, "physical_attack": 10, "magic_attack": 10, "physical_defense": 0, "magic_defense": 0, "speed": 0}
+      },
+      "手骨": {
+        "base_level": 70,
+        "base": {"hp": 0, "physical_attack": 768, "magic_attack": 768, "physical_defense": 0, "magic_defense": 0, "speed": 0},
+        "per_level_add": {"hp": 0, "physical_attack": 11, "magic_attack": 11, "physical_defense": 0, "magic_defense": 0, "speed": 0}
+      },
+      "腿骨": {
+        "base_level": 70,
+        "base": {"hp": 0, "physical_attack": 0, "magic_attack": 0, "physical_defense": 696, "magic_defense": 0, "speed": 659},
+        "per_level_add": {"hp": 0, "physical_attack": 0, "magic_attack": 0, "physical_defense": 8, "magic_defense": 0, "speed": 8}
+      },
+      "尾骨": {
+        "base_level": 70,
+        "base": {"hp": 0, "physical_attack": 0, "magic_attack": 0, "physical_defense": 0, "magic_defense": 0, "speed": 730},
+        "per_level_add": {"hp": 0, "physical_attack": 0, "magic_attack": 0, "physical_defense": 0, "magic_defense": 0, "speed": 9}
+      },
+      "元魂": {
+        "base_level": 70,
+        "base": {"hp": 679, "physical_attack": 839, "magic_attack": 839, "physical_defense": 0, "magic_defense": 0, "speed": 0},
+        "per_level_add": {"hp": 9, "physical_attack": 9, "magic_attack": 9, "physical_defense": 0, "magic_defense": 0, "speed": 0}
+      }
+    },
+    "9": {
+      "头骨": {
+        "base_level": 80,
+        "base": {"hp": 1201, "physical_attack": 0, "magic_attack": 0, "physical_defense": 0, "magic_defense": 875, "speed": 0},
+        "per_level_add": {"hp": 11, "physical_attack": 0, "magic_attack": 0, "physical_defense": 0, "magic_defense": 9, "speed": 0}
+      },
+      "胸骨": {
+        "base_level": 80,
+        "base": {"hp": 0, "physical_attack": 0, "magic_attack": 0, "physical_defense": 956, "magic_defense": 956, "speed": 0},
+        "per_level_add": {"hp": 0, "physical_attack": 0, "magic_attack": 0, "physical_defense": 10, "magic_defense": 10, "speed": 0}
+      },
+      "臂骨": {
+        "base_level": 80,
+        "base": {"hp": 0, "physical_attack": 1159, "magic_attack": 1159, "physical_defense": 0, "magic_defense": 0, "speed": 0},
+        "per_level_add": {"hp": 0, "physical_attack": 11, "magic_attack": 11, "physical_defense": 0, "magic_defense": 0, "speed": 0}
+      },
+      "手骨": {
+        "base_level": 80,
+        "base": {"hp": 0, "physical_attack": 967, "magic_attack": 967, "physical_defense": 0, "magic_defense": 0, "speed": 0},
+        "per_level_add": {"hp": 0, "physical_attack": 12, "magic_attack": 12, "physical_defense": 0, "magic_defense": 0, "speed": 0}
+      },
+      "腿骨": {
+        "base_level": 80,
+        "base": {"hp": 0, "physical_attack": 0, "magic_attack": 0, "physical_defense": 875, "magic_defense": 0, "speed": 833},
+        "per_level_add": {"hp": 0, "physical_attack": 0, "magic_attack": 0, "physical_defense": 9, "magic_defense": 0, "speed": 9}
+      },
+      "尾骨": {
+        "base_level": 80,
+        "base": {"hp": 0, "physical_attack": 0, "magic_attack": 0, "physical_defense": 0, "magic_defense": 0, "speed": 914},
+        "per_level_add": {"hp": 0, "physical_attack": 0, "magic_attack": 0, "physical_defense": 0, "magic_defense": 0, "speed": 10}
+      },
+      "元魂": {
+        "base_level": 80,
+        "base": {"hp": 856, "physical_attack": 1038, "magic_attack": 1038, "physical_defense": 0, "magic_defense": 0, "speed": 0},
+        "per_level_add": {"hp": 10, "physical_attack": 10, "magic_attack": 10, "physical_defense": 0, "magic_defense": 0, "speed": 0}
+      }
+    },
+    "10": {
+      "头骨": {
+        "base_level": 90,
+        "base": {"hp": 1440, "physical_attack": 0, "magic_attack": 0, "physical_defense": 0, "magic_defense": 1074, "speed": 0},
+        "per_level_add": {"hp": 12, "physical_attack": 0, "magic_attack": 0, "physical_defense": 0, "magic_defense": 10, "speed": 0}
+      },
+      "胸骨": {
+        "base_level": 90,
+        "base": {"hp": 0, "physical_attack": 0, "magic_attack": 0, "physical_defense": 1165, "magic_defense": 1165, "speed": 0},
+        "per_level_add": {"hp": 0, "physical_attack": 0, "magic_attack": 0, "physical_defense": 11, "magic_defense": 11, "speed": 0}
+      },
+      "臂骨": {
+        "base_level": 90,
+        "base": {"hp": 0, "physical_attack": 1393, "magic_attack": 1393, "physical_defense": 0, "magic_defense": 0, "speed": 0},
+        "per_level_add": {"hp": 0, "physical_attack": 12, "magic_attack": 12, "physical_defense": 0, "magic_defense": 0, "speed": 0}
+      },
+      "手骨": {
+        "base_level": 90,
+        "base": {"hp": 0, "physical_attack": 1166, "magic_attack": 1166, "physical_defense": 0, "magic_defense": 0, "speed": 0},
+        "per_level_add": {"hp": 0, "physical_attack": 13, "magic_attack": 13, "physical_defense": 0, "magic_defense": 0, "speed": 0}
+      },
+      "腿骨": {
+        "base_level": 90,
+        "base": {"hp": 0, "physical_attack": 0, "magic_attack": 0, "physical_defense": 1074, "magic_defense": 0, "speed": 1027},
+        "per_level_add": {"hp": 0, "physical_attack": 0, "magic_attack": 0, "physical_defense": 10, "magic_defense": 0, "speed": 10}
+      },
+      "尾骨": {
+        "base_level": 90,
+        "base": {"hp": 0, "physical_attack": 0, "magic_attack": 0, "physical_defense": 0, "magic_defense": 0, "speed": 1118},
+        "per_level_add": {"hp": 0, "physical_attack": 0, "magic_attack": 0, "physical_defense": 0, "magic_defense": 0, "speed": 11}
+      },
+      "元魂": {
+        "base_level": 90,
+        "base": {"hp": 1053, "physical_attack": 1257, "magic_attack": 1257, "physical_defense": 0, "magic_defense": 0, "speed": 0},
+        "per_level_add": {"hp": 11, "physical_attack": 11, "magic_attack": 11, "physical_defense": 0, "magic_defense": 0, "speed": 0}
+      }
+    }
+  },
+  "upgrade_rules": {
+    "max_level": 100,
+    "level_cap_by_player_level": true,
+    "strengthen_stone_item_id": 9001,
+    "strengthen_stone_qty_per_from_level": 5,
+    "gold_cost_by_from_level": {
+      "1": 34,
+      "2": 39,
+      "3": 44,
+      "4": 51,
+      "5": 58,
+      "6": 66,
+      "7": 75,
+      "8": 86,
+      "9": 98,
+      "10": 111,
+      "11": 127,
+      "12": 145,
+      "13": 165,
+      "14": 188,
+      "15": 214,
+      "16": 244,
+      "17": 278,
+      "18": 317,
+      "19": 362,
+      "20": 412,
+      "21": 470,
+      "22": 536,
+      "23": 611,
+      "24": 696,
+      "25": 794,
+      "26": 905,
+      "27": 1032,
+      "28": 1176,
+      "29": 1341,
+      "30": 1529,
+      "31": 1742,
+      "32": 1986,
+      "33": 2265,
+      "34": 2582,
+      "35": 2943,
+      "36": 3355,
+      "37": 3825,
+      "38": 4360,
+      "39": 4971,
+      "40": 5667,
+      "41": 6460,
+      "42": 7364,
+      "43": 8395,
+      "44": 9571,
+      "45": 10910,
+      "46": 12438,
+      "47": 14179,
+      "48": 16164,
+      "49": 18427,
+      "50": 21007,
+      "51": 23948,
+      "52": 27301,
+      "53": 31123,
+      "54": 35480,
+      "55": 40447,
+      "56": 46110,
+      "57": 52565,
+      "58": 59924,
+      "59": 68314,
+      "60": 77878,
+      "61": 88780,
+      "62": 101210,
+      "63": 115379,
+      "64": 131532,
+      "65": 149947,
+      "66": 170936,
+      "67": 194871,
+      "68": 222152,
+      "69": 253254,
+      "70": 288709,
+      "71": 329129,
+      "72": 375207,
+      "73": 427736,
+      "74": 487619,
+      "75": 555885,
+      "76": 633709,
+      "77": 722428,
+      "78": 823568,
+      "79": 938868,
+      "80": 1070309,
+      "81": 1220571,
+      "82": 1396396,
+      "83": 1593720,
+      "84": 1809173,
+      "85": 2047634,
+      "86": 2301918,
+      "87": 2577387,
+      "88": 2872741,
+      "89": 3207985,
+      "90": 3582509,
+      "91": 3997783,
+      "92": 4456107,
+      "93": 4948222,
+      "94": 5482783,
+      "95": 6054127,
+      "96": 6666386,
+      "97": 7318794,
+      "98": 8010906,
+      "99": 8743032
+    },
+    "description": "战骨升级：等级上限与玩家等级同步；从 level 升到 level+1 的强化石数量 = level * strengthen_stone_qty_per_from_level。铜钱(gold)消耗已配置 1->100（gold_cost_by_from_level 的 key=当前等级，value=升到下一级所需铜钱）。"
+  }
+}

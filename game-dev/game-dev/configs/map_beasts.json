@@ -1,0 +1,930 @@
+{
+  "description": "副本幻兽属性配置 - 所有幻兽及BOSS的技能仅为摆设，不会触发",
+  "skill_note": "副本涉及的所有幻兽及boss的技能都只是摆设，不会触发",
+  "dungeons": {
+    "1": {
+      "dungeon_id": 1,
+      "name": "森林入口",
+      "map_name": "林中空地",
+      "level_range": [1, 3],
+      "beasts": {
+        "normal": [
+          {
+            "id": "d1_normal_1",
+            "name": "小黑鼠",
+            "level": 1,
+            "count": 1,
+            "stats": {"hp": 66, "atk": 30, "def": 28, "mdef": 27, "speed": 1},
+            "attack_type": "physical",
+            "skills": ["高级撕咬", "闪避"]
+          },
+          {
+            "id": "d1_normal_2",
+            "name": "大黄蜂",
+            "level": 1,
+            "count": 1,
+            "stats": {"hp": 72, "atk": 28, "def": 24, "mdef": 29, "speed": 1},
+            "attack_type": "physical",
+            "skills": ["高级撕咬", "闪避"]
+          }
+        ],
+        "elite": [
+          {
+            "id": "d1_elite_1",
+            "name": "精英·血螳螂",
+            "level": 1,
+            "count": 1,
+            "stats": {"hp": 67, "atk": 33, "def": 27, "mdef": 26, "speed": 1},
+            "attack_type": "physical",
+            "skills": ["高级必杀", "闪避"]
+          }
+        ],
+        "boss": {
+          "id": "d1_boss",
+          "name": "双头犬",
+          "level": 3,
+          "count": 1,
+          "stats": {"hp": 102, "atk": 53, "def": 45, "mdef": 41, "speed": 2},
+          "attack_type": "physical",
+          "skills": []
+        }
+      }
+    },
+    "2": {
+      "dungeon_id": 2,
+      "name": "宁静之森(4-6级)",
+      "map_name": "林中空地",
+      "level_range": [4, 6],
+      "beasts": {
+        "normal": [
+          {
+            "id": "d2_normal_1",
+            "name": "小黑鼠",
+            "level": 4,
+            "count": 1,
+            "stats": {"hp": 101, "atk": 52, "def": 45, "mdef": 44, "speed": 1},
+            "attack_type": "physical",
+            "skills": ["高级撕咬", "闪避"]
+          },
+          {
+            "id": "d2_normal_2",
+            "name": "大黄蜂",
+            "level": 4,
+            "count": 1,
+            "stats": {"hp": 119, "atk": 45, "def": 34, "mdef": 50, "speed": 1},
+            "attack_type": "physical",
+            "skills": ["高级撕咬", "闪避"]
+          }
+        ],
+        "elite": [
+          {
+            "id": "d2_elite_1",
+            "name": "精英·血螳螂",
+            "level": 4,
+            "count": 1,
+            "stats": {"hp": 108, "atk": 60, "def": 42, "mdef": 39, "speed": 1},
+            "attack_type": "physical",
+            "skills": ["高级必杀", "闪避"]
+          }
+        ],
+        "boss": {
+          "id": "d2_boss",
+          "name": "树灵",
+          "level": 7,
+          "count": 1,
+          "stats": {"hp": 187, "matk": 83, "def": 80, "mdef": 82, "speed": 2},
+          "attack_type": "magical",
+          "skills": []
+        }
+      }
+    },
+    "3": {
+      "dungeon_id": 3,
+      "name": "宁静之森(7-9级)",
+      "map_name": "林中空地",
+      "level_range": [7, 9],
+      "beasts": {
+        "normal": [
+          {
+            "id": "d3_normal_1",
+            "name": "小黑鼠",
+            "level": 7,
+            "count": 1,
+            "stats": {"hp": 170, "atk": 95, "def": 80, "mdef": 77, "speed": 5},
+            "attack_type": "physical",
+            "skills": ["高级撕咬", "闪避"]
+          },
+          {
+            "id": "d3_normal_2",
+            "name": "大黄蜂",
+            "level": 7,
+            "count": 1,
+            "stats": {"hp": 214, "atk": 80, "def": 55, "mdef": 92, "speed": 4},
+            "attack_type": "physical",
+            "skills": ["高级撕咬", "闪避"]
+          }
+        ],
+        "elite": [
+          {
+            "id": "d3_elite_1",
+            "name": "精英·血螳螂",
+            "level": 7,
+            "count": 1,
+            "stats": {"hp": 177, "atk": 114, "def": 76, "mdef": 64, "speed": 4},
+            "attack_type": "physical",
+            "skills": ["高级必杀", "闪避"]
+          }
+        ],
+        "boss": {
+          "id": "d3_boss",
+          "name": "巨蟒",
+          "level": 9,
+          "count": 1,
+          "stats": {"hp": 157, "matk": 94, "def": 53, "mdef": 45, "speed": 5},
+          "attack_type": "magical",
+          "skills": []
+        }
+      }
+    },
+    "4": {
+      "dungeon_id": 4,
+      "name": "呼啸平原",
+      "map_name": "幻灵镇",
+      "level_range": [10, 14],
+      "beasts": {
+        "normal": [
+          {
+            "id": "d4_normal_1",
+            "name": "獠牙猪",
+            "level": 10,
+            "count": 1,
+            "stats": {"hp": 305, "atk": 122, "def": 142, "mdef": 66, "speed": 5},
+            "attack_type": "physical",
+            "skills": ["冲撞", "反击"]
+          },
+          {
+            "id": "d4_normal_2",
+            "name": "毒毛虫",
+            "level": 10,
+            "count": 1,
+            "stats": {"hp": 222, "atk": 150, "def": 98, "mdef": 80, "speed": 6},
+            "attack_type": "physical",
+            "skills": ["破甲", "反击"]
+          }
+        ],
+        "elite": [
+          {
+            "id": "d4_elite_1",
+            "name": "精英·追风狼",
+            "level": 14,
+            "count": 1,
+            "stats": {"hp": 327, "atk": 208, "def": 158, "mdef": 151, "speed": 7},
+            "attack_type": "physical",
+            "skills": ["高级连击", "反击"]
+          }
+        ],
+        "boss": {
+          "id": "d4_boss",
+          "name": "狼王",
+          "level": 15,
+          "count": 1,
+          "stats": {"hp": 357, "atk": 217, "def": 179, "mdef": 178, "speed": 7},
+          "attack_type": "physical",
+          "skills": []
+        }
+      }
+    },
+    "5": {
+      "dungeon_id": 5,
+      "name": "天罚山",
+      "map_name": "幻灵镇",
+      "level_range": [15, 19],
+      "beasts": {
+        "normal": [
+          {
+            "id": "d5_normal_1",
+            "name": "黑灵鸟",
+            "level": 15,
+            "count": 1,
+            "stats": {"hp": 433, "matk": 173, "def": 189, "mdef": 103, "speed": 9},
+            "attack_type": "magical",
+            "skills": ["冲撞", "闪避"]
+          },
+          {
+            "id": "d5_normal_2",
+            "name": "怒冠鸟",
+            "level": 15,
+            "count": 1,
+            "stats": {"hp": 331, "matk": 251, "def": 119, "mdef": 147, "speed": 8},
+            "attack_type": "magical",
+            "skills": ["连击", "强力"]
+          }
+        ],
+        "elite": [
+          {
+            "id": "d5_elite_1",
+            "name": "精英·羽精灵",
+            "level": 19,
+            "count": 1,
+            "stats": {"hp": 568, "matk": 225, "def": 113, "mdef": 264, "speed": 9},
+            "attack_type": "magical",
+            "skills": ["高级连击", "强力"]
+          }
+        ],
+        "boss": {
+          "id": "d5_boss",
+          "name": "迷雾巫师",
+          "level": 19,
+          "count": 1,
+          "stats": {"hp": 612, "matk": 243, "def": 234, "mdef": 235, "speed": 9},
+          "attack_type": "magical",
+          "skills": []
+        }
+      }
+    },
+    "6": {
+      "dungeon_id": 6,
+      "name": "石工矿场",
+      "map_name": "定老城",
+      "level_range": [20, 24],
+      "beasts": {
+        "normal": [
+          {
+            "id": "d6_normal_1",
+            "name": "吞岩兽",
+            "level": 20,
+            "count": 2,
+            "stats": {"hp": 699, "atk": 277, "def": 327, "mdef": 138, "speed": 11},
+            "attack_type": "physical",
+            "skills": ["高级冲撞", "高级体魄"]
+          },
+          {
+            "id": "d6_normal_2",
+            "name": "弑魂蚁",
+            "level": 20,
+            "count": 2,
+            "stats": {"hp": 699, "atk": 277, "def": 160, "mdef": 304, "speed": 11},
+            "attack_type": "physical",
+            "skills": ["破甲", "高级魔抗"]
+          },
+          {
+            "id": "d6_normal_3",
+            "name": "大嘴蛇",
+            "level": 20,
+            "count": 2,
+            "stats": {"hp": 523, "atk": 342, "def": 256, "mdef": 244, "speed": 12},
+            "attack_type": "physical",
+            "skills": ["撕咬", "高级敏捷"]
+          }
+        ],
+        "elite": [
+          {
+            "id": "d6_elite_1",
+            "name": "精英·采矿猴",
+            "level": 24,
+            "count": 2,
+            "stats": {"hp": 644, "atk": 504, "def": 283, "mdef": 227, "speed": 12},
+            "attack_type": "physical",
+            "skills": ["高级连击", "高级闪避"]
+          }
+        ],
+        "boss": {
+          "id": "d6_boss",
+          "name": "暴怒矿工",
+          "level": 29,
+          "count": 1,
+          "stats": {"hp": 873, "atk": 618, "def": 302, "mdef": 420, "speed": 13},
+          "attack_type": "physical",
+          "skills": []
+        }
+      }
+    },
+    "7": {
+      "dungeon_id": 7,
+      "name": "幻灵湖畔",
+      "map_name": "定老城",
+      "level_range": [25, 29],
+      "beasts": {
+        "normal": [
+          {
+            "id": "d7_normal_1",
+            "name": "蓝灵鱼",
+            "level": 25,
+            "count": 2,
+            "stats": {"hp": 545, "matk": 420, "def": 191, "mdef": 239, "speed": 10},
+            "attack_type": "magical",
+            "skills": ["高级水攻", "反击"]
+          },
+          {
+            "id": "d7_normal_2",
+            "name": "水草兽",
+            "level": 25,
+            "count": 2,
+            "stats": {"hp": 861, "atk": 342, "def": 195, "mdef": 374, "speed": 11},
+            "attack_type": "physical",
+            "skills": ["破甲", "高级反震"]
+          },
+          {
+            "id": "d7_normal_3",
+            "name": "巨齿鳄",
+            "level": 25,
+            "count": 2,
+            "stats": {"hp": 640, "matk": 422, "def": 300, "mdef": 315, "speed": 12},
+            "attack_type": "magical",
+            "skills": ["高级水攻", "高级敏捷"]
+          }
+        ],
+        "elite": [
+          {
+            "id": "d7_elite_1",
+            "name": "精英·厚甲龟",
+            "level": 29,
+            "count": 2,
+            "stats": {"hp": 1037, "matk": 411, "def": 449, "mdef": 235, "speed": 12},
+            "attack_type": "magical",
+            "skills": ["高级反震", "高级防御", "高级体魄"]
+          }
+        ],
+        "boss": {
+          "id": "d7_boss",
+          "name": "飓风金雕",
+          "level": 29,
+          "count": 1,
+          "stats": {"hp": 926, "matk": 563, "def": 440, "mdef": 436, "speed": 13},
+          "attack_type": "magical",
+          "skills": []
+        }
+      }
+    },
+    "8": {
+      "dungeon_id": 8,
+      "name": "回音之谷",
+      "map_name": "迷雾城",
+      "level_range": [30, 34],
+      "beasts": {
+        "normal": [
+          {
+            "id": "d8_normal_1",
+            "name": "苍山鹫",
+            "level": 30,
+            "count": 2,
+            "stats": {"hp": 1240, "matk": 492, "def": 540, "mdef": 280, "speed": 13},
+            "attack_type": "magical",
+            "skills": ["高级防御", "敏捷", "闪避"]
+          },
+          {
+            "id": "d8_normal_2",
+            "name": "血蝙蝠",
+            "level": 30,
+            "count": 2,
+            "stats": {"hp": 916, "matk": 729, "def": 334, "mdef": 411, "speed": 13},
+            "attack_type": "magical",
+            "skills": ["高级吸血", "高级幸运", "智慧"]
+          },
+          {
+            "id": "d8_normal_3",
+            "name": "荒原豹",
+            "level": 30,
+            "count": 2,
+            "stats": {"hp": 916, "atk": 610, "def": 453, "mdef": 432, "speed": 14},
+            "attack_type": "physical",
+            "skills": ["连击", "闪避", "高级敏捷"]
+          }
+        ],
+        "elite": [
+          {
+            "id": "d8_elite_1",
+            "name": "精英·雷翼雕",
+            "level": 34,
+            "count": 2,
+            "stats": {"hp": 1075, "matk": 716, "def": 507, "mdef": 531, "speed": 15},
+            "attack_type": "magical",
+            "skills": ["高级雷击", "高级反击", "连击"]
+          }
+        ],
+        "boss": {
+          "id": "d8_boss",
+          "name": "花斑猛虎",
+          "level": 39,
+          "count": 1,
+          "stats": {"hp": 1368, "atk": 876, "def": 425, "mdef": 416, "speed": 14},
+          "attack_type": "physical",
+          "skills": []
+        }
+      }
+    },
+    "9": {
+      "dungeon_id": 9,
+      "name": "死亡沼泽",
+      "map_name": "迷雾城",
+      "level_range": [34, 39],
+      "beasts": {
+        "normal": [
+          {
+            "id": "d9_normal_1",
+            "name": "水蜥蜴",
+            "level": 35,
+            "count": 2,
+            "stats": {"hp": 1437, "matk": 570, "def": 627, "mdef": 323, "speed": 14},
+            "attack_type": "magical",
+            "skills": ["防御", "水攻", "破甲"]
+          },
+          {
+            "id": "d9_normal_2",
+            "name": "沼泽蛙",
+            "level": 35,
+            "count": 2,
+            "stats": {"hp": 1437, "matk": 570, "def": 273, "mdef": 676, "speed": 14},
+            "attack_type": "magical",
+            "skills": ["高级魔抗", "反震", "毒攻"]
+          },
+          {
+            "id": "d9_normal_3",
+            "name": "巨甲虫",
+            "level": 35,
+            "count": 2,
+            "stats": {"hp": 1437, "atk": 570, "def": 673, "mdef": 273, "speed": 14},
+            "attack_type": "physical",
+            "skills": ["高级毒攻", "连击", "虚弱"]
+          }
+        ],
+        "elite": [
+          {
+            "id": "d9_elite_1",
+            "name": "精英·紫雾虫",
+            "level": 39,
+            "count": 2,
+            "stats": {"hp": 1664, "atk": 660, "def": 372, "mdef": 722, "speed": 16},
+            "attack_type": "physical",
+            "skills": ["高级魔抗", "迷惑", "偷袭"]
+          }
+        ],
+        "boss": {
+          "id": "d9_boss",
+          "name": "暗夜黑虎",
+          "level": 39,
+          "count": 1,
+          "stats": {"hp": 1572, "atk": 952, "def": 527, "mdef": 368, "speed": 16},
+          "attack_type": "physical",
+          "skills": []
+        }
+      }
+    },
+    "10": {
+      "dungeon_id": 10,
+      "name": "日落海峡",
+      "map_name": "飞龙港",
+      "level_range": [40, 44],
+      "beasts": {
+        "normal": [
+          {
+            "id": "d10_normal_1",
+            "name": "大闸蟹",
+            "level": 40,
+            "count": 3,
+            "stats": {"hp": 1892, "matk": 774, "def": 858, "mdef": 435, "speed": 17},
+            "attack_type": "magical",
+            "skills": ["高级必杀", "防御", "连击"]
+          },
+          {
+            "id": "d10_normal_2",
+            "name": "落日豚",
+            "level": 40,
+            "count": 3,
+            "stats": {"hp": 1434, "matk": 729, "def": 334, "mdef": 411, "speed": 17},
+            "attack_type": "magical",
+            "skills": ["高级吸血", "高级幸运", "智慧"]
+          },
+          {
+            "id": "d10_normal_3",
+            "name": "双吻鱼",
+            "level": 40,
+            "count": 3,
+            "stats": {"hp": 1434, "matk": 1024, "def": 510, "mdef": 650, "speed": 16},
+            "attack_type": "magical",
+            "skills": ["高级连击", "闪避", "智慧"]
+          }
+        ],
+        "elite": [
+          {
+            "id": "d10_elite_1",
+            "name": "精英·海龙鱼",
+            "level": 44,
+            "count": 3,
+            "stats": {"hp": 2036, "matk": 889, "def": 416, "mdef": 927, "speed": 18},
+            "attack_type": "magical",
+            "skills": ["高级体魄", "魔抗", "水攻"]
+          }
+        ],
+        "boss": {
+          "id": "d10_boss",
+          "name": "海之子",
+          "level": 49,
+          "count": 1,
+          "stats": {"hp": 2289, "matk": 1027, "def": 563, "mdef": 547, "speed": 19},
+          "attack_type": "magical",
+          "skills": []
+        }
+      }
+    },
+    "11": {
+      "dungeon_id": 11,
+      "name": "聚灵孤岛",
+      "map_name": "飞龙港",
+      "level_range": [45, 49],
+      "beasts": {
+        "normal": [
+          {
+            "id": "d11_normal_1",
+            "name": "飞泪蝶",
+            "level": 45,
+            "count": 3,
+            "stats": {"hp": 1606, "atk": 1090, "def": 805, "mdef": 759, "speed": 19},
+            "attack_type": "physical",
+            "skills": ["高级必杀", "防御", "连击"]
+          },
+          {
+            "id": "d11_normal_2",
+            "name": "幻灵狐",
+            "level": 45,
+            "count": 3,
+            "stats": {"hp": 2065, "atk": 868, "def": 487, "mdef": 963, "speed": 18},
+            "attack_type": "physical",
+            "skills": ["高级迷惑", "闪避", "魔抗"]
+          },
+          {
+            "id": "d11_normal_3",
+            "name": "风雷蛛",
+            "level": 45,
+            "count": 3,
+            "stats": {"hp": 1606, "atk": 1304, "def": 729, "mdef": 571, "speed": 18},
+            "attack_type": "physical",
+            "skills": ["高级麻痹", "高级撕咬", "强力"]
+          }
+        ],
+        "elite": [
+          {
+            "id": "d11_elite_1",
+            "name": "精英·落魂兽",
+            "level": 49,
+            "count": 3,
+            "stats": {"hp": 2237, "atk": 970, "def": 1152, "mdef": 452, "speed": 19},
+            "attack_type": "physical",
+            "skills": ["高级反击", "冲撞", "强力"]
+          }
+        ],
+        "boss": {
+          "id": "d11_boss",
+          "name": "黑骑士",
+          "level": 49,
+          "count": 1,
+          "stats": {"hp": 2462, "atk": 1422, "def": 628, "mdef": 729, "speed": 20},
+          "attack_type": "physical",
+          "skills": []
+        }
+      }
+    },
+    "12": {
+      "dungeon_id": 12,
+      "name": "龙骨墓地",
+      "map_name": "落龙镇",
+      "level_range": [50, 54],
+      "beasts": {
+        "normal": [
+          {
+            "id": "d12_normal_1",
+            "name": "半龙羽",
+            "level": 50,
+            "count": 3,
+            "stats": {"hp": 2106, "matk": 1629, "def": 724, "mdef": 947, "speed": 21},
+            "attack_type": "magical",
+            "skills": ["雷击", "魔抗", "迷惑"]
+          },
+          {
+            "id": "d12_normal_2",
+            "name": "蚀骨狼",
+            "level": 50,
+            "count": 3,
+            "stats": {"hp": 2238, "atk": 1421, "def": 926, "mdef": 936, "speed": 22},
+            "attack_type": "physical",
+            "skills": ["高级幸运", "敏捷", "魔抗"]
+          },
+          {
+            "id": "d12_normal_3",
+            "name": "巡游使",
+            "level": 50,
+            "count": 3,
+            "stats": {"hp": 2106, "matk": 1421, "def": 998, "mdef": 1023, "speed": 22},
+            "attack_type": "magical",
+            "skills": ["高级敏捷", "高级幸运", "偷袭"]
+          }
+        ],
+        "elite": [
+          {
+            "id": "d12_elite_1",
+            "name": "精英·龙翼兽",
+            "level": 54,
+            "count": 3,
+            "stats": {"hp": 2349, "atk": 1892, "def": 1050, "mdef": 823, "speed": 22},
+            "attack_type": "physical",
+            "skills": ["高级连击", "毒攻", "反击"]
+          }
+        ],
+        "boss": {
+          "id": "d12_boss",
+          "name": "深渊魔蛟",
+          "level": 59,
+          "count": 1,
+          "stats": {"hp": 2528, "atk": 2137, "def": 1238, "mdef": 826, "speed": 23},
+          "attack_type": "physical",
+          "skills": []
+        }
+      }
+    },
+    "13": {
+      "dungeon_id": 13,
+      "name": "巨龙冰原",
+      "map_name": "落龙镇",
+      "level_range": [55, 59],
+      "beasts": {
+        "normal": [
+          {
+            "id": "d13_normal_1",
+            "name": "雪人怪",
+            "level": 55,
+            "count": 3,
+            "stats": {"hp": 3152, "matk": 1252, "def": 587, "mdef": 1379, "speed": 24},
+            "attack_type": "magical",
+            "skills": ["智慧", "幸运", "水攻"]
+          },
+          {
+            "id": "d13_normal_2",
+            "name": "噬天虎",
+            "level": 55,
+            "count": 3,
+            "stats": {"hp": 3152, "atk": 1252, "def": 698, "mdef": 1376, "speed": 24},
+            "attack_type": "physical",
+            "skills": ["高级破甲", "敏捷", "魔抗"]
+          },
+          {
+            "id": "d13_normal_3",
+            "name": "冰晶猿",
+            "level": 55,
+            "count": 3,
+            "stats": {"hp": 3152, "atk": 1252, "def": 1347, "mdef": 587, "speed": 24},
+            "attack_type": "physical",
+            "skills": ["防御", "强力", "冲撞"]
+          }
+        ],
+        "elite": [
+          {
+            "id": "d13_elite_1",
+            "name": "精英·龙魂龟",
+            "level": 59,
+            "count": 3,
+            "stats": {"hp": 3500, "matk": 1388, "def": 1450, "mdef": 776, "speed": 25},
+            "attack_type": "magical",
+            "skills": ["高级水攻", "高级反震", "雷击"]
+          }
+        ],
+        "boss": {
+          "id": "d13_boss",
+          "name": "雪域冰狐",
+          "level": 59,
+          "count": 1,
+          "stats": {"hp": 3384, "matk": 1836, "def": 1037, "mdef": 749, "speed": 25},
+          "attack_type": "magical",
+          "skills": []
+        }
+      }
+    },
+    "14": {
+      "dungeon_id": 14,
+      "name": "圣龙城郊",
+      "map_name": "圣龙城",
+      "level_range": [60, 64],
+      "beasts": {
+        "normal": [
+          {
+            "id": "d14_normal_1",
+            "name": "双头雕",
+            "level": 60,
+            "count": 4,
+            "stats": {"hp": 2836, "matk": 1990, "def": 1392, "mdef": 1466, "speed": 28},
+            "attack_type": "magical",
+            "skills": ["高级雷击", "高级反击", "连击", "迷惑"]
+          },
+          {
+            "id": "d14_normal_2",
+            "name": "龙吼鸟",
+            "level": 60,
+            "count": 4,
+            "stats": {"hp": 3628, "matk": 1595, "def": 1638, "mdef": 879, "speed": 27},
+            "attack_type": "magical",
+            "skills": ["防御", "水攻", "体魄", "破甲"]
+          },
+          {
+            "id": "d14_normal_3",
+            "name": "黑灵虎",
+            "level": 60,
+            "count": 4,
+            "stats": {"hp": 3628, "atk": 1595, "def": 879, "mdef": 1627, "speed": 27},
+            "attack_type": "physical",
+            "skills": ["高级魔抗", "必杀", "偷袭"]
+          }
+        ],
+        "elite": [
+          {
+            "id": "d14_elite_1",
+            "name": "精英·巨盾兽",
+            "level": 64,
+            "count": 4,
+            "stats": {"hp": 3869, "atk": 1700, "def": 1839, "mdef": 794, "speed": 28},
+            "attack_type": "physical",
+            "skills": ["连击", "闪避", "敏捷", "幸运"]
+          }
+        ],
+        "boss": {
+          "id": "d14_boss",
+          "name": "幽冥夜豹",
+          "level": 69,
+          "count": 1,
+          "stats": {"hp": 4384, "atk": 2384, "def": 1485, "mdef": 1538, "speed": 29},
+          "attack_type": "physical",
+          "skills": []
+        }
+      }
+    },
+    "15": {
+      "dungeon_id": 15,
+      "name": "皇城迷宫",
+      "map_name": "圣龙城",
+      "level_range": [65, 69],
+      "beasts": {
+        "normal": [
+          {
+            "id": "d15_normal_1",
+            "name": "幽冥蚁",
+            "level": 65,
+            "count": 4,
+            "stats": {"hp": 3181, "atk": 2154, "def": 1482, "mdef": 1482, "speed": 29},
+            "attack_type": "physical",
+            "skills": ["高级幸运", "高级反击", "连击", "反震"]
+          },
+          {
+            "id": "d15_normal_2",
+            "name": "半人鱼",
+            "level": 65,
+            "count": 4,
+            "stats": {"hp": 4274, "matk": 1726, "def": 1726, "mdef": 806, "speed": 29},
+            "attack_type": "magical",
+            "skills": ["高级魔抗", "雷击", "敏捷", "弱点防御"]
+          },
+          {
+            "id": "d15_normal_3",
+            "name": "金甲虫",
+            "level": 65,
+            "count": 4,
+            "stats": {"hp": 3181, "atk": 2580, "def": 1384, "mdef": 1118, "speed": 29},
+            "attack_type": "physical",
+            "skills": ["高级必杀", "吸血", "麻痹", "闪避"]
+          }
+        ],
+        "elite": [
+          {
+            "id": "d15_elite_1",
+            "name": "精英·圣晶怪",
+            "level": 69,
+            "count": 4,
+            "stats": {"hp": 3373, "matk": 2737, "def": 1185, "mdef": 1518, "speed": 30},
+            "attack_type": "magical",
+            "skills": ["高级水攻", "幸运", "致盲", "智慧"]
+          }
+        ],
+        "boss": {
+          "id": "d15_boss",
+          "name": "烈焰凤凰",
+          "level": 69,
+          "count": 1,
+          "stats": {"hp": 4937, "matk": 2948, "def": 1823, "mdef": 1834, "speed": 31},
+          "attack_type": "magical",
+          "skills": []
+        }
+      }
+    },
+    "16": {
+      "dungeon_id": 16,
+      "name": "梦幻海湾",
+      "map_name": "乌托邦",
+      "level_range": [70, 75],
+      "beasts": {
+        "normal": [
+          {
+            "id": "d16_normal_1",
+            "name": "软泥虫",
+            "level": 70,
+            "count": 4,
+            "stats": {"hp": 5034, "atk": 2149, "def": 2044, "mdef": 1000, "speed": 33},
+            "attack_type": "physical",
+            "skills": ["高级雷击", "抗性增强", "连击"]
+          },
+          {
+            "id": "d16_normal_2",
+            "name": "啸海螺",
+            "level": 70,
+            "count": 4,
+            "stats": {"hp": 5047, "matk": 2149, "def": 2148, "mdef": 1192, "speed": 33},
+            "attack_type": "magical",
+            "skills": ["高级必杀", "防御", "连击", "致盲"]
+          },
+          {
+            "id": "d16_normal_3",
+            "name": "逐浪鲨",
+            "level": 70,
+            "count": 4,
+            "stats": {"hp": 3957, "atk": 2682, "def": 1974, "mdef": 1877, "speed": 34},
+            "attack_type": "physical",
+            "skills": ["高级连击", "强力", "反震", "弱点敏捷"]
+          }
+        ],
+        "elite": [
+          {
+            "id": "d16_elite_1",
+            "name": "精英·浴火龟",
+            "level": 74,
+            "count": 4,
+            "stats": {"hp": 5528, "atk": 2339, "def": 1300, "mdef": 2447, "speed": 33},
+            "attack_type": "physical",
+            "skills": ["高级迷惑", "高级幸运", "强力", "幸运"]
+          }
+        ],
+        "boss": {
+          "id": "d16_boss",
+          "name": "幻夜沙雕",
+          "level": 69,
+          "count": 1,
+          "stats": {"hp": 5893, "atk": 2577, "def": 1846, "mdef": 1947, "speed": 35},
+          "attack_type": "physical",
+          "skills": []
+        }
+      }
+    },
+    "17": {
+      "dungeon_id": 17,
+      "name": "幻光公园",
+      "map_name": "乌托邦",
+      "level_range": [75, 999],
+      "beasts": {
+        "normal": [
+          {
+            "id": "d17_normal_1",
+            "name": "九霄鹰",
+            "level": 75,
+            "count": 4,
+            "stats": {"hp": 4234, "matk": 2872, "def": 2009, "mdef": 2113, "speed": 36},
+            "attack_type": "magical",
+            "skills": ["高级连击", "闪避", "敏捷", "魔抗"]
+          },
+          {
+            "id": "d17_normal_2",
+            "name": "幻光兔",
+            "level": 75,
+            "count": 4,
+            "stats": {"hp": 5793, "matk": 2300, "def": 1069, "mdef": 2711, "speed": 35},
+            "attack_type": "magical",
+            "skills": ["高级幸运", "偷袭", "防御", "闪避"]
+          },
+          {
+            "id": "d17_normal_3",
+            "name": "飞翼蛇",
+            "level": 75,
+            "count": 4,
+            "stats": {"hp": 4234, "atk": 3441, "def": 1907, "mdef": 1488, "speed": 36},
+            "attack_type": "physical",
+            "skills": ["高级幸运", "幸运", "麻痹", "闪避"]
+          }
+        ],
+        "elite": [
+          {
+            "id": "d17_elite_1",
+            "name": "精英·圣灵蚁",
+            "level": 79,
+            "count": 4,
+            "stats": {"hp": 5284, "matk": 4033, "def": 2034, "mdef": 2304, "speed": 38},
+            "attack_type": "magical",
+            "skills": ["高级必杀", "幸运", "致盲", "智慧"]
+          }
+        ],
+        "boss": {
+          "id": "d17_boss",
+          "name": "神秘人",
+          "level": 79,
+          "count": 1,
+          "stats": {"hp": 6032, "matk": 4237, "def": 2639, "mdef": 1749, "speed": 40},
+          "attack_type": "magical",
+          "skills": []
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,10 @@
+[
+  { "id": 1, "name": "林中空地", "min_level": 1,  "max_level": 9 },
+  { "id": 2, "name": "幻灵镇",   "min_level": 10, "max_level": 19 },
+  { "id": 3, "name": "定老城",   "min_level": 20, "max_level": 29 },
+  { "id": 4, "name": "迷雾城",   "min_level": 30, "max_level": 39 },
+  { "id": 5, "name": "飞龙港",   "min_level": 40, "max_level": 49 },
+  { "id": 6, "name": "落龙镇",   "min_level": 50, "max_level": 59 },
+  { "id": 7, "name": "圣龙城",   "min_level": 60, "max_level": 69 },
+  { "id": 8, "name": "乌托邦",   "min_level": 70, "max_level": 999 }
+]

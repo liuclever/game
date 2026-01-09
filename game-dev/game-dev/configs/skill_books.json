@@ -1,0 +1,105 @@
+{
+  "description": "幻兽技能书配置 - 每本技能书对应一个技能",
+  
+  "replace_rules": {
+    "max_skills": 4,
+    "description": "打书规则说明",
+    "rules": {
+      "0_skills": "必定学会新技能（变成1个技能）",
+      "1_to_3_skills": "50%概率增加技能，50%概率随机替换一个现有技能",
+      "4_skills": "必定随机替换一个现有技能"
+    },
+    "add_chance": 0.5
+  },
+
+  "skill_books": {
+    "active_normal": [
+      {"item_id": 10001, "name": "必杀书", "skill_name": "必杀", "description": "教会幻兽【必杀】技能"},
+      {"item_id": 10002, "name": "连击书", "skill_name": "连击", "description": "教会幻兽【连击】技能"},
+      {"item_id": 10003, "name": "破甲书", "skill_name": "破甲", "description": "教会幻兽【破甲】技能"},
+      {"item_id": 10004, "name": "致盲书", "skill_name": "致盲", "description": "教会幻兽【致盲】技能"},
+      {"item_id": 10005, "name": "麻痹书", "skill_name": "麻痹", "description": "教会幻兽【麻痹】技能"},
+      {"item_id": 10006, "name": "迷惑书", "skill_name": "迷惑", "description": "教会幻兽【迷惑】技能"},
+      {"item_id": 10007, "name": "虚弱书", "skill_name": "虚弱", "description": "教会幻兽【虚弱】技能"},
+      {"item_id": 10008, "name": "雷击书", "skill_name": "雷击", "description": "教会幻兽【雷击】技能"},
+      {"item_id": 10009, "name": "撕咬书", "skill_name": "撕咬", "description": "教会幻兽【撕咬】技能"},
+      {"item_id": 10010, "name": "冲撞书", "skill_name": "冲撞", "description": "教会幻兽【冲撞】技能"},
+      {"item_id": 10011, "name": "水攻书", "skill_name": "水攻", "description": "教会幻兽【水攻】技能"},
+      {"item_id": 10012, "name": "吸血书", "skill_name": "吸血", "description": "教会幻兽【吸血】技能"},
+      {"item_id": 10013, "name": "毒攻书", "skill_name": "毒攻", "description": "教会幻兽【毒攻】技能"}
+    ],
+    "active_advanced": [
+      {"item_id": 10101, "name": "高级必杀书", "skill_name": "高级必杀", "description": "教会幻兽【高级必杀】技能"},
+      {"item_id": 10102, "name": "高级连击书", "skill_name": "高级连击", "description": "教会幻兽【高级连击】技能"},
+      {"item_id": 10103, "name": "高级破甲书", "skill_name": "高级破甲", "description": "教会幻兽【高级破甲】技能"},
+      {"item_id": 10104, "name": "高级致盲书", "skill_name": "高级致盲", "description": "教会幻兽【高级致盲】技能"},
+      {"item_id": 10105, "name": "高级麻痹书", "skill_name": "高级麻痹", "description": "教会幻兽【高级麻痹】技能"},
+      {"item_id": 10106, "name": "高级迷惑书", "skill_name": "高级迷惑", "description": "教会幻兽【高级迷惑】技能"},
+      {"item_id": 10107, "name": "高级虚弱书", "skill_name": "高级虚弱", "description": "教会幻兽【高级虚弱】技能"},
+      {"item_id": 10108, "name": "高级雷击书", "skill_name": "高级雷击", "description": "教会幻兽【高级雷击】技能"},
+      {"item_id": 10109, "name": "高级撕咬书", "skill_name": "高级撕咬", "description": "教会幻兽【高级撕咬】技能"},
+      {"item_id": 10110, "name": "高级冲撞书", "skill_name": "高级冲撞", "description": "教会幻兽【高级冲撞】技能"},
+      {"item_id": 10111, "name": "高级水攻书", "skill_name": "高级水攻", "description": "教会幻兽【高级水攻】技能"},
+      {"item_id": 10112, "name": "高级吸血书", "skill_name": "高级吸血", "description": "教会幻兽【高级吸血】技能"},
+      {"item_id": 10113, "name": "高级毒攻书", "skill_name": "高级毒攻", "description": "教会幻兽【高级毒攻】技能"}
+    ],
+    "passive_normal": [
+      {"item_id": 10201, "name": "闪避书", "skill_name": "闪避", "description": "教会幻兽【闪避】技能"},
+      {"item_id": 10202, "name": "反震书", "skill_name": "反震", "description": "教会幻兽【反震】技能"},
+      {"item_id": 10203, "name": "反击书", "skill_name": "反击", "description": "教会幻兽【反击】技能"}
+    ],
+    "passive_advanced": [
+      {"item_id": 10301, "name": "高级闪避书", "skill_name": "高级闪避", "description": "教会幻兽【高级闪避】技能"},
+      {"item_id": 10302, "name": "高级反震书", "skill_name": "高级反震", "description": "教会幻兽【高级反震】技能"},
+      {"item_id": 10303, "name": "高级反击书", "skill_name": "高级反击", "description": "教会幻兽【高级反击】技能"}
+    ],
+    "buff_normal": [
+      {"item_id": 10401, "name": "强力书", "skill_name": "强力", "description": "教会幻兽【强力】技能"},
+      {"item_id": 10402, "name": "智慧书", "skill_name": "智慧", "description": "教会幻兽【智慧】技能"},
+      {"item_id": 10403, "name": "魔抗书", "skill_name": "魔抗", "description": "教会幻兽【魔抗】技能"},
+      {"item_id": 10404, "name": "防御书", "skill_name": "防御", "description": "教会幻兽【防御】技能"},
+      {"item_id": 10405, "name": "敏捷书", "skill_name": "敏捷", "description": "教会幻兽【敏捷】技能"},
+      {"item_id": 10406, "name": "体魄书", "skill_name": "体魄", "description": "教会幻兽【体魄】技能"},
+      {"item_id": 10407, "name": "幸运书", "skill_name": "幸运", "description": "教会幻兽【幸运】技能"},
+      {"item_id": 10408, "name": "偷袭书", "skill_name": "偷袭", "description": "教会幻兽【偷袭】技能"},
+      {"item_id": 10409, "name": "抗性增强书", "skill_name": "抗性增强", "description": "教会幻兽【抗性增强】技能"}
+    ],
+    "buff_advanced": [
+      {"item_id": 10501, "name": "高级强力书", "skill_name": "高级强力", "description": "教会幻兽【高级强力】技能"},
+      {"item_id": 10502, "name": "高级智慧书", "skill_name": "高级智慧", "description": "教会幻兽【高级智慧】技能"},
+      {"item_id": 10503, "name": "高级魔抗书", "skill_name": "高级魔抗", "description": "教会幻兽【高级魔抗】技能"},
+      {"item_id": 10504, "name": "高级防御书", "skill_name": "高级防御", "description": "教会幻兽【高级防御】技能"},
+      {"item_id": 10505, "name": "高级敏捷书", "skill_name": "高级敏捷", "description": "教会幻兽【高级敏捷】技能"},
+      {"item_id": 10506, "name": "高级体魄书", "skill_name": "高级体魄", "description": "教会幻兽【高级体魄】技能"},
+      {"item_id": 10507, "name": "毒攻强化书", "skill_name": "毒攻强化", "description": "教会幻兽【毒攻强化】技能"},
+      {"item_id": 10508, "name": "高级幸运书", "skill_name": "高级幸运", "description": "教会幻兽【高级幸运】技能"}
+    ],
+    "debuff": [
+      {"item_id": 10601, "name": "弱点攻击书", "skill_name": "弱点攻击", "description": "教会幻兽【弱点攻击】技能（负面）"},
+      {"item_id": 10602, "name": "弱点防御书", "skill_name": "弱点防御", "description": "教会幻兽【弱点防御】技能（负面）"},
+      {"item_id": 10603, "name": "弱点魔抗书", "skill_name": "弱点魔抗", "description": "教会幻兽【弱点魔抗】技能（负面）"},
+      {"item_id": 10604, "name": "弱点敏捷书", "skill_name": "弱点敏捷", "description": "教会幻兽【弱点敏捷】技能（负面）"}
+    ]
+  },
+
+  "item_id_to_skill": {
+    "10001": "必杀", "10002": "连击", "10003": "破甲", "10004": "致盲",
+    "10005": "麻痹", "10006": "迷惑", "10007": "虚弱", "10008": "雷击",
+    "10009": "撕咬", "10010": "冲撞", "10011": "水攻", "10012": "吸血", "10013": "毒攻",
+    
+    "10101": "高级必杀", "10102": "高级连击", "10103": "高级破甲", "10104": "高级致盲",
+    "10105": "高级麻痹", "10106": "高级迷惑", "10107": "高级虚弱", "10108": "高级雷击",
+    "10109": "高级撕咬", "10110": "高级冲撞", "10111": "高级水攻", "10112": "高级吸血", "10113": "高级毒攻",
+    
+    "10201": "闪避", "10202": "反震", "10203": "反击",
+    "10301": "高级闪避", "10302": "高级反震", "10303": "高级反击",
+    
+    "10401": "强力", "10402": "智慧", "10403": "魔抗", "10404": "防御",
+    "10405": "敏捷", "10406": "体魄", "10407": "幸运", "10408": "偷袭", "10409": "抗性增强",
+    
+    "10501": "高级强力", "10502": "高级智慧", "10503": "高级魔抗", "10504": "高级防御",
+    "10505": "高级敏捷", "10506": "高级体魄", "10507": "毒攻强化", "10508": "高级幸运",
+    
+    "10601": "弱点攻击", "10602": "弱点防御", "10603": "弱点魔抗", "10604": "弱点敏捷"
+  }
+}

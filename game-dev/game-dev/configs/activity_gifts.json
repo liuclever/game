@@ -1,0 +1,50 @@
+{
+  "pools": {
+    "crystals": [1001, 1002, 1003, 1004, 1005, 1006, 1007]
+  },
+  "gifts": [
+    {
+      "key": "peach",
+      "name": "桃木召唤礼包",
+      "threshold": 10,
+      "item_id": 91001,
+      "rewards": [
+        { "type": "item", "item_id": 6001, "name": "镇妖符", "quantity": 1 },
+        { "type": "random_from_pool", "pool": "crystals", "name": "七类结晶", "quantity": 1 }
+      ]
+    },
+    {
+      "key": "bronze",
+      "name": "青铜召唤礼包",
+      "threshold": 60,
+      "item_id": 91002,
+      "rewards": [
+        { "type": "item", "item_id": 6018, "name": "传送符", "quantity": 1 },
+        { "type": "random_from_pool", "pool": "crystals", "name": "七类结晶", "quantity": 1 },
+        { "type": "gold", "amount": 12800 }
+      ]
+    },
+    {
+      "key": "silver",
+      "name": "白银召唤礼包",
+      "threshold": 80,
+      "item_id": 91003,
+      "rewards": [
+        { "type": "item", "item_id": 6028, "name": "炼魂丹", "quantity": 1 },
+        { "type": "random_from_pool", "pool": "crystals", "name": "七类结晶", "quantity": 1 },
+        { "type": "gold", "amount": 23000 }
+      ]
+    },
+    {
+      "key": "gold",
+      "name": "黄金召唤礼包",
+      "threshold": 100,
+      "item_id": 91004,
+      "rewards": [
+        { "type": "item", "item_id": 6028, "name": "炼魂丹", "quantity": 1 },
+        { "type": "random_from_pool", "pool": "crystals", "name": "七类结晶", "quantity": 2 },
+        { "type": "gold", "amount": 45000 }
+      ]
+    }
+  ]
+}

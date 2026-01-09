@@ -1,0 +1,23 @@
+/* 全局样式重置 */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  font-family: SimSun, "宋体", serif;
+  line-height: 1.5;
+  color: #333333;
+  background-color: #FFF8DC;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+#app {
+  width: 100%;
+}
