@@ -7,20 +7,25 @@ const router = useRouter()
 
 const loading = ref(true)
 const errorMsg = ref('')
-const msg = ref('')
 const status = ref(null)
 
-const isSunday = computed(() => Boolean(status.value?.is_sunday))
 const canDrawToday = computed(() => Boolean(status.value?.can_draw_today))
-const myNumbers = computed(() => status.value?.my_numbers || [])
-const winningNumbers = computed(() => status.value?.winning_numbers || [])
-const matchCount = computed(() => Number(status.value?.match_count || 0))
-const star = computed(() => Number(status.value?.star || 0))
-const claimed = computed(() => Boolean(status.value?.claimed))
+const weekNo = computed(() => Number(status.value?.week_no || 0))
+const todayNumber = computed(() => status.value?.today_number)
+const redNumbers = computed(() => status.value?.red_numbers || [])
+const blueNumber = computed(() => status.value?.blue_number)
+const announceDate = computed(() => String(status.value?.announce_date || '').trim())
+
+const lastWeek = computed(() => status.value?.last_week || null)
+const lastRed = computed(() => lastWeek.value?.red_numbers || [])
+const lastBlue = computed(() => lastWeek.value?.blue_number)
+const lastWinningRed = computed(() => lastWeek.value?.winning_red_numbers || [])
+const lastWinningBlue = computed(() => lastWeek.value?.winning_blue_number)
+const lastStar = computed(() => Number(lastWeek.value?.star || 0))
+const lastClaimed = computed(() => Boolean(lastWeek.value?.claimed))
 
 const goRule = () => router.push('/tree/rule')
 const goHome = () => router.push('/')
-const goBack = () => router.back()
 
 const load = async () => {
   loading.value = true
@@ -40,12 +45,10 @@ const load = async () => {
 }
 
 const drawToday = async () => {
-  msg.value = ''
   errorMsg.value = ''
   try {
     const res = await http.post('/tree/draw')
     if (res.data?.ok) {
-      msg.value = `今日领取数字：${res.data.drawn_number}`
       await load()
     } else {
       errorMsg.value = res.data?.error || '领取失败'
@@ -56,14 +59,10 @@ const drawToday = async () => {
 }
 
 const claim = async () => {
-  msg.value = ''
   errorMsg.value = ''
   try {
     const res = await http.post('/tree/claim')
     if (res.data?.ok) {
-      const c = res.data?.reward?.copper || 0
-      const pill = res.data?.reward?.rebirth_pill || 0
-      msg.value = pill > 0 ? `领取成功：铜钱+${c}，重生丹×${pill}` : `领取成功：铜钱+${c}`
       await load()
     } else {
       errorMsg.value = res.data?.error || '领奖失败'
@@ -79,7 +78,7 @@ onMounted(() => load())
 <template>
   <div class="tree-page">
     <div class="section title-row">
-      <span class="title">古树</span>
+      <span class="title">【幸运古树】</span>
       <a class="link" @click="goRule">规则</a>
     </div>
 
@@ -87,40 +86,43 @@ onMounted(() => load())
     <div class="section red" v-else-if="errorMsg">{{ errorMsg }}</div>
 
     <template v-else-if="status">
-      <div class="section">本周已领取：{{ myNumbers.length }}/7</div>
-      <div class="section">
-        我的数字：
-        <span v-if="myNumbers.length === 0" class="gray">暂无</span>
-        <span v-else class="nums">{{ myNumbers.join('，') }}</span>
-      </div>
+      <div class="section gray">积累幸运数字,周周有望拿大奖</div>
+      <div class="section">第{{ weekNo }}周</div>
+      <div class="section">今日幸运数字: <span class="bold">{{ todayNumber ?? '暂无' }}</span></div>
+
+      <div class="section spacer">我的本周幸运数字</div>
+      <div class="section">红果实:<span class="nums">{{ redNumbers.length ? redNumbers.join(' ') : ' 暂无' }}</span></div>
+      <div class="section">蓝果实:<span class="nums">{{ blueNumber != null ? ` ${blueNumber}` : ' 暂无' }}</span></div>
 
       <div class="section spacer">
-        <a v-if="canDrawToday" class="link" @click="drawToday">领取今日数字</a>
-        <span v-else class="gray">今日已领取或本周已满</span>
+        <a v-if="canDrawToday" class="link" @click="drawToday">领取</a>
+        <span v-else class="gray">今日已领取</span>
       </div>
 
-      <div class="section" v-if="isSunday">
-        中奖数字：
-        <span v-if="winningNumbers.length === 0" class="gray">未开奖</span>
-        <span v-else class="nums">{{ winningNumbers.join('，') }}</span>
-      </div>
-      <div class="section" v-if="isSunday && winningNumbers.length">
-        命中：<span class="bold">{{ matchCount }}</span> 个
-        <span class="gray">（{{ star }}星）</span>
-      </div>
+      <div class="section spacer">幸运数字公布时间</div>
+      <div class="section">{{ announceDate }}</div>
 
-      <div class="section spacer" v-if="isSunday && winningNumbers.length">
-        <a v-if="!claimed && star > 0" class="link red" @click="claim">领取本周礼包</a>
-        <span v-else-if="claimed" class="gray">本周已领奖</span>
-        <span v-else class="gray">未中奖</span>
-      </div>
+      <template v-if="lastWeek">
+        <div class="section spacer">我的上周数字</div>
+        <div class="section">红果实:<span class="nums">{{ lastRed.length ? lastRed.join(' ') : ' 暂无' }}</span></div>
+        <div class="section">蓝果实:<span class="nums">{{ lastBlue != null ? ` ${lastBlue}` : ' 暂无' }}</span></div>
 
-      <div class="section red" v-if="msg">{{ msg }}</div>
+        <div class="section spacer">上周幸运数字</div>
+        <div class="section">红果实:<span class="nums">{{ lastWinningRed.length ? lastWinningRed.join(' ') : ' 暂无' }}</span></div>
+        <div class="section">蓝果实:<span class="nums">{{ lastWinningBlue != null ? ` ${lastWinningBlue}` : ' 暂无' }}</span></div>
+
+        <div class="section spacer" v-if="lastStar > 0">
+          <span>您的幸运数字获得</span><span class="bold">{{ lastStar }}</span><span>星幸运礼包</span>
+          <template v-if="!lastClaimed">
+            <a class="link red" style="margin-left: 8px;" @click="claim">领取</a>
+          </template>
+          <template v-else>
+            <span class="gray" style="margin-left: 8px;">已领取</span>
+          </template>
+        </div>
+      </template>
 
       <div class="section spacer">
-        <a class="link" @click="goBack">返回前页</a>
-      </div>
-      <div class="section">
         <a class="link" @click="goHome">返回游戏首页</a>
       </div>
     </template>
@@ -142,7 +144,6 @@ onMounted(() => load())
 }
 
 .title-row {
-  display: flex;
   align-items: baseline;
   justify-content: space-between;
   margin-top: 6px;

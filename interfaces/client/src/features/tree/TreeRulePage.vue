@@ -3,34 +3,22 @@ import { useRouter } from 'vue-router'
 
 const router = useRouter()
 
-const goBack = () => router.back()
 const goHome = () => router.push('/')
 </script>
 
 <template>
   <div class="tree-rule">
-    <div class="section title">古树规则</div>
+    <div class="section title">幸运古树玩法规则：</div>
 
-    <div class="section">每天领取 1 个数字（0-100），一周共领取 7 个数字。</div>
-    <div class="section">周日显示本周中奖数字（7个）。</div>
-    <div class="section">把“我的数字”和“中奖数字”对比：</div>
-    <div class="section indent">命中 5 个及以上：获得 5 星幸运礼包</div>
-    <div class="section indent">命中 4 个：获得 4 星幸运礼包</div>
-    <div class="section indent">命中 3 个：获得 3 星幸运礼包</div>
-    <div class="section indent">命中 2 个：获得 2 星幸运礼包</div>
-    <div class="section indent">命中 1 个：获得 1 星幸运礼包</div>
-
-    <div class="section spacer">礼包内容（周日领奖，一周一次）：</div>
-    <div class="section indent">1星幸运礼包：1w 铜钱</div>
-    <div class="section indent">2星幸运礼包：3w 铜钱</div>
-    <div class="section indent">3星幸运礼包：5w 铜钱、重生丹×1</div>
-    <div class="section indent">4星幸运礼包：10w 铜钱、重生丹×1</div>
-    <div class="section indent">5星幸运礼包：15w 铜钱、重生丹×1</div>
+    <div class="section indent">1、幸运古树每天掉落一个幸运果，幸运果上面刻有1个幸运数字；</div>
+    <div class="section indent">2、玩家每天登陆即可免费领取到1个幸运果；</div>
+    <div class="section indent">3、周一至周六登录，每天可领取1个红果实幸运数字，数字范围01-100；</div>
+    <div class="section indent">4、周日登录，可领取1个蓝果实幸运数字，数字范围01-100；</div>
+    <div class="section indent">5、每周从100个红果实数字球中随机选出6个数字，从100个蓝果实数字球中随机选出1个数字，组合而成当周幸运数字；</div>
+    <div class="section indent">6、当周幸运数字，下周一统一公布；</div>
+    <div class="section indent">7、玩家获奖后，需手动领取，奖励有效期为一周，即在下次公布幸运数字时，如未领取当周奖励，则奖励作废。</div>
 
     <div class="section spacer">
-      <a class="link" @click="goBack">返回前页</a>
-    </div>
-    <div class="section">
       <a class="link" @click="goHome">返回游戏首页</a>
     </div>
   </div>

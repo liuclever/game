@@ -2,8 +2,11 @@
 古树幸运数字规则（领域层，纯函数）。
 
 规则来源：产品需求
-- 每天领取 1 个数字（0~100），一周最多 7 个数字；
-- 周日开奖 7 个数字；
+- 周一至周六：每天领取 1 个红果实幸运数字，数字范围 01~100；
+- 周日：领取 1 个蓝果实幸运数字，数字范围 01~100；
+- 每周从 100 个红果实数字球中随机选出 6 个数字，从 100 个蓝果实数字球中随机选出 1 个数字，组合为当周幸运数字；
+- 当周幸运数字在下周一统一公布；
+- 玩家获奖后需手动领取，奖励有效期为一周（下次公布时未领取则作废）；
 - 命中数 >=5：5星礼包；命中 4：4星；... 命中 1：1星；0：未中奖；
 - 礼包内容：
   1星：10000 铜钱
@@ -19,11 +22,11 @@ from __future__ import annotations
 
 import random
 from datetime import date, timedelta
-from typing import Iterable, List, Tuple
+from typing import Iterable, List, Optional, Tuple
 
 
 def week_start_of(d: date) -> date:
-    """返回所在周的周一日期（周日领奖）。"""
+    """返回所在周的周一日期。"""
     # Python: Monday=0 ... Sunday=6
     return d - timedelta(days=int(d.weekday()))
 
@@ -32,34 +35,57 @@ def is_sunday(d: date) -> bool:
     return int(d.weekday()) == 6
 
 
+def announce_date_of(week_start: date) -> date:
+    """当周幸运数字公布时间：下周一。"""
+    return week_start + timedelta(days=7)
+
+
+def week_index(week_start: date, epoch: date = date(2024, 12, 30)) -> int:
+    """显示用周数（与站点类似的累计周数）。
+
+    说明：以 2024-12-30（周一）作为第 1 周起点，这样 2026 年初会落在 50+ 周，贴近示例格式。
+    """
+    ws = week_start
+    if ws < epoch:
+        return 1
+    return int((ws - epoch).days // 7) + 1
+
+
 def can_draw_today(last_draw_date: date | None, today: date) -> bool:
     """是否可领取今日数字（每日一次）。"""
     return last_draw_date != today
 
 
-def draw_unique_number(existing: Iterable[int], rng: random.Random | None = None) -> int:
-    """从 0~100 中抽取一个未出现过的数字。"""
+def draw_red_number(rng: random.Random | None = None) -> int:
+    """领取红果实幸运数字（01~100，可重复）。"""
     r = rng or random.Random()
-    exist = set(int(x) for x in existing)
-    if len(exist) >= 101:
-        # 理论上不会发生（每周最多 7 个）
-        return 0
-    while True:
-        n = int(r.randint(0, 100))
-        if n not in exist:
-            return n
+    return int(r.randint(1, 100))
 
 
-def generate_winning_numbers(rng: random.Random | None = None) -> List[int]:
-    """生成 7 个不重复的开奖数字（0~100）。"""
+def draw_blue_number(rng: random.Random | None = None) -> int:
+    """领取蓝果实幸运数字（01~100，可重复）。"""
     r = rng or random.Random()
-    nums = r.sample(list(range(0, 101)), 7)
-    return [int(x) for x in nums]
+    return int(r.randint(1, 100))
 
 
-def match_count(my_numbers: Iterable[int], winning_numbers: Iterable[int]) -> int:
-    """计算命中个数（按集合匹配；本模块确保每组数字不重复）。"""
-    return len(set(int(x) for x in my_numbers) & set(int(x) for x in winning_numbers))
+def generate_winning_numbers(rng: random.Random | None = None) -> Tuple[List[int], int]:
+    """生成 (6个红果实数字, 1个蓝果实数字)。"""
+    r = rng or random.Random()
+    red = [int(x) for x in r.sample(list(range(1, 101)), 6)]
+    blue = int(r.randint(1, 100))
+    return red, blue
+
+
+def match_count(
+    my_red_numbers: Iterable[int],
+    my_blue_number: Optional[int],
+    winning_red_numbers: Iterable[int],
+    winning_blue_number: Optional[int],
+) -> int:
+    """计算命中个数（红果实按集合匹配 + 蓝果实按相等匹配）。"""
+    red_hit = len(set(int(x) for x in my_red_numbers) & set(int(x) for x in winning_red_numbers))
+    blue_hit = 1 if (my_blue_number is not None and winning_blue_number is not None and int(my_blue_number) == int(winning_blue_number)) else 0
+    return int(red_hit + blue_hit)
 
 
 def calc_star_by_match(cnt: int) -> int:
