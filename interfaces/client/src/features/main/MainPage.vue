@@ -10,6 +10,27 @@ const isLoggedIn = ref(false)
 const currentUser = ref(null)
 const loading = ref(true)
 
+// 等级显示：1星=10级，1品=1级，例如 79 => 7星9品召唤师（前端计算）
+const summonerTitle = computed(() => {
+  const lv = Number(currentUser.value?.level || 0)
+  if (!Number.isFinite(lv) || lv <= 0) return ''
+  const star = Math.floor(lv / 10)
+  const pin = lv % 10
+  return `${star}星${pin}品召唤师`
+})
+
+const hasSignedToday = computed(() => {
+  const last = String(currentUser.value?.last_signin_date || '').trim()
+  if (!last) return false
+  const today = new Date()
+  const yyyy = today.getFullYear()
+  const mm = String(today.getMonth() + 1).padStart(2, '0')
+  const dd = String(today.getDate()).padStart(2, '0')
+  return last === `${yyyy}-${mm}-${dd}`
+})
+
+const signinRewardMsg = ref('')
+
 // 修行状态
 const cultivation = ref({
   is_cultivating: false,
@@ -90,15 +111,17 @@ const checkAuth = async () => {
           nickname: res.data.nickname,
           level: res.data.level,
           rank_name: res.data.rank_name,
-          gold: res.data.gold,
+          gold: res.data.gold, // 兼容旧字段（不要在 UI 里当“铜钱”展示）
+          copper: res.data.copper, // 铜钱
           exp: res.data.exp,
           battle_power: res.data.battle_power,
           prestige: res.data.prestige,
           energy: res.data.energy,
           max_energy: res.data.max_energy,
           vip_level: res.data.vip_level,
-          spirit_stone: res.data.spirit_stone,
+          crystal_tower: res.data.crystal_tower,
           yuanbao: res.data.yuanbao,
+          last_signin_date: res.data.last_signin_date,
         }
       // 获取修行状态
       loadCultivationStatus()
@@ -379,9 +402,27 @@ const goLogin = () => {
   router.push('/login')
 }
 
-// 签到
-const handleSignin = () => {
-  alert('签到功能')
+// 签到（当日仅一次）
+const handleSignin = async () => {
+  if (!isLoggedIn.value) return
+  if (hasSignedToday.value) return
+  signinRewardMsg.value = ''
+  try {
+    const res = await http.post('/player/signin')
+    if (res.data?.ok) {
+      const issuer = String(res.data?.issuer_name || '').trim()
+      const copper = res.data?.reward?.copper || 0
+      const multi = res.data?.reward?.multiplier || 1
+      signinRewardMsg.value = issuer
+        ? `已发放奖励：颁发者【${issuer}】，铜钱+${copper}${multi >= 2 ? ' (×2)' : ''}`
+        : `已发放奖励：铜钱+${copper}${multi >= 2 ? ' (×2)' : ''}`
+      await checkAuth()
+    } else {
+      alert(res.data?.error || '签到失败')
+    }
+  } catch (e) {
+    alert(e?.response?.data?.error || '签到失败')
+  }
 }
 
 // 导航到背包
@@ -523,7 +564,6 @@ const handleLink = (name) => {
       欢迎您，<a class="link username" @click="goPlayerHome(currentUser.id)">{{ currentUser.nickname }}</a>
       <span> (ID:{{ currentUser.id }}) </span>
       <a class="link" @click="handleLink('好友')">好友>></a>
-      <a class="link" @click="doLogout">退出登录</a>
     </div>
     <div class="section" v-else>
       <a class="link" @click="goLogin">点击登录</a>
@@ -532,7 +572,15 @@ const handleLink = (name) => {
       每日必做 <span class="red bold">12/14</span><a class="link" @click="handleLink('查看')">查看</a>
     </div>
     <div class="section">
-      今日 <span class="link readonly">已签到</span>
+      今日
+      <template v-if="isLoggedIn">
+        <span v-if="hasSignedToday" class="link readonly">已签到</span>
+        <a v-else class="link" @click="handleSignin">签到</a>
+      </template>
+      <template v-else>
+        <span class="gray">未登录</span>
+      </template>
+      <div class="section indent red" v-if="signinRewardMsg">{{ signinRewardMsg }}</div>
     </div>
     <div class="section">
       任务: 通关【回音之谷】 <a class="link" @click="handleLink('前往')">前往</a>
@@ -601,7 +649,7 @@ const handleLink = (name) => {
     <div class="section title">【个人信息】</div>
     <template v-if="isLoggedIn && currentUser">
       <div class="section indent">
-        等级:<span class="bold">{{ currentUser.level }}</span>级召唤师
+        等级:<span class="bold">{{ summonerTitle }}</span>
       </div>
       <div class="section indent">
         声望:{{ prestigeDisplay }} <a 
@@ -614,13 +662,13 @@ const handleLink = (name) => {
           <a class="link blue" @click="handleLink('活力')">活力</a>:{{ currentUser.energy }}/{{ currentUser.max_energy || 190 }} ( <a class="link" @click="handleLink('提升')">提升</a> )
         </div>
       <div class="section indent">
-        水晶塔:{{ currentUser.spirit_stone || 0 }}/100
+        水晶塔:{{ currentUser.crystal_tower || 0 }}/100
       </div>
       <div class="section indent">
         战力:{{ currentUser.battle_power || 0 }}
       </div>
       <div class="section indent">
-        铜钱:{{ currentUser.gold || 0 }}
+        铜钱:{{ currentUser.copper || 0 }}
       </div>
       <div class="section indent">
         元宝:{{ currentUser.yuanbao || 0 }}
@@ -648,6 +696,11 @@ const handleLink = (name) => {
     </div>
     <div class="section">
       <a class="link" @click="handleLink('兑换')">兑换</a>. <span class="link readonly">签到</span>. <span class="link readonly">论坛</span>. <a class="link" @click="handleLink('VIP')">VIP</a>. <span class="link readonly">安全锁</span>
+    </div>
+
+    <!-- 退出登录（按需求放到底部） -->
+    <div class="section" v-if="isLoggedIn">
+      <a class="link red" @click="doLogout">退出登录</a>
     </div>
 
     <!-- 底部信息 -->

@@ -20,6 +20,12 @@ from flask import Flask, request, jsonify, session
 app = Flask(__name__)
 app.secret_key = 'game_tower_secret_key_2024'
 
+# Session Cookie（生产/开发通用的最常见方式：HttpOnly Cookie + 同源访问）
+# - 前端通过相对路径请求 /api（生产同域；开发用 Vite proxy 转发到后端）
+# - 登录态由浏览器保存的 session cookie 维护（HttpOnly，前端 JS 不可读，更安全）。
+app.config.setdefault("SESSION_COOKIE_HTTPONLY", True)
+app.config.setdefault("SESSION_COOKIE_SAMESITE", "Lax")
+
 # ===== 注册路由蓝图 =====
 from interfaces.routes.auth_routes import auth_bp
 from interfaces.routes.player_routes import player_bp

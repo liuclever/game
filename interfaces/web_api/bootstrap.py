@@ -150,7 +150,8 @@ class ServiceContainer:
             monster_repo=self.monster_repo, 
             drop_service=self.drop_service
         )
-        self.signin_service = SigninService(player_repo=self.player_repo_inmemory)
+        # 同时依赖联盟仓库：用于从盟战榜前三联盟随机选取“颁发者”
+        self.signin_service = SigninService(player_repo=self.player_repo, alliance_repo=self.alliance_repo)
         self.map_service = MapService(
             map_repo=self.map_repo, 
             monster_repo=self.monster_repo

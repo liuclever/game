@@ -4,6 +4,7 @@
 from flask import Blueprint, request, jsonify, session
 from interfaces.web_api.bootstrap import services
 from application.services.cultivation_service import CultivationService
+from application.services.signin_service import SigninError
 from domain.services.pvp_battle_engine import PvpBeast, PvpPlayer, run_pvp_battle
 from domain.services.skill_system import apply_buff_debuff_skills
 from infrastructure.db.connection import execute_update, execute_query
@@ -162,6 +163,31 @@ def get_player_profile():
         "beasts": beasts_data,
         "dynamics": dynamics,
     })
+
+
+@player_bp.post("/player/signin")
+def player_signin():
+    """玩家签到（当日仅一次）。
+
+    返回：
+    - ok: bool
+    - issuer_name: str（颁发者：盟战榜前三联盟随机一个）
+    - reward: {base_copper, copper, multiplier}
+    - signin_streak: int
+    - last_signin_date: YYYY-MM-DD
+    """
+    user_id = get_current_user_id()
+    if not user_id:
+        return jsonify({"ok": False, "error": "请先登录"}), 401
+
+    try:
+        result = services.signin_service.do_signin(player_id=user_id)
+    except SigninError:
+        return jsonify({"ok": False, "error": "今日已签到"}), 400
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 400
+
+    return jsonify({"ok": True, **(result or {})})
 
 
 

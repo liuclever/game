@@ -664,6 +664,17 @@ class MySQLAllianceRepo(IAllianceRepo):
         """
         execute_update(sql, (delta, delta, delta, alliance_id))
 
+    def list_top_alliance_names_by_war_honor_history(self, limit: int) -> List[str]:
+        """盟战排行榜：按历史累计战功倒序取前 N 个联盟名字。"""
+        sql = """
+            SELECT name
+            FROM alliances
+            ORDER BY war_honor_history DESC, id ASC
+            LIMIT %s
+        """
+        rows = execute_query(sql, (int(limit or 0),))
+        return [str(r.get("name") or "").strip() for r in (rows or []) if str(r.get("name") or "").strip()]
+
     def get_active_honor_effects(self, alliance_id: int) -> List[Dict]:
         sql = """
             SELECT id, alliance_id, effect_key, effect_type, cost, started_at, expires_at, created_by
@@ -737,17 +748,26 @@ class MySQLAllianceRepo(IAllianceRepo):
         return rows[0]['cnt'] if rows else 0
 
     def get_alliance_war_leaderboard_entry(self, alliance_id: int, since: datetime) -> Optional[Dict]:
+        # 该条目用于“盟战排行榜：指定联盟的名次与分数”
         sql = """
-            WITH Leaderboard AS (
-                SELECT a.id, a.name, a.level,
-                       COALESCE(SUM(r.cost), 0) as total_merit
+            SELECT
+                t.alliance_id,
+                t.name,
+                t.score,
+                DENSE_RANK() OVER (ORDER BY t.score DESC, t.alliance_id ASC) AS rank
+            FROM (
+                SELECT
+                    a.id AS alliance_id,
+                    a.name,
+                    COALESCE(SUM(r.cost), 0) AS score
                 FROM alliances a
                 JOIN alliance_land_registration r ON a.id = r.alliance_id
                 WHERE r.registration_time >= %s
-                GROUP BY a.id, a.name, a.level
-            ),
+                GROUP BY a.id, a.name
+            ) t
+            WHERE t.alliance_id = %s
         """
-        rows = execute_query(sql, (season_key, alliance_id))
+        rows = execute_query(sql, (since, alliance_id))
         if not rows:
             return None
         row = rows[0]

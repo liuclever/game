@@ -13,12 +13,40 @@ class MySQLPlayerRepo(IPlayerRepo):
     
     def get_by_id(self, user_id: int) -> Optional[Player]:
         """获取玩家信息"""
-        sql = """
+        sql_candidates = [
+            """
+            SELECT user_id, username, nickname, level, exp, gold, copper, silver_diamond, yuanbao, dice, enhancement_stone, energy, prestige, crystal_tower, charm, location, vip_level, vip_exp, last_energy_recovery_time, last_signin_date, signin_streak, created_at, updated_at,
+                   cultivation_start_time, cultivation_duration, cultivation_area, cultivation_dungeon
+            FROM player WHERE user_id = %s
+            """,
+            """
+            SELECT user_id, username, nickname, level, exp, gold, copper, silver_diamond, yuanbao, dice, enhancement_stone, energy, prestige, crystal_tower, charm, location, vip_level, vip_exp, last_energy_recovery_time, last_signin_date, created_at, updated_at,
+                   cultivation_start_time, cultivation_duration, cultivation_area, cultivation_dungeon
+            FROM player WHERE user_id = %s
+            """,
+            """
             SELECT user_id, username, nickname, level, exp, gold, copper, silver_diamond, yuanbao, dice, enhancement_stone, energy, prestige, crystal_tower, charm, location, vip_level, vip_exp, last_energy_recovery_time, created_at, updated_at,
                    cultivation_start_time, cultivation_duration, cultivation_area, cultivation_dungeon
             FROM player WHERE user_id = %s
-        """
-        rows = execute_query(sql, (user_id,))
+            """,
+            """
+            SELECT user_id, username, nickname, level, exp, gold, silver_diamond, yuanbao, dice, enhancement_stone, energy, prestige, crystal_tower, charm, location, vip_level, vip_exp, last_energy_recovery_time, created_at, updated_at,
+                   cultivation_start_time, cultivation_duration, cultivation_area, cultivation_dungeon
+            FROM player WHERE user_id = %s
+            """,
+        ]
+        rows = []
+        last_err: Exception | None = None
+        for sql in sql_candidates:
+            try:
+                rows = execute_query(sql, (user_id,))
+                last_err = None
+                break
+            except Exception as e:
+                last_err = e
+                continue
+        if last_err is not None and not rows:
+            raise last_err
         if rows:
             row = rows[0]
             return Player(
@@ -28,7 +56,7 @@ class MySQLPlayerRepo(IPlayerRepo):
                 level=row.get('level') or 1,
                 exp=row.get('exp') or 0,
                 gold=row.get('gold') or 0,
-                copper=row.get('copper') or 0,
+                copper=(row.get('copper') if 'copper' in row else row.get('gold')) or 0,
                 silver_diamond=row.get('silver_diamond') or 0,
                 yuanbao=row.get('yuanbao') or 0,
                 dice=row.get('dice') or 0,
@@ -41,6 +69,8 @@ class MySQLPlayerRepo(IPlayerRepo):
                 vip_level=row.get('vip_level') or 0,
                 vip_exp=row.get('vip_exp') or 0,
                 last_energy_recovery_time=row.get('last_energy_recovery_time'),
+                last_signin_date=row.get('last_signin_date'),
+                signin_streak=int(row.get('signin_streak') or 0) if 'signin_streak' in row else 0,
                 created_at=row.get('created_at'),
                 updated_at=row.get('updated_at'),
                 cultivation_start_time=row.get('cultivation_start_time'),
@@ -52,12 +82,40 @@ class MySQLPlayerRepo(IPlayerRepo):
     
     def get_by_username(self, username: str) -> Optional[Player]:
         """根据账号获取玩家"""
-        sql = """
+        sql_candidates = [
+            """
+            SELECT user_id, username, nickname, level, exp, gold, copper, silver_diamond, yuanbao, dice, enhancement_stone, energy, prestige, crystal_tower, charm, location, vip_level, vip_exp, last_energy_recovery_time, last_signin_date, signin_streak, created_at, updated_at,
+                   cultivation_start_time, cultivation_duration, cultivation_area, cultivation_dungeon
+            FROM player WHERE username = %s
+            """,
+            """
+            SELECT user_id, username, nickname, level, exp, gold, copper, silver_diamond, yuanbao, dice, enhancement_stone, energy, prestige, crystal_tower, charm, location, vip_level, vip_exp, last_energy_recovery_time, last_signin_date, created_at, updated_at,
+                   cultivation_start_time, cultivation_duration, cultivation_area, cultivation_dungeon
+            FROM player WHERE username = %s
+            """,
+            """
+            SELECT user_id, username, nickname, level, exp, gold, copper, silver_diamond, yuanbao, dice, enhancement_stone, energy, prestige, crystal_tower, charm, location, vip_level, vip_exp, last_energy_recovery_time, created_at, updated_at,
+                   cultivation_start_time, cultivation_duration, cultivation_area, cultivation_dungeon
+            FROM player WHERE username = %s
+            """,
+            """
             SELECT user_id, username, nickname, level, exp, gold, silver_diamond, yuanbao, dice, enhancement_stone, energy, prestige, crystal_tower, charm, location, vip_level, vip_exp, last_energy_recovery_time, created_at, updated_at,
                    cultivation_start_time, cultivation_duration, cultivation_area, cultivation_dungeon
             FROM player WHERE username = %s
-        """
-        rows = execute_query(sql, (username,))
+            """,
+        ]
+        rows = []
+        last_err: Exception | None = None
+        for sql in sql_candidates:
+            try:
+                rows = execute_query(sql, (username,))
+                last_err = None
+                break
+            except Exception as e:
+                last_err = e
+                continue
+        if last_err is not None and not rows:
+            raise last_err
         if rows:
             row = rows[0]
             return Player(
@@ -67,6 +125,8 @@ class MySQLPlayerRepo(IPlayerRepo):
                 level=row.get('level') or 1,
                 exp=row.get('exp') or 0,
                 gold=row.get('gold') or 0,
+                copper=(row.get('copper') if 'copper' in row else row.get('gold')) or 0,
+                silver_diamond=row.get('silver_diamond') or 0,
                 yuanbao=row.get('yuanbao') or 0,
                 dice=row.get('dice') or 0,
                 enhancement_stone=row.get('enhancement_stone') or 0,
@@ -78,6 +138,8 @@ class MySQLPlayerRepo(IPlayerRepo):
                 vip_level=row.get('vip_level') or 0,
                 vip_exp=row.get('vip_exp') or 0,
                 last_energy_recovery_time=row.get('last_energy_recovery_time'),
+                last_signin_date=row.get('last_signin_date'),
+                signin_streak=int(row.get('signin_streak') or 0) if 'signin_streak' in row else 0,
                 created_at=row.get('created_at'),
                 updated_at=row.get('updated_at'),
                 cultivation_start_time=row.get('cultivation_start_time'),
@@ -89,12 +151,40 @@ class MySQLPlayerRepo(IPlayerRepo):
     
     def verify_login(self, username: str, password: str) -> Optional[Player]:
         """验证登录"""
-        sql = """
+        sql_candidates = [
+            """
+            SELECT user_id, username, nickname, level, exp, gold, copper, silver_diamond, yuanbao, dice, enhancement_stone, energy, prestige, crystal_tower, charm, location, vip_level, vip_exp, last_energy_recovery_time, last_signin_date, signin_streak, created_at, updated_at,
+                   cultivation_start_time, cultivation_duration, cultivation_area, cultivation_dungeon
+            FROM player WHERE username = %s AND password = %s
+            """,
+            """
+            SELECT user_id, username, nickname, level, exp, gold, copper, silver_diamond, yuanbao, dice, enhancement_stone, energy, prestige, crystal_tower, charm, location, vip_level, vip_exp, last_energy_recovery_time, last_signin_date, created_at, updated_at,
+                   cultivation_start_time, cultivation_duration, cultivation_area, cultivation_dungeon
+            FROM player WHERE username = %s AND password = %s
+            """,
+            """
+            SELECT user_id, username, nickname, level, exp, gold, copper, silver_diamond, yuanbao, dice, enhancement_stone, energy, prestige, crystal_tower, charm, location, vip_level, vip_exp, last_energy_recovery_time, created_at, updated_at,
+                   cultivation_start_time, cultivation_duration, cultivation_area, cultivation_dungeon
+            FROM player WHERE username = %s AND password = %s
+            """,
+            """
             SELECT user_id, username, nickname, level, exp, gold, silver_diamond, yuanbao, dice, enhancement_stone, energy, prestige, crystal_tower, charm, location, vip_level, vip_exp, last_energy_recovery_time, created_at, updated_at,
                    cultivation_start_time, cultivation_duration, cultivation_area, cultivation_dungeon
             FROM player WHERE username = %s AND password = %s
-        """
-        rows = execute_query(sql, (username, password))
+            """,
+        ]
+        rows = []
+        last_err: Exception | None = None
+        for sql in sql_candidates:
+            try:
+                rows = execute_query(sql, (username, password))
+                last_err = None
+                break
+            except Exception as e:
+                last_err = e
+                continue
+        if last_err is not None and not rows:
+            raise last_err
         if rows:
             row = rows[0]
             return Player(
@@ -104,6 +194,8 @@ class MySQLPlayerRepo(IPlayerRepo):
                 level=row.get('level') or 1,
                 exp=row.get('exp') or 0,
                 gold=row.get('gold') or 0,
+                copper=(row.get('copper') if 'copper' in row else row.get('gold')) or 0,
+                silver_diamond=row.get('silver_diamond') or 0,
                 yuanbao=row.get('yuanbao') or 0,
                 dice=row.get('dice') or 0,
                 enhancement_stone=row.get('enhancement_stone') or 0,
@@ -115,6 +207,8 @@ class MySQLPlayerRepo(IPlayerRepo):
                 vip_level=row.get('vip_level') or 0,
                 vip_exp=row.get('vip_exp') or 0,
                 last_energy_recovery_time=row.get('last_energy_recovery_time'),
+                last_signin_date=row.get('last_signin_date'),
+                signin_streak=int(row.get('signin_streak') or 0) if 'signin_streak' in row else 0,
                 created_at=row.get('created_at'),
                 updated_at=row.get('updated_at'),
                 cultivation_start_time=row.get('cultivation_start_time'),
@@ -126,38 +220,73 @@ class MySQLPlayerRepo(IPlayerRepo):
     
     def save(self, player: Player) -> None:
         """保存玩家信息"""
+        # 兼容老库：last_signin_date / signin_streak 字段可能不存在
         sql = """
             UPDATE player 
-            SET nickname = %s, level = %s, exp = %s, gold = %s, silver_diamond = %s, yuanbao = %s, dice = %s, enhancement_stone = %s, energy = %s, prestige = %s, crystal_tower = %s, charm = %s, location = %s, vip_level = %s, vip_exp = %s, last_energy_recovery_time = %s,
+            SET nickname = %s, level = %s, exp = %s, gold = %s, copper = %s, silver_diamond = %s, yuanbao = %s, dice = %s, enhancement_stone = %s, energy = %s, prestige = %s, crystal_tower = %s, charm = %s, location = %s, vip_level = %s, vip_exp = %s, last_energy_recovery_time = %s, last_signin_date = %s, signin_streak = %s,
                 cultivation_start_time = %s, cultivation_duration = %s, cultivation_area = %s, cultivation_dungeon = %s
             WHERE user_id = %s
         """
-        execute_update(sql, (
-            player.nickname, player.level, player.exp, player.gold, player.silver_diamond, player.yuanbao, player.dice, player.enhancement_stone, 
+        params = (
+            player.nickname, player.level, player.exp, player.gold, player.copper, player.silver_diamond, player.yuanbao, player.dice, player.enhancement_stone,
             player.energy, player.prestige, player.crystal_tower, player.charm, player.location, player.vip_level, player.vip_exp, player.last_energy_recovery_time,
+            getattr(player, "last_signin_date", None),
+            int(getattr(player, "signin_streak", 0) or 0),
             player.cultivation_start_time, player.cultivation_duration, player.cultivation_area, player.cultivation_dungeon,
             player.user_id
-        ))
+        )
+        try:
+            execute_update(sql, params)
+        except Exception:
+            # 再兜底：可能既没有 last_signin_date，也没有 copper
+            sql = """
+                UPDATE player 
+                SET nickname = %s, level = %s, exp = %s, gold = %s, copper = %s, silver_diamond = %s, yuanbao = %s, dice = %s, enhancement_stone = %s, energy = %s, prestige = %s, crystal_tower = %s, charm = %s, location = %s, vip_level = %s, vip_exp = %s, last_energy_recovery_time = %s,
+                    cultivation_start_time = %s, cultivation_duration = %s, cultivation_area = %s, cultivation_dungeon = %s
+                WHERE user_id = %s
+            """
+            params = (
+                player.nickname, player.level, player.exp, player.gold, player.copper, player.silver_diamond, player.yuanbao, player.dice, player.enhancement_stone,
+                player.energy, player.prestige, player.crystal_tower, player.charm, player.location, player.vip_level, player.vip_exp, player.last_energy_recovery_time,
+                player.cultivation_start_time, player.cultivation_duration, player.cultivation_area, player.cultivation_dungeon,
+                player.user_id
+            )
+            try:
+                execute_update(sql, params)
+            except Exception:
+                sql = """
+                    UPDATE player 
+                    SET nickname = %s, level = %s, exp = %s, gold = %s, silver_diamond = %s, yuanbao = %s, dice = %s, enhancement_stone = %s, energy = %s, prestige = %s, crystal_tower = %s, charm = %s, location = %s, vip_level = %s, vip_exp = %s, last_energy_recovery_time = %s,
+                        cultivation_start_time = %s, cultivation_duration = %s, cultivation_area = %s, cultivation_dungeon = %s
+                    WHERE user_id = %s
+                """
+                params = (
+                    player.nickname, player.level, player.exp, player.gold, player.silver_diamond, player.yuanbao, player.dice, player.enhancement_stone,
+                    player.energy, player.prestige, player.crystal_tower, player.charm, player.location, player.vip_level, player.vip_exp, player.last_energy_recovery_time,
+                    player.cultivation_start_time, player.cultivation_duration, player.cultivation_area, player.cultivation_dungeon,
+                    player.user_id
+                )
+                execute_update(sql, params)
     
     def create(self, player: Player) -> None:
         """创建新玩家"""
         sql = """
-            INSERT INTO player (user_id, nickname, level, exp, gold, silver_diamond, yuanbao, dice, location, vip_level, vip_exp)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            INSERT INTO player (user_id, nickname, level, exp, gold, copper, silver_diamond, yuanbao, dice, location, vip_level, vip_exp)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """
         execute_insert(sql, (
-            player.user_id, player.nickname, player.level, player.exp, player.gold, player.silver_diamond, player.yuanbao, player.dice,
+            player.user_id, player.nickname, player.level, player.exp, player.gold, player.copper, player.silver_diamond, player.yuanbao, player.dice,
             player.location, player.vip_level, player.vip_exp
         ))
     
     def create_with_auth(self, username: str, password: str, player: Player) -> Optional[int]:
         """创建带账号密码的新玩家，返回user_id"""
         sql = """
-            INSERT INTO player (username, password, nickname, level, exp, gold, silver_diamond, location, vip_level, vip_exp)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            INSERT INTO player (username, password, nickname, level, exp, gold, copper, silver_diamond, location, vip_level, vip_exp)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """
         user_id = execute_insert(sql, (
-            username, password, player.nickname, player.level, player.exp, player.gold, player.silver_diamond,
+            username, password, player.nickname, player.level, player.exp, player.gold, player.copper, player.silver_diamond,
             player.location, player.vip_level, player.vip_exp
         ))
         return user_id

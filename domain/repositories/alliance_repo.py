@@ -257,6 +257,11 @@ class IAllianceRepo(ABC):
         pass
 
     @abstractmethod
+    def list_top_alliance_names_by_war_honor_history(self, limit: int) -> List[str]:
+        """按盟战榜（历史累计战功 war_honor_history）倒序取前 N 个联盟名字。"""
+        pass
+
+    @abstractmethod
     def get_active_honor_effects(self, alliance_id: int) -> List[Dict]:
         """列出联盟当前未过期的战功兑换效果"""
         pass
