@@ -56,6 +56,7 @@ from interfaces.routes.pay_routes import pay_bp
 from interfaces.routes.vip_routes import vip_bp
 from interfaces.routes.vip_test_routes import vip_test_bp
 from interfaces.routes.handbook_routes import handbook_bp
+from interfaces.routes.tree_routes import tree_bp
 
 app.register_blueprint(auth_bp)
 app.register_blueprint(player_bp)
@@ -86,6 +87,7 @@ app.register_blueprint(pay_bp)
 app.register_blueprint(vip_bp)
 app.register_blueprint(vip_test_bp)
 app.register_blueprint(handbook_bp)
+app.register_blueprint(tree_bp)
 
 
 # ===== 以下为旧接口，暂时保留兼容 =====

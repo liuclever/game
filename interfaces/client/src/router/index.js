@@ -132,6 +132,8 @@ import HandbookIndexPage from '@/features/handbook/HandbookIndexPage.vue'
 import HandbookIntroPage from '@/features/handbook/HandbookIntroPage.vue'
 import HandbookPetDetailPage from '@/features/handbook/HandbookPetDetailPage.vue'
 import HandbookSkillDetailPage from '@/features/handbook/HandbookSkillDetailPage.vue'
+import TreePage from '@/features/tree/TreePage.vue'
+import TreeRulePage from '@/features/tree/TreeRulePage.vue'
 
 const routes = [
   {
@@ -158,6 +160,16 @@ const routes = [
     path: '/handbook/skill/:key',
     name: 'HandbookSkillDetail',
     component: HandbookSkillDetailPage,
+  },
+  {
+    path: '/tree',
+    name: 'Tree',
+    component: TreePage,
+  },
+  {
+    path: '/tree/rule',
+    name: 'TreeRule',
+    component: TreeRulePage,
   },
   {
     path: '/gifts',

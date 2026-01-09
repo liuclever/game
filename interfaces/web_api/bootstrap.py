@@ -31,6 +31,7 @@ from infrastructure.db.month_card_repo_mysql import MySQLMonthCardRepo
 from infrastructure.db.immortalize_pool_repo_mysql import MySQLImmortalizePoolRepo
 from infrastructure.db.player_effect_repo_mysql import MySQLPlayerEffectRepo
 from infrastructure.db.player_gift_claim_repo_mysql import MySQLPlayerGiftClaimRepo
+from infrastructure.db.tree_repo_mysql import MySQLTreeRepo
 from infrastructure.memory.beast_repo_inmemory import InMemoryBeastRepo
 
 from application.services.battle_service import BattleService
@@ -59,6 +60,7 @@ from application.services.refine_pot_service import RefinePotService
 from application.services.month_card_service import MonthCardService
 from application.services.immortalize_pool_service import ImmortalizePoolService
 from application.services.home_gift_service import HomeGiftService
+from application.services.tree_service import TreeService
 from infrastructure.config.immortalize_config import ImmortalizeConfig
 
 
@@ -94,6 +96,7 @@ class ServiceContainer:
         self.immortalize_config = ImmortalizeConfig()
         self.player_effect_repo = MySQLPlayerEffectRepo()
         self.player_gift_claim_repo = MySQLPlayerGiftClaimRepo()
+        self.tree_repo = MySQLTreeRepo()
 
         # 战灵仓库
         self.spirit_repo = MySQLSpiritRepo()
@@ -221,6 +224,12 @@ class ServiceContainer:
             inventory_service=self.inventory_service,
             player_repo=self.player_repo,
             item_repo=self.item_repo,
+        )
+        # 古树（每周幸运数字）
+        self.tree_service = TreeService(
+            tree_repo=self.tree_repo,
+            player_repo=self.player_repo,
+            inventory_service=self.inventory_service,
         )
         self.immortalize_pool_service = ImmortalizePoolService(
             pool_repo=self.immortalize_pool_repo,

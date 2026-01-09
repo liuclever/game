@@ -199,7 +199,7 @@ watch(
       <a class="link" @click="handleLink('战场')">战场</a>. <a class="link" @click="handleLink('擂台')">擂台</a>. <span class="link readonly">坐骑</span>
     </div>
     <div class="section nav">
-      <span class="link readonly">古树</span>. <a class="link" @click="handleLink('排行')">排行</a>.
+      <a class="link" @click="router.push('/tree')">古树</a>. <a class="link" @click="handleLink('排行')">排行</a>.
       <span class="link readonly">成就</span>. <a class="link" @click="handleLink('图鉴')">图鉴</a>. <span class="link readonly">攻略</span>
     </div>
     <div class="section nav">
