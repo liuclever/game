@@ -197,6 +197,7 @@ const handleLink = (name) => {
     '召唤之王挑战赛': '/king',
     '商城': '/shop',
     '兑换': '/exchange',
+    '图鉴': '/handbook',
   }
   if (routes[name]) {
     router.push(routes[name])
@@ -288,7 +289,7 @@ onUnmounted(() => {
       <span class="link readonly">古树</span>. 
       <a class="link" @click="handleLink('排行')">排行</a>. 
       <span class="link readonly">成就</span>. 
-      <span class="link readonly">图鉴</span>. 
+      <a class="link" @click="handleLink('图鉴')">图鉴</a>. 
       <span class="link readonly">攻略</span>
     </div>
     <div class="section">

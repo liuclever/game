@@ -12,6 +12,7 @@ from infrastructure.config.item_repo_from_config import ConfigItemRepo
 from infrastructure.config.beast_template_repo_from_config import ConfigBeastTemplateRepo
 from infrastructure.config.bone_template_repo_from_config import ConfigBoneTemplateRepo
 from infrastructure.config.tower_config_repo import ConfigTowerRepo
+from infrastructure.config.handbook_repo_from_config import ConfigHandbookRepo
 
 from infrastructure.db.inventory_repo_mysql import MySQLInventoryRepo
 from infrastructure.db.tower_state_repo_mysql import MySQLTowerStateRepo
@@ -52,6 +53,7 @@ from application.services.task_reward_service import TaskRewardService
 from application.services.daily_activity_service import DailyActivityService
 from application.services.activity_gift_service import ActivityGiftService
 from application.services.cultivation_service import CultivationService
+from application.services.handbook_service import HandbookService
 from application.services.manor_service import ManorService
 from application.services.refine_pot_service import RefinePotService
 from application.services.month_card_service import MonthCardService
@@ -69,6 +71,7 @@ class ServiceContainer:
         self.map_repo = ConfigMapRepo()
         self.monster_repo = ConfigMonsterRepo()
         self.item_repo = ConfigItemRepo()
+        self.handbook_repo = ConfigHandbookRepo()
         self.inventory_repo = MySQLInventoryRepo()
         self.beast_template_repo = ConfigBeastTemplateRepo()
         # 暂时使用内存仓库保存玩家幻兽（重启进程后会清空）
@@ -241,6 +244,9 @@ class ServiceContainer:
             inventory_service=self.inventory_service,
             month_card_repo=self.month_card_repo,
         )
+
+        # 图鉴（独立模块）
+        self.handbook_service = HandbookService(repo=self.handbook_repo)
 
 
 # 全局服务容器实例

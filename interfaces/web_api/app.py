@@ -49,6 +49,7 @@ from interfaces.routes.home_gift_routes import gifts_bp
 from interfaces.routes.pay_routes import pay_bp
 from interfaces.routes.vip_routes import vip_bp
 from interfaces.routes.vip_test_routes import vip_test_bp
+from interfaces.routes.handbook_routes import handbook_bp
 
 app.register_blueprint(auth_bp)
 app.register_blueprint(player_bp)
@@ -78,6 +79,7 @@ app.register_blueprint(gifts_bp)
 app.register_blueprint(pay_bp)
 app.register_blueprint(vip_bp)
 app.register_blueprint(vip_test_bp)
+app.register_blueprint(handbook_bp)
 
 
 # ===== 以下为旧接口，暂时保留兼容 =====

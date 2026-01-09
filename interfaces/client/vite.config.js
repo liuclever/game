@@ -17,12 +17,12 @@ export default defineConfig({
     allowedHosts: true,
     proxy: {
       '/api/refine-pot': {
-        target: 'http://127.0.0.1:58321',
+        target: 'http://127.0.0.1:5000',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/refine-pot/, '/refine-pot'),
       },
       '/api': {
-        target: 'http://127.0.0.1:58321',
+        target: 'http://127.0.0.1:5000',
         changeOrigin: true,
       },
     },

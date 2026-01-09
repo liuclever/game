@@ -128,12 +128,36 @@ import DailyTasksPage from '@/features/tasks/DailyTasksPage.vue'
 import CompletedTasksPage from '@/features/tasks/CompletedTasksPage.vue'
 import ActivityGiftsPage from '@/features/tasks/ActivityGiftsPage.vue'
 import CultivationPage from '@/features/cultivation/CultivationPage.vue'
+import HandbookIndexPage from '@/features/handbook/HandbookIndexPage.vue'
+import HandbookIntroPage from '@/features/handbook/HandbookIntroPage.vue'
+import HandbookPetDetailPage from '@/features/handbook/HandbookPetDetailPage.vue'
+import HandbookSkillDetailPage from '@/features/handbook/HandbookSkillDetailPage.vue'
 
 const routes = [
   {
     path: '/',
     name: 'Home',
     component: MainPage,
+  },
+  {
+    path: '/handbook',
+    name: 'HandbookIndex',
+    component: HandbookIndexPage,
+  },
+  {
+    path: '/handbook/intro',
+    name: 'HandbookIntro',
+    component: HandbookIntroPage,
+  },
+  {
+    path: '/handbook/pet/:id',
+    name: 'HandbookPetDetail',
+    component: HandbookPetDetailPage,
+  },
+  {
+    path: '/handbook/skill/:key',
+    name: 'HandbookSkillDetail',
+    component: HandbookSkillDetailPage,
   },
   {
     path: '/gifts',
