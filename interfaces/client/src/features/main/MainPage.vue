@@ -619,6 +619,12 @@ const handleLink = (name) => {
           修行: 空闲中 <a class="link" @click="startCultivationDirect">开始修行</a>
         </div>
       </template>
+      <div class="section indent" v-if="isLoggedIn">
+        活动副本:龙宫之谜 <a class="link" @click="router.push('/dragonpalace')">进入</a>
+      </div>
+      <div class="section indent small" v-if="isLoggedIn">
+        (时间:10:00-24:00)
+      </div>
 
     <!-- 副本列表 -->
     <div v-for="dungeon in currentDungeons" :key="dungeon.name" class="section indent">

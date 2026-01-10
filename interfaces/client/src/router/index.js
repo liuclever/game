@@ -134,6 +134,12 @@ import HandbookPetDetailPage from '@/features/handbook/HandbookPetDetailPage.vue
 import HandbookSkillDetailPage from '@/features/handbook/HandbookSkillDetailPage.vue'
 import TreePage from '@/features/tree/TreePage.vue'
 import TreeRulePage from '@/features/tree/TreeRulePage.vue'
+import DragonPalacePage from '@/features/dragonpalace/DragonPalacePage.vue'
+import DragonPalaceIntroPage from '@/features/dragonpalace/DragonPalaceIntroPage.vue'
+import DragonPalaceDetailReportPage from '@/features/dragonpalace/DragonPalaceDetailReportPage.vue'
+import DragonPalaceRewardPage from '@/features/dragonpalace/DragonPalaceRewardPage.vue'
+import DragonPalaceGiftOpenPage from '@/features/dragonpalace/DragonPalaceGiftOpenPage.vue'
+import DragonPalacePetInfoPage from '@/features/dragonpalace/DragonPalacePetInfoPage.vue'
 
 const routes = [
   {
@@ -170,6 +176,36 @@ const routes = [
     path: '/tree/rule',
     name: 'TreeRule',
     component: TreeRulePage,
+  },
+  {
+    path: '/dragonpalace',
+    name: 'DragonPalace',
+    component: DragonPalacePage,
+  },
+  {
+    path: '/dragonpalace/intro',
+    name: 'DragonPalaceIntro',
+    component: DragonPalaceIntroPage,
+  },
+  {
+    path: '/dragonpalace/detail-report',
+    name: 'DragonPalaceDetailReport',
+    component: DragonPalaceDetailReportPage,
+  },
+  {
+    path: '/dragonpalace/reward',
+    name: 'DragonPalaceReward',
+    component: DragonPalaceRewardPage,
+  },
+  {
+    path: '/dragonpalace/gift-open',
+    name: 'DragonPalaceGiftOpen',
+    component: DragonPalaceGiftOpenPage,
+  },
+  {
+    path: '/dragonpalace/petinfo',
+    name: 'DragonPalacePetInfo',
+    component: DragonPalacePetInfoPage,
   },
   {
     path: '/gifts',

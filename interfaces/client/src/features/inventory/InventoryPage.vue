@@ -1,8 +1,9 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import http from '@/services/http'
 
+const route = useRoute()
 const router = useRouter()
 
 // 背包数据
@@ -93,6 +94,10 @@ const switchToNormal = () => {
 
 onMounted(() => {
   loadInventory()
+  // 支持从“领取/打开礼包”跳回背包时默认显示临时栏：/inventory?tab=temp
+  if (String(route.query.tab || '') === 'temp') {
+    switchToTemp()
+  }
 })
 
 // 过滤后的物品
@@ -205,6 +210,16 @@ const useItem = async (item) => {
     console.error('使用物品失败', e)
     alert('请求失败，请稍后再试')
   }
+}
+
+const DRAGONPALACE_EXPLORE_GIFT_ITEM_ID = 93001
+
+const openTempGift = (item) => {
+  if (!item || item.item_id !== DRAGONPALACE_EXPLORE_GIFT_ITEM_ID) {
+    alert('该物品暂不支持在此打开')
+    return
+  }
+  router.push({ path: '/dragonpalace/gift-open', query: { inv_item_id: item.id } })
 }
 
 // 返回首页
@@ -324,6 +339,11 @@ const handleLink = (name) => {
       </div>
       <div v-for="item in tempItems" :key="item.id" class="section">
         <a class="link">{{ item.name }}</a>×{{ item.quantity }}
+        <a
+          v-if="item.item_id === DRAGONPALACE_EXPLORE_GIFT_ITEM_ID"
+          class="link"
+          @click="openTempGift(item)"
+        >打开</a>
         <span class="gray small"> ({{ item.created_at }})</span>
       </div>
     </div>

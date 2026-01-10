@@ -10,6 +10,7 @@ from domain.entities.item import Item, InventoryItem, PlayerBag
 from domain.repositories.item_repo import IItemRepo
 from domain.repositories.inventory_repo import IInventoryRepo
 from infrastructure.db.player_effect_repo_mysql import MySQLPlayerEffectRepo
+from domain.rules.dragonpalace_rules import pick_dragonpalace_reward_item_id
 
 if TYPE_CHECKING:
     from application.services.immortalize_pool_service import ImmortalizePoolService
@@ -54,6 +55,8 @@ NINGSHEN_INCENSE_DURATION_SECONDS = 24 * 3600
 
 ZHENYAO_TRIAL_CHEST_ITEM_ID = 92001
 ZHENYAO_HELL_CHEST_ITEM_ID = 92002
+DRAGONPALACE_EXPLORE_GIFT_ITEM_ID = 93001
+DRAGONPALACE_EXPLORE_GIFT_COPPER = 20000
 
 
 class InventoryService:
@@ -191,6 +194,57 @@ class InventoryService:
                 last_item = new_item
         
         return last_item, is_temp
+
+    def add_item_to_temp(self, user_id: int, item_id: int, quantity: int = 1) -> InventoryItem:
+        """
+        强制将物品放入临时背包（不尝试放入正式背包）。
+
+        用途：
+        - 某些活动“领取后在背包-临时栏展示”的交互（例如：龙宫之谜探索礼包）。
+        """
+        MAX_STACK = PlayerBag.MAX_STACK_SIZE  # 99
+
+        item_template = self.item_repo.get_by_id(item_id)
+        if item_template is None:
+            raise InventoryError(f"物品不存在: {item_id}")
+
+        remaining = int(quantity or 0)
+        if remaining <= 0:
+            raise InventoryError("quantity 必须为正整数")
+
+        last_item: Optional[InventoryItem] = None
+
+        # 先尝试填充临时背包中已有的格子（未满 99 的）
+        if item_template.stackable:
+            temp_items = self.inventory_repo.find_all_items(user_id, item_id, is_temporary=True)
+            for temp_item in temp_items:
+                if remaining <= 0:
+                    break
+                if temp_item.quantity < MAX_STACK:
+                    space = MAX_STACK - temp_item.quantity
+                    add_amount = min(space, remaining)
+                    temp_item.quantity += add_amount
+                    remaining -= add_amount
+                    self.inventory_repo.save(temp_item)
+                    last_item = temp_item
+
+        # 仍有剩余则创建新临时格子
+        while remaining > 0:
+            add_amount = min(MAX_STACK, remaining)
+            new_item = InventoryItem(
+                user_id=user_id,
+                item_id=item_id,
+                quantity=add_amount,
+                is_temporary=True,
+                created_at=datetime.now(),
+            )
+            self.inventory_repo.save(new_item)
+            remaining -= add_amount
+            last_item = new_item
+
+        if last_item is None:
+            raise InventoryError("添加物品失败")
+        return last_item
 
     def remove_item(self, user_id: int, item_id: int, quantity: int = 1) -> bool:
         """移除玩家物品（只从正式背包移除，支持跨多格）"""
@@ -900,6 +954,17 @@ class InventoryService:
                 reward_payload = self.activity_gift_service.open_gift(user_id, gift_key)
                 all_rewards.append(reward_payload)
             message = self._format_activity_gift_message(item_template.name, quantity, all_rewards)
+        elif item_template.id == DRAGONPALACE_EXPLORE_GIFT_ITEM_ID:
+            # 龙宫之谜探索礼包：打开后获得（随机进化材料×N）+ 铜钱20000*N
+            # 这里不要在 helper 里重复扣除物品，最终统一由 use_item() 的第4步扣除。
+            payload = self.open_dragonpalace_explore_gift(
+                user_id=user_id,
+                inv_item_id=inv_item_id,
+                open_count=int(quantity or 1),
+                open_all=False,
+                consume=False,
+            )
+            message = payload.get("message", "") or f"成功开启{item_template.name}×{quantity}"
         elif item_template.id == NINGSHEN_INCENSE_ITEM_ID:
             if not self.player_effect_repo:
                 raise InventoryError("系统错误：PlayerEffectRepo 未配置")
@@ -922,6 +987,85 @@ class InventoryService:
         self._remove_item_from_slot(inv_item_id, quantity)
         
         return message
+
+    def open_dragonpalace_explore_gift(
+        self,
+        user_id: int,
+        inv_item_id: int,
+        open_count: int = 1,
+        open_all: bool = False,
+        consume: bool = True,
+    ) -> dict:
+        """
+        打开“龙宫之谜探索礼包”（通常来自临时背包）。
+
+        返回结构用于前端展示：
+        - message: 叙述文案（严格模仿外站风格）
+        - reward_item_id / reward_item_name / reward_item_quantity
+        - copper_gain
+        - remaining_quantity: 当前格子剩余数量（本交互里通常为 0）
+        """
+        inv_item = self.inventory_repo.get_by_id(inv_item_id)
+        if not inv_item or inv_item.user_id != user_id:
+            raise InventoryError("物品不存在")
+        if int(inv_item.item_id or 0) != DRAGONPALACE_EXPLORE_GIFT_ITEM_ID:
+            raise InventoryError("该物品不是龙宫之谜探索礼包")
+        available = int(inv_item.quantity or 0)
+        if available < 1:
+            raise InventoryError("物品数量不足")
+
+        if not self.player_repo:
+            raise InventoryError("系统错误：PlayerRepo 未配置")
+
+        # 1) 计算本次打开数量
+        if open_all:
+            open_n = available
+        else:
+            try:
+                open_n = int(open_count or 1)
+            except Exception:
+                open_n = 1
+            open_n = max(1, open_n)
+            open_n = min(open_n, available)
+
+        # 2) 逐个开奖并汇总
+        reward_summary: dict[str, int] = {}
+        for _ in range(open_n):
+            reward_item_id = int(pick_dragonpalace_reward_item_id())
+            self.add_item(user_id, reward_item_id, 1)
+            reward_item = self.item_repo.get_by_id(reward_item_id)
+            reward_item_name = getattr(reward_item, "name", f"物品{reward_item_id}") if reward_item else f"物品{reward_item_id}"
+            reward_summary[reward_item_name] = reward_summary.get(reward_item_name, 0) + 1
+
+        # 3) 铜钱奖励：+20000 * open_n（兼容新旧字段：同时写 gold/copper）
+        player = self.player_repo.get_by_id(user_id)
+        if not player:
+            raise InventoryError("玩家不存在")
+        copper_gain = int(DRAGONPALACE_EXPLORE_GIFT_COPPER) * int(open_n)
+        player.copper = int(getattr(player, "copper", 0) or 0) + copper_gain
+        player.gold = int(getattr(player, "gold", 0) or 0) + copper_gain
+        self.player_repo.save(player)
+
+        # 4) 扣除礼包本体（默认 consume=True；若由 use_item 调用则 consume=False）
+        if consume:
+            self._remove_item_from_slot(inv_item_id, open_n)
+
+        # 5) 计算剩余数量
+        if consume:
+            inv_after = self.inventory_repo.get_by_id(inv_item_id)
+            remaining_quantity = int(inv_after.quantity or 0) if inv_after and inv_after.user_id == user_id else 0
+        else:
+            remaining_quantity = available - open_n
+
+        reward_text = "、".join([f"{name}×{qty}" for name, qty in reward_summary.items()]) if reward_summary else "无"
+        msg = f"悄悄的打开{open_n}个龙宫之谜探索礼包,惊喜的获得:{reward_text}，铜钱+{copper_gain}"
+        return {
+            "ok": True,
+            "message": msg,
+            "reward_items": [{"name": k, "quantity": v} for k, v in reward_summary.items()],
+            "copper_gain": copper_gain,
+            "remaining_quantity": remaining_quantity,
+        }
 
     def _load_zhenyao_rewards_config(self) -> dict:
         config_path = os.path.join(
