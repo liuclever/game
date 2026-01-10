@@ -1,17 +1,17 @@
 /*
  Navicat Premium Data Transfer
 
- Source Server         : 本机
+ Source Server         : localhost_3306
  Source Server Type    : MySQL
- Source Server Version : 80041
+ Source Server Version : 80200
  Source Host           : localhost:3306
  Source Schema         : game_tower
 
  Target Server Type    : MySQL
- Target Server Version : 80041
+ Target Server Version : 80200
  File Encoding         : 65001
 
- Date: 31/12/2025 13:33:08
+ Date: 10/01/2026 22:12:11
 */
 
 SET NAMES utf8mb4;
@@ -31,11 +31,15 @@ CREATE TABLE `alliance_activities`  (
   `target_name` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
   `item_name` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
   `item_quantity` int(0) NULL DEFAULT NULL,
-  `created_at` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0),
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_alliance_activity`(`alliance_id`, `created_at`) USING BTREE,
   CONSTRAINT `alliance_activities_ibfk_1` FOREIGN KEY (`alliance_id`) REFERENCES `alliances` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE = InnoDB AUTO_INCREMENT = 10 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of alliance_activities
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for alliance_army_assignments
@@ -45,11 +49,15 @@ CREATE TABLE `alliance_army_assignments`  (
   `alliance_id` int(0) NOT NULL,
   `user_id` int(0) NOT NULL,
   `army` varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `signed_at` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `signed_at` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0),
   PRIMARY KEY (`alliance_id`, `user_id`) USING BTREE,
   INDEX `idx_alliance_id`(`alliance_id`) USING BTREE,
   INDEX `idx_user_id`(`user_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of alliance_army_assignments
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for alliance_army_signups
@@ -64,11 +72,15 @@ CREATE TABLE `alliance_army_signups`  (
   `signup_order` int(0) NOT NULL,
   `hp_state` json NULL,
   `status` tinyint(0) NOT NULL DEFAULT 1,
-  `created_at` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0),
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `uk_registration_user`(`registration_id`, `user_id`) USING BTREE,
   INDEX `idx_registration_order`(`registration_id`, `signup_order`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of alliance_army_signups
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for alliance_beast_storage
@@ -79,12 +91,16 @@ CREATE TABLE `alliance_beast_storage`  (
   `alliance_id` int(0) NOT NULL COMMENT '联盟ID',
   `owner_user_id` int(0) NOT NULL COMMENT '寄存者用户ID',
   `beast_id` int(0) NOT NULL COMMENT '幻兽ID',
-  `stored_at` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '寄存时间',
+  `stored_at` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT '寄存时间',
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `uniq_beast`(`beast_id`) USING BTREE,
   INDEX `idx_alliance`(`alliance_id`) USING BTREE,
   INDEX `idx_owner`(`owner_user_id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '联盟幻兽室寄存记录' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of alliance_beast_storage
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for alliance_buildings
@@ -99,6 +115,10 @@ CREATE TABLE `alliance_buildings`  (
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
+-- Records of alliance_buildings
+-- ----------------------------
+
+-- ----------------------------
 -- Table structure for alliance_chat_messages
 -- ----------------------------
 DROP TABLE IF EXISTS `alliance_chat_messages`;
@@ -107,11 +127,15 @@ CREATE TABLE `alliance_chat_messages`  (
   `alliance_id` int(0) NOT NULL COMMENT '联盟ID',
   `user_id` int(0) NOT NULL COMMENT '发送者ID',
   `content` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '消息内容',
-  `created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP COMMENT '发送时间',
+  `created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT '发送时间',
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_alliance_id`(`alliance_id`) USING BTREE,
   INDEX `idx_created_at`(`created_at`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '联盟聊天记录' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of alliance_chat_messages
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for alliance_item_storage
@@ -123,13 +147,17 @@ CREATE TABLE `alliance_item_storage`  (
   `owner_user_id` int(0) NOT NULL,
   `item_id` int(0) NOT NULL,
   `quantity` int(0) NOT NULL DEFAULT 0,
-  `stored_at` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `stored_at` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0),
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_alliance_item_storage`(`alliance_id`) USING BTREE,
   INDEX `idx_owner_item`(`owner_user_id`, `item_id`) USING BTREE,
   CONSTRAINT `alliance_item_storage_ibfk_1` FOREIGN KEY (`alliance_id`) REFERENCES `alliances` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `alliance_item_storage_ibfk_2` FOREIGN KEY (`owner_user_id`) REFERENCES `player` (`user_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of alliance_item_storage
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for alliance_land_battle
@@ -149,6 +177,10 @@ CREATE TABLE `alliance_land_battle`  (
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
+-- Records of alliance_land_battle
+-- ----------------------------
+
+-- ----------------------------
 -- Table structure for alliance_land_battle_duel
 -- ----------------------------
 DROP TABLE IF EXISTS `alliance_land_battle_duel`;
@@ -159,10 +191,14 @@ CREATE TABLE `alliance_land_battle_duel`  (
   `defender_signup_id` bigint(0) UNSIGNED NOT NULL,
   `attacker_result` tinyint(0) NOT NULL,
   `log_json` json NOT NULL,
-  `created_at` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0),
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_round`(`round_id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of alliance_land_battle_duel
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for alliance_land_battle_round
@@ -183,6 +219,10 @@ CREATE TABLE `alliance_land_battle_round`  (
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
+-- Records of alliance_land_battle_round
+-- ----------------------------
+
+-- ----------------------------
 -- Table structure for alliance_land_registration
 -- ----------------------------
 DROP TABLE IF EXISTS `alliance_land_registration`;
@@ -191,18 +231,22 @@ CREATE TABLE `alliance_land_registration`  (
   `land_id` int(0) NOT NULL COMMENT '土地ID',
   `alliance_id` int(0) NOT NULL COMMENT '联盟ID，关联 alliances.id',
   `army` varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '报名军团（dragon/tiger）',
-  `registration_time` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '报名时间',
+  `registration_time` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT '报名时间',
   `cost` int(0) NOT NULL DEFAULT 0 COMMENT '报名消耗',
   `status` tinyint(0) NOT NULL DEFAULT 1 COMMENT '报名状态：1-已报名，2-待审核，3-已生效，0-已取消',
   `bye_waiting_round` int(0) NULL DEFAULT NULL,
   `last_bye_round` int(0) NULL DEFAULT NULL,
-  `created_at` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '记录创建时间',
+  `created_at` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT '记录创建时间',
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `uk_land_alliance`(`land_id`, `alliance_id`) USING BTREE,
   INDEX `idx_land_id`(`land_id`) USING BTREE,
   INDEX `idx_alliance_id`(`alliance_id`) USING BTREE,
   CONSTRAINT `fk_alliance_land_registration_alliance` FOREIGN KEY (`alliance_id`) REFERENCES `alliances` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '土地报名联盟关联表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of alliance_land_registration
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for alliance_members
@@ -214,11 +258,15 @@ CREATE TABLE `alliance_members`  (
   `role` tinyint(0) NULL DEFAULT 0 COMMENT '1: 盟主, 0: 成员',
   `contribution` int(0) NULL DEFAULT 0,
   `army_type` tinyint(0) NOT NULL DEFAULT 0 COMMENT '0-未报名,1-飞龙军,2-伏虎军',
-  `joined_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP,
+  `joined_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0),
   PRIMARY KEY (`user_id`) USING BTREE,
   INDEX `idx_alliance`(`alliance_id`) USING BTREE,
   INDEX `idx_alliance_members_army`(`alliance_id`, `army_type`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of alliance_members
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for alliance_talents
@@ -233,6 +281,10 @@ CREATE TABLE `alliance_talents`  (
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
+-- Records of alliance_talents
+-- ----------------------------
+
+-- ----------------------------
 -- Table structure for alliance_training_participants
 -- ----------------------------
 DROP TABLE IF EXISTS `alliance_training_participants`;
@@ -240,7 +292,7 @@ CREATE TABLE `alliance_training_participants`  (
   `id` int(0) NOT NULL AUTO_INCREMENT,
   `room_id` int(0) NOT NULL,
   `user_id` int(0) NOT NULL,
-  `joined_at` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `joined_at` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0),
   `claimed_at` datetime(0) NULL DEFAULT NULL,
   `reward_amount` int(0) NULL DEFAULT 0,
   PRIMARY KEY (`id`) USING BTREE,
@@ -249,6 +301,10 @@ CREATE TABLE `alliance_training_participants`  (
   CONSTRAINT `alliance_training_participants_ibfk_1` FOREIGN KEY (`room_id`) REFERENCES `alliance_training_rooms` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `alliance_training_participants_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `player` (`user_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of alliance_training_participants
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for alliance_training_rooms
@@ -261,7 +317,7 @@ CREATE TABLE `alliance_training_rooms`  (
   `title` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `status` varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'ongoing',
   `max_participants` tinyint(0) NOT NULL DEFAULT 4,
-  `created_at` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0),
   `completed_at` datetime(0) NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_alliance_training`(`alliance_id`) USING BTREE,
@@ -269,6 +325,10 @@ CREATE TABLE `alliance_training_rooms`  (
   CONSTRAINT `alliance_training_rooms_ibfk_1` FOREIGN KEY (`alliance_id`) REFERENCES `alliances` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `alliance_training_rooms_ibfk_2` FOREIGN KEY (`creator_user_id`) REFERENCES `player` (`user_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of alliance_training_rooms
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for alliance_war_honor_effects
@@ -280,16 +340,20 @@ CREATE TABLE `alliance_war_honor_effects`  (
   `effect_key` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '配置 key',
   `effect_type` varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'xp/fire 等类别',
   `cost` int(0) NOT NULL DEFAULT 0 COMMENT '兑换消耗战功',
-  `started_at` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `started_at` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0),
   `expires_at` datetime(0) NOT NULL,
   `created_by` int(0) NOT NULL COMMENT '发起兑换的 user_id',
-  `created_at` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP(0),
+  `created_at` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0),
+  `updated_at` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) ON UPDATE CURRENT_TIMESTAMP(0),
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_alliance_effect`(`alliance_id`, `effect_key`) USING BTREE,
   INDEX `idx_effect_expiration`(`alliance_id`, `effect_type`, `expires_at`) USING BTREE,
   CONSTRAINT `fk_honor_effects_alliance` FOREIGN KEY (`alliance_id`) REFERENCES `alliances` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '联盟战功兑换效果记录，约定持续 24 小时' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of alliance_war_honor_effects
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for alliances
@@ -302,7 +366,7 @@ CREATE TABLE `alliances`  (
   `level` int(0) NULL DEFAULT 1,
   `exp` int(0) NULL DEFAULT 0,
   `notice` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL,
-  `created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0),
   `funds` int(0) NULL DEFAULT 0,
   `crystals` int(0) NULL DEFAULT 0,
   `prosperity` int(0) NULL DEFAULT 0,
@@ -311,6 +375,10 @@ CREATE TABLE `alliances`  (
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `name`(`name`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of alliances
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for arena
@@ -325,11 +393,29 @@ CREATE TABLE `arena`  (
   `consecutive_wins` int(0) NOT NULL DEFAULT 0 COMMENT '连胜场次',
   `prize_pool` int(0) NOT NULL DEFAULT 0 COMMENT '奖池球数',
   `last_battle_time` datetime(0) NULL DEFAULT NULL COMMENT '最后战斗时间',
-  `created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP(0),
+  `created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0),
+  `updated_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0) ON UPDATE CURRENT_TIMESTAMP(0),
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `uk_rank_type`(`rank_name`, `arena_type`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 99 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '擂台表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 127 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '擂台表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of arena
+-- ----------------------------
+INSERT INTO `arena` VALUES (99, '黄阶', 'normal', 4053, '123', 5, 6, '2026-01-10 19:22:18', '2026-01-10 12:40:46', '2026-01-10 19:22:18');
+INSERT INTO `arena` VALUES (100, '黄阶', 'gold', NULL, NULL, 0, 0, NULL, '2026-01-10 12:40:46', '2026-01-10 12:40:46');
+INSERT INTO `arena` VALUES (101, '玄阶', 'normal', NULL, NULL, 0, 0, NULL, '2026-01-10 12:40:46', '2026-01-10 12:40:46');
+INSERT INTO `arena` VALUES (102, '玄阶', 'gold', NULL, NULL, 0, 0, NULL, '2026-01-10 12:40:46', '2026-01-10 12:40:46');
+INSERT INTO `arena` VALUES (103, '地阶', 'normal', NULL, NULL, 0, 0, NULL, '2026-01-10 12:40:46', '2026-01-10 12:40:46');
+INSERT INTO `arena` VALUES (104, '地阶', 'gold', NULL, NULL, 0, 0, NULL, '2026-01-10 12:40:46', '2026-01-10 12:40:46');
+INSERT INTO `arena` VALUES (105, '天阶', 'normal', NULL, NULL, 0, 0, NULL, '2026-01-10 12:40:46', '2026-01-10 12:40:46');
+INSERT INTO `arena` VALUES (106, '天阶', 'gold', NULL, NULL, 0, 0, NULL, '2026-01-10 12:40:46', '2026-01-10 12:40:46');
+INSERT INTO `arena` VALUES (107, '飞马', 'normal', NULL, NULL, 0, 0, NULL, '2026-01-10 12:40:46', '2026-01-10 12:40:46');
+INSERT INTO `arena` VALUES (108, '飞马', 'gold', NULL, NULL, 0, 0, NULL, '2026-01-10 12:40:46', '2026-01-10 12:40:46');
+INSERT INTO `arena` VALUES (109, '天龙', 'normal', NULL, NULL, 0, 0, NULL, '2026-01-10 12:40:46', '2026-01-10 12:40:46');
+INSERT INTO `arena` VALUES (110, '天龙', 'gold', NULL, NULL, 0, 0, NULL, '2026-01-10 12:40:46', '2026-01-10 12:40:46');
+INSERT INTO `arena` VALUES (111, '战神', 'normal', NULL, NULL, 0, 0, NULL, '2026-01-10 12:40:46', '2026-01-10 12:40:46');
+INSERT INTO `arena` VALUES (112, '战神', 'gold', NULL, NULL, 0, 0, NULL, '2026-01-10 12:40:46', '2026-01-10 12:40:46');
 
 -- ----------------------------
 -- Table structure for arena_battle_log
@@ -345,12 +431,21 @@ CREATE TABLE `arena_battle_log`  (
   `champion_name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '擂主昵称',
   `is_challenger_win` tinyint(0) NOT NULL DEFAULT 0 COMMENT '是否挑战成功(1=成功,0=失败)',
   `battle_data` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '战斗详情(JSON)',
-  `created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0),
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_challenger`(`challenger_id`) USING BTREE,
   INDEX `idx_champion`(`champion_id`) USING BTREE,
   INDEX `idx_created`(`created_at`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '擂台挑战战斗记录表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 10 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '擂台挑战战斗记录表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of arena_battle_log
+-- ----------------------------
+INSERT INTO `arena_battle_log` VALUES (5, 'normal', '黄阶', 4055, '789', 4053, '123', 0, '{\"is_victory\": false, \"attacker_wins\": 0, \"defender_wins\": 1, \"battles\": []}', '2026-01-10 12:46:13');
+INSERT INTO `arena_battle_log` VALUES (6, 'normal', '黄阶', 4055, '789', 4053, '123', 0, '{\"is_victory\": false, \"attacker_wins\": 0, \"defender_wins\": 1, \"battles\": [{\"battle_num\": 1, \"attacker_beast\": \"\", \"defender_beast\": \"\", \"winner\": \"defender\", \"rounds\": [{\"round\": 1, \"action\": \"『123』的血螳螂攻击『789』的血螳螂，气血-1\", \"a_hp\": 15, \"d_hp\": 13}, {\"round\": 2, \"action\": \"『789』的血螳螂攻击『123』的血螳螂，气血-1\", \"a_hp\": 13, \"d_hp\": 14}, {\"round\": 3, \"action\": \"『123』的血螳螂攻击『789』的血螳螂，气血-1\", \"a_hp\": 14, \"d_hp\": 12}, {\"round\": 4, \"action\": \"『789』的血螳螂攻击『123』的血螳螂，气血-1\", \"a_hp\": 12, \"d_hp\": 13}, {\"round\": 5, \"action\": \"『123』的血螳螂攻击『789』的血螳螂，气血-1\", \"a_hp\": 13, \"d_hp\": 11}, {\"round\": 6, \"action\": \"『789』的血螳螂攻击『123』的血螳螂，气血-1\", \"a_hp\": 11, \"d_hp\": 12}, {\"round\": 7, \"action\": \"『123』的血螳螂攻击『789』的血螳螂，气血-1\", \"a_hp\": 12, \"d_hp\": 10}, {\"round\": 8, \"action\": \"『789』的血螳螂攻击『123』的血螳螂，气血-1\", \"a_hp\": 10, \"d_hp\": 11}, {\"round\": 9, \"action\": \"『123』的血螳螂攻击『789』的血螳螂，气血-1\", \"a_hp\": 11, \"d_hp\": 9}, {\"round\": 10, \"action\": \"『789』的血螳螂攻击『123』的血螳螂，气血-1\", \"a_hp\": 9, \"d_hp\": 10}, {\"round\": 11, \"action\": \"『123』的血螳螂攻击『789』的血螳螂，气血-1\", \"a_hp\": 10, \"d_hp\": 8}, {\"round\": 12, \"action\": \"『789』的血螳螂攻击『123』的血螳螂，气血-1\", \"a_hp\": 8, \"d_hp\": 9}, {\"round\": 13, \"action\": \"『123』的血螳螂攻击『789』的血螳螂，气血-1\", \"a_hp\": 9, \"d_hp\": 7}, {\"round\": 14, \"action\": \"『789』的血螳螂攻击『123』的血螳螂，气血-1\", \"a_hp\": 7, \"d_hp\": 8}, {\"round\": 15, \"action\": \"『123』的血螳螂攻击『789』的血螳螂，气血-1\", \"a_hp\": 8, \"d_hp\": 6}, {\"round\": 16, \"action\": \"『789』的血螳螂攻击『123』的血螳螂，气血-1\", \"a_hp\": 6, \"d_hp\": 7}, {\"round\": 17, \"action\": \"『123』的血螳螂攻击『789』的血螳螂，气血-1\", \"a_hp\": 7, \"d_hp\": 5}, {\"round\": 18, \"action\": \"『789』的血螳螂使用高级吸血攻击『123』的血螳螂，气血-1\", \"a_hp\": 5, \"d_hp\": 6}, {\"round\": 19, \"action\": \"『123』的血螳螂攻击『789』的血螳螂，气血-1\", \"a_hp\": 6, \"d_hp\": 4}, {\"round\": 20, \"action\": \"『789』的血螳螂使用高级吸血攻击『123』的血螳螂，气血-1\", \"a_hp\": 4, \"d_hp\": 5}, {\"round\": 21, \"action\": \"『123』的血螳螂攻击『789』的血螳螂，气血-1\", \"a_hp\": 5, \"d_hp\": 3}, {\"round\": 22, \"action\": \"『789』的血螳螂攻击『123』的血螳螂，气血-1\", \"a_hp\": 3, \"d_hp\": 4}, {\"round\": 23, \"action\": \"『123』的血螳螂攻击『789』的血螳螂，气血-1\", \"a_hp\": 4, \"d_hp\": 2}, {\"round\": 24, \"action\": \"『789』的血螳螂攻击『123』的血螳螂，气血-1\", \"a_hp\": 2, \"d_hp\": 3}, {\"round\": 25, \"action\": \"『123』的血螳螂攻击『789』的血螳螂，气血-1\", \"a_hp\": 3, \"d_hp\": 1}, {\"round\": 26, \"action\": \"『789』的血螳螂攻击『123』的血螳螂，气血-1\", \"a_hp\": 1, \"d_hp\": 2}, {\"round\": 27, \"action\": \"『123』的血螳螂攻击『789』的血螳螂，气血-1\", \"a_hp\": 2, \"d_hp\": 0}], \"result\": \"『123』的血螳螂获胜，剩余气血2\"}]}', '2026-01-10 13:45:18');
+INSERT INTO `arena_battle_log` VALUES (7, 'normal', '黄阶', 4055, '789', 4053, '123', 0, '{\"is_victory\": false, \"attacker_wins\": 0, \"defender_wins\": 1, \"battles\": [{\"battle_num\": 1, \"attacker_beast\": \"\", \"defender_beast\": \"\", \"winner\": \"defender\", \"rounds\": [{\"round\": 1, \"action\": \"『123』的血螳螂攻击『789』的血螳螂，气血-1\", \"a_hp\": 15, \"d_hp\": 13}, {\"round\": 2, \"action\": \"『789』的血螳螂攻击『123』的血螳螂，气血-1\", \"a_hp\": 13, \"d_hp\": 14}, {\"round\": 3, \"action\": \"『123』的血螳螂攻击『789』的血螳螂，气血-1\", \"a_hp\": 14, \"d_hp\": 12}, {\"round\": 4, \"action\": \"『789』的血螳螂攻击『123』的血螳螂，气血-1\", \"a_hp\": 12, \"d_hp\": 13}, {\"round\": 5, \"action\": \"『123』的血螳螂攻击『789』的血螳螂，气血-1\", \"a_hp\": 13, \"d_hp\": 11}, {\"round\": 6, \"action\": \"『789』的血螳螂攻击『123』的血螳螂，气血-1\", \"a_hp\": 11, \"d_hp\": 12}, {\"round\": 7, \"action\": \"『123』的血螳螂攻击『789』的血螳螂，气血-1\", \"a_hp\": 12, \"d_hp\": 10}, {\"round\": 8, \"action\": \"『789』的血螳螂攻击『123』的血螳螂，气血-1\", \"a_hp\": 10, \"d_hp\": 11}, {\"round\": 9, \"action\": \"『123』的血螳螂攻击『789』的血螳螂，气血-1\", \"a_hp\": 11, \"d_hp\": 9}, {\"round\": 10, \"action\": \"『789』的血螳螂攻击『123』的血螳螂，气血-1\", \"a_hp\": 9, \"d_hp\": 10}, {\"round\": 11, \"action\": \"『123』的血螳螂攻击『789』的血螳螂，气血-1\", \"a_hp\": 10, \"d_hp\": 8}, {\"round\": 12, \"action\": \"『789』的血螳螂攻击『123』的血螳螂，气血-1\", \"a_hp\": 8, \"d_hp\": 9}, {\"round\": 13, \"action\": \"『123』的血螳螂攻击『789』的血螳螂，气血-1\", \"a_hp\": 9, \"d_hp\": 7}, {\"round\": 14, \"action\": \"『789』的血螳螂攻击『123』的血螳螂，气血-1\", \"a_hp\": 7, \"d_hp\": 8}, {\"round\": 15, \"action\": \"『123』的血螳螂攻击『789』的血螳螂，气血-1\", \"a_hp\": 8, \"d_hp\": 6}, {\"round\": 16, \"action\": \"『789』的血螳螂攻击『123』的血螳螂，气血-1\", \"a_hp\": 6, \"d_hp\": 7}, {\"round\": 17, \"action\": \"『123』的血螳螂攻击『789』的血螳螂，气血-1\", \"a_hp\": 7, \"d_hp\": 5}, {\"round\": 18, \"action\": \"『789』的血螳螂攻击『123』的血螳螂，气血-1\", \"a_hp\": 5, \"d_hp\": 6}, {\"round\": 19, \"action\": \"『123』的血螳螂攻击『789』的血螳螂，气血-1\", \"a_hp\": 6, \"d_hp\": 4}, {\"round\": 20, \"action\": \"『789』的血螳螂攻击『123』的血螳螂，气血-1\", \"a_hp\": 4, \"d_hp\": 5}, {\"round\": 21, \"action\": \"『123』的血螳螂攻击『789』的血螳螂，气血-1\", \"a_hp\": 5, \"d_hp\": 3}, {\"round\": 22, \"action\": \"『789』的血螳螂攻击『123』的血螳螂，气血-1\", \"a_hp\": 3, \"d_hp\": 4}, {\"round\": 23, \"action\": \"『123』的血螳螂攻击『789』的血螳螂，气血-1\", \"a_hp\": 4, \"d_hp\": 2}, {\"round\": 24, \"action\": \"『789』的血螳螂使用高级吸血攻击『123』的血螳螂，气血-1\", \"a_hp\": 2, \"d_hp\": 3}, {\"round\": 25, \"action\": \"『123』的血螳螂攻击『789』的血螳螂，气血-1\", \"a_hp\": 3, \"d_hp\": 1}, {\"round\": 26, \"action\": \"『789』的血螳螂攻击『123』的血螳螂，气血-1\", \"a_hp\": 1, \"d_hp\": 2}, {\"round\": 27, \"action\": \"『123』的血螳螂攻击『789』的血螳螂，气血-1\", \"a_hp\": 2, \"d_hp\": 0}], \"result\": \"『123』的血螳螂获胜，剩余气血2\"}]}', '2026-01-10 19:06:02');
+INSERT INTO `arena_battle_log` VALUES (8, 'normal', '黄阶', 4055, '789', 4053, '123', 0, '{\"is_victory\": false, \"attacker_wins\": 0, \"defender_wins\": 1, \"battles\": [{\"battle_num\": 1, \"attacker_beast\": \"\", \"defender_beast\": \"\", \"winner\": \"defender\", \"rounds\": [{\"round\": 1, \"action\": \"『123』的血螳螂攻击『789』的血螳螂，气血-1\", \"a_hp\": 15, \"d_hp\": 13}, {\"round\": 2, \"action\": \"『789』的血螳螂攻击『123』的血螳螂，气血-1\", \"a_hp\": 13, \"d_hp\": 14}, {\"round\": 3, \"action\": \"『123』的血螳螂攻击『789』的血螳螂，气血-1\", \"a_hp\": 14, \"d_hp\": 12}, {\"round\": 4, \"action\": \"『789』的血螳螂攻击『123』的血螳螂，气血-1\", \"a_hp\": 12, \"d_hp\": 13}, {\"round\": 5, \"action\": \"『123』的血螳螂攻击『789』的血螳螂，气血-1\", \"a_hp\": 13, \"d_hp\": 11}, {\"round\": 6, \"action\": \"『789』的血螳螂攻击『123』的血螳螂，气血-1\", \"a_hp\": 11, \"d_hp\": 12}, {\"round\": 7, \"action\": \"『123』的血螳螂攻击『789』的血螳螂，气血-1\", \"a_hp\": 12, \"d_hp\": 10}, {\"round\": 8, \"action\": \"『789』的血螳螂攻击『123』的血螳螂，气血-1\", \"a_hp\": 10, \"d_hp\": 11}, {\"round\": 9, \"action\": \"『123』的血螳螂攻击『789』的血螳螂，气血-1\", \"a_hp\": 11, \"d_hp\": 9}, {\"round\": 10, \"action\": \"『789』的血螳螂攻击『123』的血螳螂，气血-1\", \"a_hp\": 9, \"d_hp\": 10}, {\"round\": 11, \"action\": \"『123』的血螳螂攻击『789』的血螳螂，气血-1\", \"a_hp\": 10, \"d_hp\": 8}, {\"round\": 12, \"action\": \"『789』的血螳螂使用高级吸血攻击『123』的血螳螂，气血-1\", \"a_hp\": 8, \"d_hp\": 9}, {\"round\": 13, \"action\": \"『123』的血螳螂攻击『789』的血螳螂，气血-1\", \"a_hp\": 9, \"d_hp\": 7}, {\"round\": 14, \"action\": \"『789』的血螳螂使用高级吸血攻击『123』的血螳螂，气血-1\", \"a_hp\": 7, \"d_hp\": 8}, {\"round\": 15, \"action\": \"『123』的血螳螂攻击『789』的血螳螂，气血-1\", \"a_hp\": 8, \"d_hp\": 6}, {\"round\": 16, \"action\": \"『789』的血螳螂攻击『123』的血螳螂，气血-1\", \"a_hp\": 6, \"d_hp\": 7}, {\"round\": 17, \"action\": \"『123』的血螳螂攻击『789』的血螳螂，气血-1\", \"a_hp\": 7, \"d_hp\": 5}, {\"round\": 18, \"action\": \"『789』的血螳螂攻击『123』的血螳螂，气血-1\", \"a_hp\": 5, \"d_hp\": 6}, {\"round\": 19, \"action\": \"『123』的血螳螂攻击『789』的血螳螂，气血-1\", \"a_hp\": 6, \"d_hp\": 4}, {\"round\": 20, \"action\": \"『789』的血螳螂攻击『123』的血螳螂，气血-1\", \"a_hp\": 4, \"d_hp\": 5}, {\"round\": 21, \"action\": \"『123』的血螳螂攻击『789』的血螳螂，气血-1\", \"a_hp\": 5, \"d_hp\": 3}, {\"round\": 22, \"action\": \"『789』的血螳螂攻击『123』的血螳螂，气血-1\", \"a_hp\": 3, \"d_hp\": 4}, {\"round\": 23, \"action\": \"『123』的血螳螂攻击『789』的血螳螂，气血-1\", \"a_hp\": 4, \"d_hp\": 2}, {\"round\": 24, \"action\": \"『789』的血螳螂攻击『123』的血螳螂，气血-1\", \"a_hp\": 2, \"d_hp\": 3}, {\"round\": 25, \"action\": \"『123』的血螳螂攻击『789』的血螳螂，气血-1\", \"a_hp\": 3, \"d_hp\": 1}, {\"round\": 26, \"action\": \"『789』的血螳螂攻击『123』的血螳螂，气血-1\", \"a_hp\": 1, \"d_hp\": 2}, {\"round\": 27, \"action\": \"『123』的血螳螂攻击『789』的血螳螂，气血-1\", \"a_hp\": 2, \"d_hp\": 0}], \"result\": \"『123』的血螳螂获胜，剩余气血2\"}]}', '2026-01-10 19:06:17');
+INSERT INTO `arena_battle_log` VALUES (9, 'normal', '黄阶', 4055, '789', 4053, '123', 0, '{\"is_victory\": false, \"attacker_wins\": 0, \"defender_wins\": 1, \"battles\": [{\"battle_num\": 1, \"attacker_beast\": \"\", \"defender_beast\": \"\", \"winner\": \"defender\", \"rounds\": [{\"round\": 1, \"action\": \"『123』的血螳螂攻击『789』的血螳螂，气血-1\", \"a_hp\": 15, \"d_hp\": 13}, {\"round\": 2, \"action\": \"『789』的血螳螂攻击『123』的血螳螂，气血-1\", \"a_hp\": 13, \"d_hp\": 14}, {\"round\": 3, \"action\": \"『123』的血螳螂攻击『789』的血螳螂，气血-1\", \"a_hp\": 14, \"d_hp\": 12}, {\"round\": 4, \"action\": \"『789』的血螳螂攻击『123』的血螳螂，气血-1\", \"a_hp\": 12, \"d_hp\": 13}, {\"round\": 5, \"action\": \"『123』的血螳螂攻击『789』的血螳螂，气血-1\", \"a_hp\": 13, \"d_hp\": 11}, {\"round\": 6, \"action\": \"『789』的血螳螂攻击『123』的血螳螂，气血-1\", \"a_hp\": 11, \"d_hp\": 12}, {\"round\": 7, \"action\": \"『123』的血螳螂攻击『789』的血螳螂，气血-1\", \"a_hp\": 12, \"d_hp\": 10}, {\"round\": 8, \"action\": \"『789』的血螳螂攻击『123』的血螳螂，气血-1\", \"a_hp\": 10, \"d_hp\": 11}, {\"round\": 9, \"action\": \"『123』的血螳螂攻击『789』的血螳螂，气血-1\", \"a_hp\": 11, \"d_hp\": 9}, {\"round\": 10, \"action\": \"『789』的血螳螂使用高级吸血攻击『123』的血螳螂，气血-1\", \"a_hp\": 9, \"d_hp\": 10}, {\"round\": 11, \"action\": \"『123』的血螳螂攻击『789』的血螳螂，气血-1\", \"a_hp\": 10, \"d_hp\": 8}, {\"round\": 12, \"action\": \"『789』的血螳螂攻击『123』的血螳螂，气血-1\", \"a_hp\": 8, \"d_hp\": 9}, {\"round\": 13, \"action\": \"『123』的血螳螂攻击『789』的血螳螂，气血-1\", \"a_hp\": 9, \"d_hp\": 7}, {\"round\": 14, \"action\": \"『789』的血螳螂攻击『123』的血螳螂，气血-1\", \"a_hp\": 7, \"d_hp\": 8}, {\"round\": 15, \"action\": \"『123』的血螳螂攻击『789』的血螳螂，气血-1\", \"a_hp\": 8, \"d_hp\": 6}, {\"round\": 16, \"action\": \"『789』的血螳螂攻击『123』的血螳螂，气血-1\", \"a_hp\": 6, \"d_hp\": 7}, {\"round\": 17, \"action\": \"『123』的血螳螂攻击『789』的血螳螂，气血-1\", \"a_hp\": 7, \"d_hp\": 5}, {\"round\": 18, \"action\": \"『789』的血螳螂攻击『123』的血螳螂，气血-1\", \"a_hp\": 5, \"d_hp\": 6}, {\"round\": 19, \"action\": \"『123』的血螳螂攻击『789』的血螳螂，气血-1\", \"a_hp\": 6, \"d_hp\": 4}, {\"round\": 20, \"action\": \"『789』的血螳螂攻击『123』的血螳螂，气血-1\", \"a_hp\": 4, \"d_hp\": 5}, {\"round\": 21, \"action\": \"『123』的血螳螂攻击『789』的血螳螂，气血-1\", \"a_hp\": 5, \"d_hp\": 3}, {\"round\": 22, \"action\": \"『789』的血螳螂攻击『123』的血螳螂，气血-1\", \"a_hp\": 3, \"d_hp\": 4}, {\"round\": 23, \"action\": \"『123』的血螳螂攻击『789』的血螳螂，气血-1\", \"a_hp\": 4, \"d_hp\": 2}, {\"round\": 24, \"action\": \"『789』的血螳螂攻击『123』的血螳螂，气血-1\", \"a_hp\": 2, \"d_hp\": 3}, {\"round\": 25, \"action\": \"『123』的血螳螂攻击『789』的血螳螂，气血-1\", \"a_hp\": 3, \"d_hp\": 1}, {\"round\": 26, \"action\": \"『789』的血螳螂攻击『123』的血螳螂，气血-1\", \"a_hp\": 1, \"d_hp\": 2}, {\"round\": 27, \"action\": \"『123』的血螳螂攻击『789』的血螳螂，气血-1\", \"a_hp\": 2, \"d_hp\": 0}], \"result\": \"『123』的血螳螂获胜，剩余气血2\"}]}', '2026-01-10 19:22:18');
 
 -- ----------------------------
 -- Table structure for arena_daily_challenge
@@ -361,11 +456,16 @@ CREATE TABLE `arena_daily_challenge`  (
   `user_id` int(0) NOT NULL,
   `challenge_date` date NOT NULL,
   `challenge_count` int(0) NOT NULL DEFAULT 0,
-  `created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP(0),
+  `created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0),
+  `updated_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0) ON UPDATE CURRENT_TIMESTAMP(0),
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `uk_user_date`(`user_id`, `challenge_date`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 9 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '擂台每日挑战次数' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 14 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '擂台每日挑战次数' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of arena_daily_challenge
+-- ----------------------------
+INSERT INTO `arena_daily_challenge` VALUES (9, 4055, '2026-01-10', 5, '2026-01-10 12:46:12', '2026-01-10 19:22:18');
 
 -- ----------------------------
 -- Table structure for arena_stats
@@ -375,9 +475,64 @@ CREATE TABLE `arena_stats`  (
   `user_id` int(0) NOT NULL,
   `rank_name` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '等级阶段名称',
   `success_count` int(0) NOT NULL DEFAULT 0 COMMENT '守擂成功次数（达成10连胜次数）',
-  `updated_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP(0),
+  `updated_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0) ON UPDATE CURRENT_TIMESTAMP(0),
   PRIMARY KEY (`user_id`, `rank_name`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '擂台守擂统计表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of arena_stats
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for arena_streak
+-- ----------------------------
+DROP TABLE IF EXISTS `arena_streak`;
+CREATE TABLE `arena_streak`  (
+  `id` int(0) NOT NULL AUTO_INCREMENT,
+  `user_id` int(0) NOT NULL,
+  `current_streak` int(0) NULL DEFAULT 0 COMMENT '当前连胜次数',
+  `max_streak_today` int(0) NULL DEFAULT 0 COMMENT '今日最高连胜',
+  `total_battles_today` int(0) NULL DEFAULT 0 COMMENT '今日战斗次数',
+  `last_battle_time` datetime(0) NULL DEFAULT NULL COMMENT '最后战斗时间',
+  `last_refresh_time` datetime(0) NULL DEFAULT NULL COMMENT '最后刷新时间',
+  `claimed_rewards` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL COMMENT '已领取的奖励(JSON)',
+  `claimed_grand_prize` tinyint(1) NULL DEFAULT 0 COMMENT '是否领取大奖',
+  `record_date` date NULL DEFAULT NULL COMMENT '记录日期',
+  `created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0),
+  `updated_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0) ON UPDATE CURRENT_TIMESTAMP(0),
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `uk_user_date`(`user_id`, `record_date`) USING BTREE,
+  INDEX `idx_max_streak`(`record_date`, `max_streak_today`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '连胜竞技场记录' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of arena_streak
+-- ----------------------------
+INSERT INTO `arena_streak` VALUES (1, 4053, 0, 0, 0, NULL, NULL, '[]', 0, '2026-01-09', '2026-01-09 14:59:25', '2026-01-09 14:59:25');
+INSERT INTO `arena_streak` VALUES (2, 4054, 0, 0, 0, NULL, '2026-01-09 20:27:34', '[]', 0, '2026-01-09', '2026-01-09 15:21:43', '2026-01-09 20:27:34');
+INSERT INTO `arena_streak` VALUES (3, 4055, 0, 1, 6, '2026-01-10 19:06:33', NULL, '[1]', 0, '2026-01-10', '2026-01-10 12:51:50', '2026-01-10 19:06:33');
+INSERT INTO `arena_streak` VALUES (4, 4053, 0, 0, 0, NULL, NULL, '[]', 0, '2026-01-10', '2026-01-10 13:43:48', '2026-01-10 13:43:48');
+INSERT INTO `arena_streak` VALUES (5, 4056, 0, 0, 0, NULL, NULL, '[]', 0, '2026-01-10', '2026-01-10 13:56:42', '2026-01-10 13:56:42');
+
+-- ----------------------------
+-- Table structure for arena_streak_history
+-- ----------------------------
+DROP TABLE IF EXISTS `arena_streak_history`;
+CREATE TABLE `arena_streak_history`  (
+  `id` int(0) NOT NULL AUTO_INCREMENT,
+  `user_id` int(0) NOT NULL,
+  `nickname` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `max_streak` int(0) NOT NULL COMMENT '最高连胜次数',
+  `record_date` date NOT NULL COMMENT '记录日期',
+  `created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0),
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `uk_date`(`record_date`) USING BTREE,
+  INDEX `idx_date`(`record_date`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '历届连胜王' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of arena_streak_history
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for battlefield_battle_log
@@ -398,13 +553,17 @@ CREATE TABLE `battlefield_battle_log`  (
   `is_first_win` tinyint(0) NOT NULL DEFAULT 0 COMMENT '前置玩家是否获胜(1=胜,0=负)',
   `result_label` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '前置玩家结果描述（失败/小败/小胜/完美胜利等）',
   `battle_data` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '战斗详情(JSON，结构与镇妖/擂台战报一致)',
-  `created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0),
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_type_period`(`battlefield_type`, `period`) USING BTREE,
   INDEX `idx_type_period_round`(`battlefield_type`, `period`, `round_num`) USING BTREE,
   INDEX `idx_first_user`(`first_user_id`) USING BTREE,
   INDEX `idx_second_user`(`second_user_id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 369 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '古战场战斗记录表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of battlefield_battle_log
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for battlefield_signup
@@ -415,11 +574,15 @@ CREATE TABLE `battlefield_signup`  (
   `user_id` int(0) NOT NULL COMMENT '玩家ID',
   `battlefield_type` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '战场类型（tiger猛虎战场/crane飞鹤战场）',
   `signup_date` date NOT NULL COMMENT '报名日期',
-  `signup_time` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '报名时间',
+  `signup_time` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT '报名时间',
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `uniq_user_type_date`(`user_id`, `battlefield_type`, `signup_date`) USING BTREE,
   INDEX `idx_type_date`(`battlefield_type`, `signup_date`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 431 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '古战场报名表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of battlefield_signup
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for beast_bone
@@ -438,13 +601,17 @@ CREATE TABLE `beast_bone`  (
   `physical_defense_flat` int(0) NOT NULL DEFAULT 0 COMMENT '物防加成（固定值）',
   `magic_defense_flat` int(0) NOT NULL DEFAULT 0 COMMENT '法防加成（固定值）',
   `speed_flat` int(0) NOT NULL DEFAULT 0 COMMENT '速度加成（固定值）',
-  `created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  `updated_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP(0) COMMENT '更新时间',
+  `created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT '创建时间',
+  `updated_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0) ON UPDATE CURRENT_TIMESTAMP(0) COMMENT '更新时间',
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_user_id`(`user_id`) USING BTREE,
   INDEX `idx_beast_id`(`beast_id`) USING BTREE,
   INDEX `idx_user_beast`(`user_id`, `beast_id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 149 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '玩家战骨表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of beast_bone
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for cultivation_config
@@ -456,9 +623,54 @@ CREATE TABLE `cultivation_config`  (
   `prestige_reward` int(0) NOT NULL COMMENT '声望奖励',
   `gold_cost` int(0) NULL DEFAULT 0 COMMENT '金币消耗',
   `description` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '描述',
-  `created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0),
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 226 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '修行配置表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of cultivation_config
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for king_challenge_logs
+-- ----------------------------
+DROP TABLE IF EXISTS `king_challenge_logs`;
+CREATE TABLE `king_challenge_logs`  (
+  `id` int(0) NOT NULL AUTO_INCREMENT,
+  `challenger_id` int(0) NOT NULL,
+  `challenger_name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `defender_id` int(0) NOT NULL,
+  `defender_name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `challenger_wins` tinyint(1) NOT NULL,
+  `challenger_rank_before` int(0) NOT NULL,
+  `challenger_rank_after` int(0) NOT NULL,
+  `defender_rank_before` int(0) NOT NULL,
+  `defender_rank_after` int(0) NOT NULL,
+  `area_index` int(0) NOT NULL,
+  `battle_report` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL COMMENT '战报数据(JSON格式)',
+  `challenge_time` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0),
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `idx_area_time`(`area_index`, `challenge_time`) USING BTREE,
+  INDEX `idx_challenger`(`challenger_id`, `challenge_time`) USING BTREE,
+  INDEX `idx_defender`(`defender_id`, `challenge_time`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 14 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of king_challenge_logs
+-- ----------------------------
+INSERT INTO `king_challenge_logs` VALUES (1, 4055, '789', 4056, '456', 0, 2, 2, 1, 1, 1, NULL, '2026-01-10 14:53:24');
+INSERT INTO `king_challenge_logs` VALUES (2, 4055, '789', 4056, '456', 0, 2, 2, 1, 1, 1, NULL, '2026-01-10 14:57:38');
+INSERT INTO `king_challenge_logs` VALUES (3, 4055, '789', 4056, '456', 0, 2, 2, 1, 1, 1, '{\"attackerName\": \"789\", \"defenderName\": \"456\", \"victory\": false, \"battleLogs\": [\"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\"], \"detailLogs\": [\"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂使用高级吸血攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\"]}', '2026-01-10 15:09:21');
+INSERT INTO `king_challenge_logs` VALUES (4, 4055, '789', 4056, '456', 0, 2, 2, 1, 1, 1, '{\"attackerName\": \"789\", \"defenderName\": \"456\", \"victory\": false, \"battleLogs\": [\"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂使用高级吸血攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\"], \"detailLogs\": [\"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂使用高级吸血攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂使用高级吸血攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂使用高级吸血攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\"]}', '2026-01-10 15:23:11');
+INSERT INTO `king_challenge_logs` VALUES (5, 4055, '789', 4056, '456', 0, 2, 2, 1, 1, 1, '{\"attackerName\": \"789\", \"defenderName\": \"456\", \"victory\": false, \"battleLogs\": [\"『789』的血螳螂使用高级吸血攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\"], \"detailLogs\": [\"『789』的血螳螂使用高级吸血攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂使用高级吸血攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂使用高级吸血攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂使用高级吸血攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\"]}', '2026-01-10 15:30:30');
+INSERT INTO `king_challenge_logs` VALUES (6, 4055, '789', 4056, '456', 0, 2, 2, 1, 1, 1, '{\"attackerName\": \"789\", \"defenderName\": \"456\", \"victory\": false, \"battleLogs\": [\"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂使用高级吸血攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\"], \"detailLogs\": [\"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂使用高级吸血攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\"]}', '2026-01-10 15:51:01');
+INSERT INTO `king_challenge_logs` VALUES (7, 4055, '789', 4056, '456', 0, 2, 2, 1, 1, 1, '{\"attackerName\": \"789\", \"defenderName\": \"456\", \"victory\": false, \"battleLogs\": [\"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂使用高级吸血攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\"], \"detailLogs\": [\"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂使用高级吸血攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\"]}', '2026-01-10 15:58:43');
+INSERT INTO `king_challenge_logs` VALUES (8, 4055, '789', 4056, '456', 0, 2, 2, 1, 1, 1, '{\"attackerName\": \"789\", \"defenderName\": \"456\", \"victory\": false, \"battleLogs\": [\"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\"], \"detailLogs\": [\"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂使用高级吸血攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂使用高级吸血攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\"]}', '2026-01-10 19:07:12');
+INSERT INTO `king_challenge_logs` VALUES (9, 4055, '789', 4056, '456', 0, 2, 2, 1, 1, 1, '{\"attackerName\": \"789\", \"defenderName\": \"456\", \"victory\": false, \"battleLogs\": [\"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\"], \"detailLogs\": [\"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂使用高级吸血攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\"]}', '2026-01-10 19:35:37');
+INSERT INTO `king_challenge_logs` VALUES (10, 4055, '789', 4056, '456', 0, 2, 2, 1, 1, 1, '{\"attackerName\": \"789\", \"defenderName\": \"456\", \"victory\": false, \"battleLogs\": [\"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\"], \"detailLogs\": [\"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂使用高级吸血攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂使用高级吸血攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\"]}', '2026-01-10 19:47:11');
+INSERT INTO `king_challenge_logs` VALUES (11, 4055, '789', 4056, '456', 0, 2, 2, 1, 1, 1, '{\"attackerName\": \"789\", \"defenderName\": \"456\", \"victory\": false, \"battleLogs\": [\"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂使用高级吸血攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\"], \"detailLogs\": [\"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂使用高级吸血攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂使用高级吸血攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂使用高级吸血攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂使用高级吸血攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂使用高级吸血攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂使用高级吸血攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\"]}', '2026-01-10 19:51:39');
+INSERT INTO `king_challenge_logs` VALUES (12, 4055, '789', 4056, '456', 0, 2, 2, 1, 1, 1, '{\"attackerName\": \"789\", \"defenderName\": \"456\", \"victory\": false, \"battleLogs\": [\"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂使用高级吸血攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\"], \"detailLogs\": [\"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂使用高级吸血攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂使用高级吸血攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂使用高级吸血攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"『456』的羽精灵攻击『789』的血螳螂，气血-1\"]}', '2026-01-10 19:53:48');
+INSERT INTO `king_challenge_logs` VALUES (13, 4055, '789', 4056, '456', 0, 2, 2, 1, 1, 1, '{\"is_victory\": false, \"result\": \"失败(:×)\", \"attacker_id\": 4055, \"attacker_name\": \"789\", \"defender_id\": 4056, \"defender_name\": \"456\", \"total_turns\": 28, \"battles\": [{\"battle_num\": 1, \"attacker_beast\": \"\", \"defender_beast\": \"\", \"winner\": \"defender\", \"rounds\": [{\"round\": 1, \"action\": \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"a_hp\": 14, \"d_hp\": 21}, {\"round\": 2, \"action\": \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"a_hp\": 21, \"d_hp\": 13}, {\"round\": 3, \"action\": \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"a_hp\": 13, \"d_hp\": 20}, {\"round\": 4, \"action\": \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"a_hp\": 20, \"d_hp\": 12}, {\"round\": 5, \"action\": \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"a_hp\": 12, \"d_hp\": 19}, {\"round\": 6, \"action\": \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"a_hp\": 19, \"d_hp\": 11}, {\"round\": 7, \"action\": \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"a_hp\": 11, \"d_hp\": 18}, {\"round\": 8, \"action\": \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"a_hp\": 18, \"d_hp\": 10}, {\"round\": 9, \"action\": \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"a_hp\": 10, \"d_hp\": 17}, {\"round\": 10, \"action\": \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"a_hp\": 17, \"d_hp\": 9}, {\"round\": 11, \"action\": \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"a_hp\": 9, \"d_hp\": 16}, {\"round\": 12, \"action\": \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"a_hp\": 16, \"d_hp\": 8}, {\"round\": 13, \"action\": \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"a_hp\": 8, \"d_hp\": 15}, {\"round\": 14, \"action\": \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"a_hp\": 15, \"d_hp\": 7}, {\"round\": 15, \"action\": \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"a_hp\": 7, \"d_hp\": 14}, {\"round\": 16, \"action\": \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"a_hp\": 14, \"d_hp\": 6}, {\"round\": 17, \"action\": \"『789』的血螳螂使用高级吸血攻击『456』的羽精灵，气血-1\", \"a_hp\": 6, \"d_hp\": 13}, {\"round\": 18, \"action\": \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"a_hp\": 13, \"d_hp\": 5}, {\"round\": 19, \"action\": \"『789』的血螳螂使用高级吸血攻击『456』的羽精灵，气血-1\", \"a_hp\": 5, \"d_hp\": 12}, {\"round\": 20, \"action\": \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"a_hp\": 12, \"d_hp\": 4}, {\"round\": 21, \"action\": \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"a_hp\": 4, \"d_hp\": 11}, {\"round\": 22, \"action\": \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"a_hp\": 11, \"d_hp\": 3}, {\"round\": 23, \"action\": \"『789』的血螳螂使用高级吸血攻击『456』的羽精灵，气血-1\", \"a_hp\": 3, \"d_hp\": 10}, {\"round\": 24, \"action\": \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"a_hp\": 10, \"d_hp\": 2}, {\"round\": 25, \"action\": \"『789』的血螳螂攻击『456』的羽精灵，气血-1\", \"a_hp\": 2, \"d_hp\": 9}, {\"round\": 26, \"action\": \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"a_hp\": 9, \"d_hp\": 1}, {\"round\": 27, \"action\": \"『789』的血螳螂使用高级吸血攻击『456』的羽精灵，气血-1\", \"a_hp\": 1, \"d_hp\": 8}, {\"round\": 28, \"action\": \"『456』的羽精灵攻击『789』的血螳螂，气血-1\", \"a_hp\": 8, \"d_hp\": 0}], \"result\": \"『456』的羽精灵获胜，剩余气血8\", \"summary\": \"『789』的血螳螂攻击『456』的羽精灵，气血-1\"}], \"attacker_beasts\": [{\"name\": \"血螳螂\", \"realm\": \"地界\", \"exp_gain\": 0, \"template_id\": 3}], \"defender_beasts\": [{\"name\": \"羽精灵\", \"realm\": \"地界\", \"template_id\": 9}], \"incense_bonus\": \"无\", \"energy_cost\": 15, \"current_streak\": 0}', '2026-01-10 19:56:09');
 
 -- ----------------------------
 -- Table structure for king_challenge_rank
@@ -473,10 +685,45 @@ CREATE TABLE `king_challenge_rank`  (
   `total_losses` int(0) NOT NULL DEFAULT 0 COMMENT '总负场',
   `today_challenges` int(0) NOT NULL DEFAULT 0 COMMENT '今日挑战次数',
   `last_challenge_date` date NULL DEFAULT NULL COMMENT '上次挑战日期',
-  `updated_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP(0),
+  `last_challenge_time` datetime(0) NULL DEFAULT NULL COMMENT '最后挑战时间（用于冷却）',
+  `is_registered` tinyint(1) NOT NULL DEFAULT 0 COMMENT '是否已报名本周',
+  `updated_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0) ON UPDATE CURRENT_TIMESTAMP(0),
   PRIMARY KEY (`user_id`) USING BTREE,
   INDEX `idx_area_rank`(`area_index`, `rank_position`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '召唤之王挑战赛排名表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of king_challenge_rank
+-- ----------------------------
+INSERT INTO `king_challenge_rank` VALUES (4053, 2, 2, 0, 0, 0, 0, '2026-01-10', NULL, 0, '2026-01-10 14:38:53');
+INSERT INTO `king_challenge_rank` VALUES (4054, 2, 1, 0, 0, 0, 0, '2026-01-09', NULL, 0, '2026-01-09 19:48:40');
+INSERT INTO `king_challenge_rank` VALUES (4055, 1, 2, 0, 0, 14, 13, '2026-01-10', '2026-01-10 19:56:09', 0, '2026-01-10 19:56:09');
+INSERT INTO `king_challenge_rank` VALUES (4056, 1, 1, 14, 14, 0, 1, '2026-01-10', '2026-01-10 14:00:58', 0, '2026-01-10 19:56:09');
+
+-- ----------------------------
+-- Table structure for king_final_stage
+-- ----------------------------
+DROP TABLE IF EXISTS `king_final_stage`;
+CREATE TABLE `king_final_stage`  (
+  `id` int(0) NOT NULL AUTO_INCREMENT,
+  `season` int(0) NOT NULL COMMENT '赛季编号',
+  `user_id` int(0) NOT NULL COMMENT '玩家ID',
+  `stage` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '阶段：32/16/8/4/2/champion',
+  `match_id` int(0) NULL DEFAULT NULL COMMENT '对战ID',
+  `opponent_id` int(0) NULL DEFAULT NULL COMMENT '对手ID',
+  `is_bye` tinyint(1) NOT NULL DEFAULT 0 COMMENT '是否轮空',
+  `is_winner` tinyint(1) NULL DEFAULT NULL COMMENT '是否胜利（NULL=未比赛）',
+  `battle_time` datetime(0) NULL DEFAULT NULL COMMENT '战斗时间',
+  `created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0),
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `idx_season_stage`(`season`, `stage`) USING BTREE,
+  INDEX `idx_user`(`user_id`) USING BTREE,
+  INDEX `idx_match`(`match_id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '召唤之王正赛阶段表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of king_final_stage
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for king_reward_claimed
@@ -487,10 +734,34 @@ CREATE TABLE `king_reward_claimed`  (
   `user_id` int(0) NOT NULL,
   `season` int(0) NOT NULL DEFAULT 1 COMMENT '赛季编号',
   `reward_tier` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '奖励档位（冠军/亚军/四强等）',
-  `claimed_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP,
+  `claimed_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0),
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `uk_user_season`(`user_id`, `season`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '召唤之王奖励领取记录' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '召唤之王奖励领取记录' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of king_reward_claimed
+-- ----------------------------
+INSERT INTO `king_reward_claimed` VALUES (3, 4054, 202602, '冠军', '2026-01-09 22:04:34');
+INSERT INTO `king_reward_claimed` VALUES (4, 4055, 202602, '亚军', '2026-01-10 15:59:11');
+
+-- ----------------------------
+-- Table structure for king_season_config
+-- ----------------------------
+DROP TABLE IF EXISTS `king_season_config`;
+CREATE TABLE `king_season_config`  (
+  `season` int(0) NOT NULL COMMENT '赛季编号',
+  `start_date` date NOT NULL COMMENT '赛季开始日期（周一）',
+  `end_date` date NOT NULL COMMENT '赛季结束日期（周日）',
+  `status` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT 'registration' COMMENT '状态：registration/preliminary/final/finished',
+  `created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0),
+  `updated_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0) ON UPDATE CURRENT_TIMESTAMP(0),
+  PRIMARY KEY (`season`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '召唤之王赛季配置表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of king_season_config
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for level_config
@@ -500,9 +771,13 @@ CREATE TABLE `level_config`  (
   `level` int(0) NOT NULL COMMENT '等级',
   `prestige_required` int(0) NOT NULL COMMENT '晋级所需声望',
   `rank_name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '阶位名称',
-  `created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0),
   PRIMARY KEY (`level`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '等级配置表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of level_config
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for manor_land
@@ -515,12 +790,16 @@ CREATE TABLE `manor_land`  (
   `status` tinyint(0) NOT NULL DEFAULT 0 COMMENT '0:未开启, 1:空闲, 2:种植中',
   `tree_type` int(0) NULL DEFAULT 0 COMMENT '种植的种类：1, 2, 4, 6, 8株',
   `plant_time` datetime(0) NULL DEFAULT NULL COMMENT '种植开始时间',
-  `created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP(0),
+  `created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0),
+  `updated_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0) ON UPDATE CURRENT_TIMESTAMP(0),
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `uk_user_land`(`user_id`, `land_index`) USING BTREE,
   INDEX `idx_user_id`(`user_id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 14 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '庄园土地表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of manor_land
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for mosoul_global_pity
@@ -531,11 +810,15 @@ CREATE TABLE `mosoul_global_pity`  (
   `count` int(0) NOT NULL DEFAULT 0,
   `pity_threshold` int(0) NOT NULL DEFAULT 0,
   `soul_charm_consumed_global` int(0) NOT NULL DEFAULT 0,
-  `created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP(0),
+  `created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0),
+  `updated_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0) ON UPDATE CURRENT_TIMESTAMP(0),
   `copper_consumed_global` bigint(0) UNSIGNED NOT NULL DEFAULT 0,
   PRIMARY KEY (`counter_key`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of mosoul_global_pity
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for mosoul_hunting_state
@@ -548,10 +831,14 @@ CREATE TABLE `mosoul_hunting_state`  (
   `advanced_available_npcs` json NOT NULL,
   `soul_charm_consumed` int(0) NOT NULL DEFAULT 0,
   `copper_consumed` int(0) NOT NULL DEFAULT 0,
-  `created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP(0),
+  `created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0),
+  `updated_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0) ON UPDATE CURRENT_TIMESTAMP(0),
   PRIMARY KEY (`user_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of mosoul_hunting_state
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for player
@@ -568,13 +855,15 @@ CREATE TABLE `player`  (
   `yuanbao` int(0) NOT NULL DEFAULT 0 COMMENT '元宝',
   `silver_diamond` int(0) NOT NULL DEFAULT 0 COMMENT '宝石',
   `dice` int(0) NOT NULL DEFAULT 0 COMMENT '骰子数量',
-  `created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP(0),
+  `created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0),
+  `updated_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0) ON UPDATE CURRENT_TIMESTAMP(0),
   `prestige` int(0) NOT NULL DEFAULT 0 COMMENT '当前声望',
   `cultivation_start` datetime(0) NULL DEFAULT NULL COMMENT '修行开始时间',
   `cultivation_duration` int(0) NULL DEFAULT 0 COMMENT '修行时长(秒)',
   `cultivation_reward` int(0) NULL DEFAULT 0 COMMENT '修行预计奖励声望',
   `location` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '落龙镇',
+  `last_signin_date` date NULL DEFAULT NULL COMMENT '上次签到日期',
+  `consecutive_signin_days` int(0) NOT NULL DEFAULT 0 COMMENT '连续签到天数',
   `last_map_move_at` datetime(0) NULL DEFAULT NULL,
   `moving_to` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
   `is_summon_king` tinyint(1) NOT NULL DEFAULT 0 COMMENT '是否是召唤之王（1=是）',
@@ -584,7 +873,7 @@ CREATE TABLE `player`  (
   `crystal_tower` int(0) NULL DEFAULT 0 COMMENT '水晶塔活力值',
   `charm` int(0) NULL DEFAULT 0 COMMENT '魅力值',
   `energy` int(0) NULL DEFAULT 100 COMMENT '活力值',
-  `last_energy_recovery_time` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP COMMENT '上次体力恢复时间',
+  `last_energy_recovery_time` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT '上次体力恢复时间',
   `cultivation_start_time` datetime(0) NULL DEFAULT NULL,
   `cultivation_area` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
   `cultivation_dungeon` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
@@ -593,7 +882,15 @@ CREATE TABLE `player`  (
   `first_recharge_claimed` tinyint(0) NULL DEFAULT 0 COMMENT '首充是否已领取',
   PRIMARY KEY (`user_id`) USING BTREE,
   UNIQUE INDEX `uk_username`(`username`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 4053 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '玩家基础信息表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 4057 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '玩家基础信息表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of player
+-- ----------------------------
+INSERT INTO `player` VALUES (4053, '123', '1234', '123', 22, 0, 3324, 0, 0, 0, '2026-01-09 14:47:08', '2026-01-10 19:56:51', 0, NULL, 0, 0, '林中空地', '2026-01-09', 1, NULL, NULL, 0, 0, 0, 0, 0, 0, 100, '2026-01-10 19:56:52', NULL, NULL, NULL, NULL, NULL, 0);
+INSERT INTO `player` VALUES (4054, 'abc', 'acbd', 'abc', 1, 0, 450000, 0, 0, 0, '2026-01-09 15:21:40', '2026-01-09 22:04:34', 0, NULL, 0, 0, '林中空地', NULL, 0, NULL, NULL, 0, 0, 0, 0, 0, 0, 100, '2026-01-09 15:21:40', NULL, NULL, NULL, NULL, NULL, 0);
+INSERT INTO `player` VALUES (4055, '789', '7890', '789', 25, 0, 1229724, 3888, 0, 12, '2026-01-10 12:44:54', '2026-01-10 20:13:53', 0, NULL, 0, 0, '林中空地', '2026-01-10', 1, NULL, NULL, 0, 0, 0, 0, 0, 0, 100, '2026-01-10 20:13:54', NULL, NULL, NULL, '2026-01-10', NULL, 0);
+INSERT INTO `player` VALUES (4056, '456', '4567', '456', 35, 0, 20100, 0, 0, 0, '2026-01-10 13:56:20', '2026-01-10 19:16:31', 0, NULL, 0, 0, '林中空地', NULL, 0, NULL, NULL, 0, 0, 0, 0, 0, 0, 100, '2026-01-10 19:16:32', NULL, NULL, NULL, NULL, NULL, 0);
 
 -- ----------------------------
 -- Table structure for player_bag
@@ -603,10 +900,18 @@ CREATE TABLE `player_bag`  (
   `user_id` int(0) NOT NULL,
   `bag_level` int(0) NOT NULL DEFAULT 1 COMMENT '背包等级 1-10',
   `capacity` int(0) NOT NULL DEFAULT 50 COMMENT '背包容量（格子数）',
-  `created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP(0),
+  `created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0),
+  `updated_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0) ON UPDATE CURRENT_TIMESTAMP(0),
   PRIMARY KEY (`user_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '玩家背包信息表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of player_bag
+-- ----------------------------
+INSERT INTO `player_bag` VALUES (4053, 1, 100, '2026-01-09 14:47:08', '2026-01-09 14:47:08');
+INSERT INTO `player_bag` VALUES (4054, 1, 100, '2026-01-09 15:21:40', '2026-01-09 15:21:40');
+INSERT INTO `player_bag` VALUES (4055, 1, 100, '2026-01-10 12:44:55', '2026-01-10 12:44:55');
+INSERT INTO `player_bag` VALUES (4056, 1, 100, '2026-01-10 13:56:21', '2026-01-10 13:56:21');
 
 -- ----------------------------
 -- Table structure for player_beast
@@ -645,11 +950,20 @@ CREATE TABLE `player_beast`  (
   `attack_type` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'physical' COMMENT '攻击类型（physical/magic）',
   `is_in_team` tinyint(1) NULL DEFAULT 0 COMMENT '是否在战斗队',
   `team_position` int(0) NULL DEFAULT 0 COMMENT '战斗队位置',
-  `created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP(0),
+  `created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0),
+  `updated_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0) ON UPDATE CURRENT_TIMESTAMP(0),
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_user_team`(`user_id`, `is_in_team`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 747 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '玩家幻兽表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 752 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '玩家幻兽表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of player_beast
+-- ----------------------------
+INSERT INTO `player_beast` VALUES (747, 4055, 3, '血螳螂', '血螳螂', '地界', '', 1, 0, '物系', '勇敢', 14, 11, 0, 10, 10, 1, 8, 860, 497, 580, 761, 0, 431, 394, '10000/10000', '[\"高级吸血\"]', '', '', 'physical', 1, 0, '2026-01-10 13:43:07', '2026-01-10 13:43:10');
+INSERT INTO `player_beast` VALUES (748, 4053, 3, '血螳螂', '血螳螂', '地界', '', 1, 0, '物系', '胆小', 15, 11, 0, 10, 10, 1, 8, 860, 520, 657, 739, 0, 586, 398, '10000/10000', '[\"幸运\"]', '', '', 'physical', 1, 0, '2026-01-10 13:43:43', '2026-01-10 13:43:45');
+INSERT INTO `player_beast` VALUES (749, 4056, 9, '羽精灵', '羽精灵', '地界', '', 1, 0, '物系', '勇敢', 22, 0, 10, 10, 11, 1, 8, 860, 744, 842, 0, 451, 171, 841, '10000/10000', '[]', '', '', 'magic', 1, 0, '2026-01-10 14:00:50', '2026-01-10 14:00:53');
+INSERT INTO `player_beast` VALUES (750, 4055, 9, '羽精灵', '羽精灵', '地界', '', 1, 0, '物系', '精明', 26, 0, 10, 10, 14, 1, 10, 860, 882, 527, 0, 636, 153, 1043, '10000/10000', '[]', '', '', 'magic', 0, 0, '2026-01-10 19:56:29', '2026-01-10 19:56:38');
+INSERT INTO `player_beast` VALUES (751, 4055, 6, '追风狼', '追风狼', '地界', '', 1, 0, '物系', '胆小', 15, 10, 0, 11, 10, 1, 8, 860, 529, 729, 592, 0, 844, 731, '10000/10000', '[]', '', '', 'physical', 1, 1, '2026-01-10 19:56:33', '2026-01-10 19:56:42');
 
 -- ----------------------------
 -- Table structure for player_daily_activity
@@ -664,6 +978,11 @@ CREATE TABLE `player_daily_activity`  (
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
+-- Records of player_daily_activity
+-- ----------------------------
+INSERT INTO `player_daily_activity` VALUES (4055, 10, '2026-01-10', '[\"login_game\", \"claimed_gift:peach\"]');
+
+-- ----------------------------
 -- Table structure for player_dungeon_progress
 -- ----------------------------
 DROP TABLE IF EXISTS `player_dungeon_progress`;
@@ -673,8 +992,8 @@ CREATE TABLE `player_dungeon_progress`  (
   `dungeon_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `current_floor` int(0) NULL DEFAULT 1,
   `total_floors` int(0) NULL DEFAULT 35,
-  `created_at` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP(0),
+  `created_at` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0),
+  `updated_at` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) ON UPDATE CURRENT_TIMESTAMP(0),
   `floor_cleared` tinyint(1) NULL DEFAULT 1,
   `floor_event_type` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT 'beast',
   `loot_claimed` tinyint(1) NULL DEFAULT 1,
@@ -682,7 +1001,12 @@ CREATE TABLE `player_dungeon_progress`  (
   `last_reset_date` date NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `uk_user_dungeon`(`user_id`, `dungeon_name`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 113 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 115 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of player_dungeon_progress
+-- ----------------------------
+INSERT INTO `player_dungeon_progress` VALUES (113, 4055, '森林入口', 9, 35, '2026-01-10 13:08:05', '2026-01-10 13:08:23', 0, 'beast', 1, 0, NULL);
 
 -- ----------------------------
 -- Table structure for player_effect
@@ -693,12 +1017,16 @@ CREATE TABLE `player_effect`  (
   `user_id` int(0) NOT NULL,
   `effect_key` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
   `end_time` datetime(0) NOT NULL,
-  `created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP(0),
+  `created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0),
+  `updated_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0) ON UPDATE CURRENT_TIMESTAMP(0),
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `uk_user_effect`(`user_id`, `effect_key`) USING BTREE,
   INDEX `idx_end_time`(`end_time`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of player_effect
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for player_gift_claim
@@ -708,10 +1036,16 @@ CREATE TABLE `player_gift_claim`  (
   `id` int(0) NOT NULL AUTO_INCREMENT,
   `user_id` int(0) NOT NULL,
   `gift_key` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
-  `claimed_at` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `claimed_at` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0),
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `uk_user_gift`(`user_id`, `gift_key`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of player_gift_claim
+-- ----------------------------
+INSERT INTO `player_gift_claim` VALUES (1, 4055, 'beta_luxury', '2026-01-10 13:09:18');
+INSERT INTO `player_gift_claim` VALUES (2, 4055, 'dragon_palace_compensation', '2026-01-10 13:09:22');
 
 -- ----------------------------
 -- Table structure for player_immortalize_pool
@@ -725,10 +1059,16 @@ CREATE TABLE `player_immortalize_pool`  (
   `formation_started_at` datetime(0) NULL DEFAULT NULL COMMENT '化仙阵开始时间',
   `formation_ends_at` datetime(0) NULL DEFAULT NULL COMMENT '化仙阵结束时间',
   `formation_last_grant_at` datetime(0) NULL DEFAULT NULL COMMENT '化仙阵最近一次结算时间',
-  `created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP(0),
+  `created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0),
+  `updated_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0) ON UPDATE CURRENT_TIMESTAMP(0),
   PRIMARY KEY (`user_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '玩家化仙池状态' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of player_immortalize_pool
+-- ----------------------------
+INSERT INTO `player_immortalize_pool` VALUES (4053, 1, 0, 0, NULL, NULL, NULL, '2026-01-09 22:12:23', '2026-01-09 22:12:23');
+INSERT INTO `player_immortalize_pool` VALUES (4055, 1, 0, 0, NULL, NULL, NULL, '2026-01-10 12:51:18', '2026-01-10 12:51:18');
 
 -- ----------------------------
 -- Table structure for player_inventory
@@ -740,12 +1080,43 @@ CREATE TABLE `player_inventory`  (
   `item_id` int(0) NOT NULL COMMENT '物品ID',
   `quantity` int(0) NOT NULL DEFAULT 1 COMMENT '数量',
   `is_temporary` tinyint(0) NOT NULL DEFAULT 0 COMMENT '是否临时存放（0=正式，1=临时）',
-  `created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP(0),
+  `created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0),
+  `updated_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0) ON UPDATE CURRENT_TIMESTAMP(0),
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `uk_user_item_temp`(`user_id`, `item_id`, `is_temporary`) USING BTREE,
   INDEX `idx_user_id`(`user_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 2543 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '玩家背包表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 2583 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '玩家背包表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of player_inventory
+-- ----------------------------
+INSERT INTO `player_inventory` VALUES (2544, 4053, 20006, 1, 0, '2026-01-09 14:47:08', '2026-01-09 14:47:08');
+INSERT INTO `player_inventory` VALUES (2545, 4053, 20009, 1, 0, '2026-01-09 14:47:08', '2026-01-09 14:47:08');
+INSERT INTO `player_inventory` VALUES (2546, 4054, 20003, 1, 0, '2026-01-09 15:21:40', '2026-01-09 15:21:40');
+INSERT INTO `player_inventory` VALUES (2547, 4054, 20006, 1, 0, '2026-01-09 15:21:40', '2026-01-09 15:21:40');
+INSERT INTO `player_inventory` VALUES (2548, 4054, 20009, 1, 0, '2026-01-09 15:21:40', '2026-01-09 15:21:40');
+INSERT INTO `player_inventory` VALUES (2549, 4053, 4002, 0, 0, '2026-01-10 12:27:06', '2026-01-10 12:43:10');
+INSERT INTO `player_inventory` VALUES (2553, 4055, 4002, 13, 0, '2026-01-10 12:45:17', '2026-01-10 19:46:21');
+INSERT INTO `player_inventory` VALUES (2554, 4055, 91001, 1, 0, '2026-01-10 13:09:04', '2026-01-10 13:09:04');
+INSERT INTO `player_inventory` VALUES (2555, 4055, 4001, 1, 0, '2026-01-10 13:09:15', '2026-01-10 13:09:15');
+INSERT INTO `player_inventory` VALUES (2556, 4055, 4003, 4, 0, '2026-01-10 13:09:15', '2026-01-10 13:09:17');
+INSERT INTO `player_inventory` VALUES (2557, 4055, 6010, 3, 0, '2026-01-10 13:09:15', '2026-01-10 13:09:17');
+INSERT INTO `player_inventory` VALUES (2558, 4055, 6015, 1, 0, '2026-01-10 13:09:15', '2026-01-10 13:09:15');
+INSERT INTO `player_inventory` VALUES (2559, 4055, 3011, 99, 0, '2026-01-10 13:09:17', '2026-01-10 13:09:20');
+INSERT INTO `player_inventory` VALUES (2560, 4055, 1005, 2, 0, '2026-01-10 13:09:18', '2026-01-10 13:09:17');
+INSERT INTO `player_inventory` VALUES (2561, 4055, 1002, 4, 0, '2026-01-10 13:09:18', '2026-01-10 13:09:17');
+INSERT INTO `player_inventory` VALUES (2562, 4055, 1006, 3, 0, '2026-01-10 13:09:18', '2026-01-10 13:09:17');
+INSERT INTO `player_inventory` VALUES (2563, 4055, 1001, 1, 0, '2026-01-10 13:09:18', '2026-01-10 13:09:17');
+INSERT INTO `player_inventory` VALUES (2564, 4055, 6033, 1, 0, '2026-01-10 13:09:18', '2026-01-10 13:09:17');
+INSERT INTO `player_inventory` VALUES (2565, 4055, 6001, 2, 0, '2026-01-10 13:09:18', '2026-01-10 13:09:18');
+INSERT INTO `player_inventory` VALUES (2566, 4055, 6007, 1, 0, '2026-01-10 13:09:18', '2026-01-10 13:09:18');
+INSERT INTO `player_inventory` VALUES (2567, 4055, 6003, 5, 0, '2026-01-10 13:09:21', '2026-01-10 13:09:20');
+INSERT INTO `player_inventory` VALUES (2569, 4055, 3012, 7, 0, '2026-01-10 13:09:23', '2026-01-10 13:09:22');
+INSERT INTO `player_inventory` VALUES (2570, 4055, 3014, 3, 0, '2026-01-10 13:09:23', '2026-01-10 13:09:22');
+INSERT INTO `player_inventory` VALUES (2572, 4056, 20003, 1, 0, '2026-01-10 13:56:21', '2026-01-10 13:56:21');
+INSERT INTO `player_inventory` VALUES (2573, 4056, 20006, 1, 0, '2026-01-10 13:56:21', '2026-01-10 13:56:21');
+INSERT INTO `player_inventory` VALUES (2575, 4055, 5001, 40, 0, '2026-01-10 15:59:11', '2026-01-10 15:59:10');
+INSERT INTO `player_inventory` VALUES (2576, 4055, 5002, 25, 0, '2026-01-10 15:59:11', '2026-01-10 15:59:11');
 
 -- ----------------------------
 -- Table structure for player_manor
@@ -755,10 +1126,14 @@ CREATE TABLE `player_manor`  (
   `user_id` int(0) NOT NULL,
   `total_harvest_count` int(0) NULL DEFAULT 0 COMMENT '累计收获次数',
   `total_gold_earned` bigint(0) NULL DEFAULT 0 COMMENT '累计获得铜钱',
-  `created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP(0),
+  `created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0),
+  `updated_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0) ON UPDATE CURRENT_TIMESTAMP(0),
   PRIMARY KEY (`user_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '玩家庄园扩展表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of player_manor
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for player_month_card
@@ -777,12 +1152,16 @@ CREATE TABLE `player_month_card`  (
   `initial_reward` int(0) NOT NULL DEFAULT 1000,
   `daily_reward` int(0) NOT NULL DEFAULT 200,
   `initial_reward_claimed` tinyint(1) NOT NULL DEFAULT 0,
-  `created_at` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP(0),
+  `created_at` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0),
+  `updated_at` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) ON UPDATE CURRENT_TIMESTAMP(0),
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `uniq_user_month`(`user_id`, `month`) USING BTREE,
   INDEX `idx_user_status`(`user_id`, `status`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 12 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of player_month_card
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for player_mosoul
@@ -796,12 +1175,16 @@ CREATE TABLE `player_mosoul`  (
   `exp` int(0) NOT NULL DEFAULT 0,
   `beast_id` int(0) NULL DEFAULT NULL,
   `slot_index` tinyint(0) UNSIGNED NULL DEFAULT NULL COMMENT '槽位索引（1-8）',
-  `created_at` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0),
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `uk_beast_slot`(`beast_id`, `slot_index`) USING BTREE,
   INDEX `idx_user_id`(`user_id`) USING BTREE,
   INDEX `idx_beast_id`(`beast_id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 596 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of player_mosoul
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for player_spirit
@@ -825,13 +1208,17 @@ CREATE TABLE `player_spirit`  (
   `line3_value_bp` int(0) NOT NULL DEFAULT 0,
   `line3_unlocked` tinyint(0) NOT NULL DEFAULT 0,
   `line3_locked` tinyint(0) NOT NULL DEFAULT 0,
-  `created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP(0),
+  `created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0),
+  `updated_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0) ON UPDATE CURRENT_TIMESTAMP(0),
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_user_id`(`user_id`) USING BTREE,
   INDEX `idx_beast_id`(`beast_id`) USING BTREE,
   INDEX `idx_user_beast`(`user_id`, `beast_id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 172 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '玩家战灵' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of player_spirit
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for player_talent_levels
@@ -844,6 +1231,36 @@ CREATE TABLE `player_talent_levels`  (
   PRIMARY KEY (`user_id`, `talent_key`) USING BTREE,
   CONSTRAINT `player_talent_levels_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `player` (`user_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of player_talent_levels
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for recharge_order
+-- ----------------------------
+DROP TABLE IF EXISTS `recharge_order`;
+CREATE TABLE `recharge_order`  (
+  `id` int(0) NOT NULL AUTO_INCREMENT,
+  `out_trade_no` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '商户订单号',
+  `trade_no` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '支付宝交易号',
+  `user_id` int(0) NOT NULL COMMENT '用户ID',
+  `product_id` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '商品ID',
+  `amount` decimal(10, 2) NOT NULL COMMENT '支付金额(元)',
+  `status` enum('pending','paid','failed','refunded') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT 'pending' COMMENT '订单状态',
+  `yuanbao_granted` int(0) NULL DEFAULT 0 COMMENT '发放的宝石数量',
+  `bonus_granted` int(0) NULL DEFAULT 0 COMMENT '首充奖励宝石',
+  `created_at` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT '创建时间',
+  `paid_at` datetime(0) NULL DEFAULT NULL COMMENT '支付时间',
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `out_trade_no`(`out_trade_no`) USING BTREE,
+  INDEX `idx_user_id`(`user_id`) USING BTREE,
+  INDEX `idx_status`(`status`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '充值订单表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of recharge_order
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for refine_pot_log
@@ -861,12 +1278,42 @@ CREATE TABLE `refine_pot_log`  (
   `diff_x` int(0) NOT NULL COMMENT '属性差值',
   `cost_gold` int(0) UNSIGNED NOT NULL DEFAULT 0 COMMENT '消耗铜钱',
   `cost_pill` int(0) UNSIGNED NOT NULL DEFAULT 0 COMMENT '消耗炼魂丹',
-  `created_at` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `created_at` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT '创建时间',
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_user_id`(`user_id`) USING BTREE,
   INDEX `idx_main_beast_id`(`main_beast_id`) USING BTREE,
   INDEX `idx_created_at`(`created_at`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '炼妖日志表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of refine_pot_log
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for spar_records
+-- ----------------------------
+DROP TABLE IF EXISTS `spar_records`;
+CREATE TABLE `spar_records`  (
+  `id` int(0) NOT NULL AUTO_INCREMENT,
+  `attacker_id` int(0) NOT NULL COMMENT '发起切磋的玩家ID',
+  `defender_id` int(0) NOT NULL COMMENT '被切磋的玩家ID',
+  `is_victory` tinyint(1) NOT NULL DEFAULT 0 COMMENT '发起者是否胜利',
+  `created_at` timestamp(0) NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT '切磋时间',
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `idx_attacker`(`attacker_id`) USING BTREE,
+  INDEX `idx_defender`(`defender_id`) USING BTREE,
+  INDEX `idx_created`(`created_at`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 7 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '切磋战绩记录' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of spar_records
+-- ----------------------------
+INSERT INTO `spar_records` VALUES (1, 4055, 4053, 0, '2026-01-10 19:01:35');
+INSERT INTO `spar_records` VALUES (2, 4055, 4053, 0, '2026-01-10 19:05:16');
+INSERT INTO `spar_records` VALUES (3, 4055, 4056, 0, '2026-01-10 19:16:34');
+INSERT INTO `spar_records` VALUES (4, 4055, 4053, 0, '2026-01-10 19:25:06');
+INSERT INTO `spar_records` VALUES (5, 4055, 4053, 0, '2026-01-10 19:33:49');
+INSERT INTO `spar_records` VALUES (6, 4055, 4053, 1, '2026-01-10 19:56:54');
 
 -- ----------------------------
 -- Table structure for spirit_account
@@ -878,10 +1325,15 @@ CREATE TABLE `spirit_account`  (
   `unlocked_elements` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '已解锁元素列表(JSON)',
   `free_refine_date` date NULL DEFAULT NULL COMMENT '当日免费洗练计数对应日期',
   `free_refine_used` int(0) NOT NULL DEFAULT 0 COMMENT '当日已使用免费洗练次数',
-  `created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP(0),
+  `created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0),
+  `updated_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0) ON UPDATE CURRENT_TIMESTAMP(0),
   PRIMARY KEY (`user_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '战灵账户' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of spirit_account
+-- ----------------------------
+INSERT INTO `spirit_account` VALUES (4054, 0, '[]', NULL, 0, '2026-01-09 20:32:01', '2026-01-09 20:32:01');
 
 -- ----------------------------
 -- Table structure for task_reward_claims
@@ -891,11 +1343,15 @@ CREATE TABLE `task_reward_claims`  (
   `id` int(0) UNSIGNED NOT NULL AUTO_INCREMENT,
   `user_id` int(0) UNSIGNED NOT NULL,
   `reward_key` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `claimed_at` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `claimed_at` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0),
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `uniq_user_reward`(`user_id`, `reward_key`) USING BTREE,
   INDEX `idx_reward_key`(`reward_key`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 9 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '任务奖励领取记录' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of task_reward_claims
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for tower_state
@@ -909,11 +1365,18 @@ CREATE TABLE `tower_state`  (
   `max_floor_record` int(0) NOT NULL DEFAULT 1,
   `today_count` int(0) NOT NULL DEFAULT 0,
   `last_challenge_date` date NULL DEFAULT NULL,
-  `created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP(0),
+  `created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0),
+  `updated_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0) ON UPDATE CURRENT_TIMESTAMP(0),
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `uk_user_tower`(`user_id`, `tower_type`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 371 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '闯塔状态表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 374 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '闯塔状态表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of tower_state
+-- ----------------------------
+INSERT INTO `tower_state` VALUES (371, 4054, 'tongtian', 1, 1, 0, NULL, '2026-01-09 19:48:21', '2026-01-09 19:48:21');
+INSERT INTO `tower_state` VALUES (372, 4053, 'tongtian', 1, 1, 0, NULL, '2026-01-09 22:12:08', '2026-01-09 22:12:08');
+INSERT INTO `tower_state` VALUES (373, 4055, 'tongtian', 1, 1, 0, NULL, '2026-01-10 13:08:33', '2026-01-10 13:08:33');
 
 -- ----------------------------
 -- Table structure for zhenyao_battle_log
@@ -929,13 +1392,17 @@ CREATE TABLE `zhenyao_battle_log`  (
   `is_success` tinyint(0) NOT NULL DEFAULT 0 COMMENT '是否成功(1=成功,0=失败)',
   `remaining_seconds` int(0) NOT NULL DEFAULT 0 COMMENT '剩余秒数(挑战时)',
   `battle_data` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '战斗详情(JSON)',
-  `created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0),
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_floor`(`floor`) USING BTREE,
   INDEX `idx_attacker`(`attacker_id`) USING BTREE,
   INDEX `idx_defender`(`defender_id`) USING BTREE,
   INDEX `idx_created`(`created_at`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 67 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '镇妖挑战记录表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of zhenyao_battle_log
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for zhenyao_daily_count
@@ -947,11 +1414,15 @@ CREATE TABLE `zhenyao_daily_count`  (
   `trial_count` int(0) NOT NULL DEFAULT 0 COMMENT '试炼层已用次数',
   `hell_count` int(0) NOT NULL DEFAULT 0 COMMENT '炼狱层已用次数',
   `count_date` date NOT NULL COMMENT '统计日期',
-  `created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP(0),
+  `created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0),
+  `updated_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0) ON UPDATE CURRENT_TIMESTAMP(0),
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `uk_user_date`(`user_id`, `count_date`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 15 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '镇妖每日次数表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of zhenyao_daily_count
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for zhenyao_floor
@@ -964,35 +1435,16 @@ CREATE TABLE `zhenyao_floor`  (
   `occupant_name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '占领者昵称',
   `occupy_time` datetime(0) NULL DEFAULT NULL COMMENT '占领时间',
   `expire_time` datetime(0) NULL DEFAULT NULL COMMENT '到期时间',
-  `created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP(0),
+  `created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0),
+  `updated_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0) ON UPDATE CURRENT_TIMESTAMP(0),
   `rewarded` tinyint(1) NULL DEFAULT 0,
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `uk_floor`(`floor`) USING BTREE,
   INDEX `idx_occupant`(`occupant_id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 481 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '镇妖占领表' ROW_FORMAT = Dynamic;
 
+-- ----------------------------
+-- Records of zhenyao_floor
+-- ----------------------------
+
 SET FOREIGN_KEY_CHECKS = 1;
-
-
--- ----------------------------
--- Table structure for recharge_order
--- ----------------------------
-DROP TABLE IF EXISTS `recharge_order`;
-CREATE TABLE `recharge_order`  (
-  `id` int(0) NOT NULL AUTO_INCREMENT,
-  `out_trade_no` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '商户订单号',
-  `trade_no` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '支付宝交易号',
-  `user_id` int(0) NOT NULL COMMENT '用户ID',
-  `product_id` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '商品ID',
-  `amount` decimal(10, 2) NOT NULL COMMENT '支付金额(元)',
-  `status` enum('pending','paid','failed','refunded') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT 'pending' COMMENT '订单状态',
-  `yuanbao_granted` int(0) NULL DEFAULT 0 COMMENT '发放的宝石数量',
-  `bonus_granted` int(0) NULL DEFAULT 0 COMMENT '首充奖励宝石',
-  `created_at` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  `paid_at` datetime(0) NULL DEFAULT NULL COMMENT '支付时间',
-  PRIMARY KEY (`id`) USING BTREE,
-  UNIQUE INDEX `out_trade_no`(`out_trade_no`) USING BTREE,
-  INDEX `idx_user_id`(`user_id`) USING BTREE,
-  INDEX `idx_status`(`status`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '充值订单表' ROW_FORMAT = Dynamic;
