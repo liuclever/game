@@ -10,6 +10,7 @@ DB_CONFIG = {
     'host': 'localhost',
     'port': 3306,
     'user': 'root',
+    
     # 'password': '123456',
     'password': 'Wxs1230.0',
     'database': 'game_tower',
