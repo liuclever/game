@@ -235,7 +235,7 @@
     "id": 4002,
     "name": "捕捉球",
     "type": "consumable",
-    "description": "用于捕捉幻兽",
+    "description": "捕捉球：在地图副本中捕捉幻兽，成功率25%",
     "stackable": true,
     "max_stack": 999
   },
@@ -243,7 +243,7 @@
     "id": 4003,
     "name": "强力捕捉球",
     "type": "consumable",
-    "description": "捕捉成功率更高",
+    "description": "强力捕捉球：在地图副本中捕捉幻兽，成功率45%",
     "stackable": true,
     "max_stack": 999
   },
@@ -379,13 +379,13 @@
   {"id": 8001, "name": "鼓舞丹", "type": "consumable", "description": "使用后闯塔战力提升10%，持续30分钟，不可叠加", "stackable": true, "max_stack": 999},
   {"id": 9001, "name": "强化石", "type": "material", "description": "战骨升级材料（通过修行获得）", "stackable": true, "max_stack": 9999},
 
-  {"id": 9101, "name": "原始头骨战骨", "type": "bone", "description": "原始战骨-头部", "stackable": true, "max_stack": 99},
-  {"id": 9102, "name": "原始胸骨战骨", "type": "bone", "description": "原始战骨-胸部", "stackable": true, "max_stack": 99},
-  {"id": 9103, "name": "原始臂骨战骨", "type": "bone", "description": "原始战骨-臂部", "stackable": true, "max_stack": 99},
-  {"id": 9104, "name": "原始手骨战骨", "type": "bone", "description": "原始战骨-手部", "stackable": true, "max_stack": 99},
-  {"id": 9105, "name": "原始腿骨战骨", "type": "bone", "description": "原始战骨-腿部", "stackable": true, "max_stack": 99},
-  {"id": 9106, "name": "原始尾骨战骨", "type": "bone", "description": "原始战骨-尾部", "stackable": true, "max_stack": 99},
-  {"id": 9107, "name": "原始元魂战骨", "type": "bone", "description": "原始战骨-元魂", "stackable": true, "max_stack": 99},
+  {"id": 9101, "name": "原始头骨战骨", "type": "bone", "description": "装备后幻兽属性提升,气血+12、法防+4", "stackable": true, "max_stack": 99},
+  {"id": 9102, "name": "原始胸骨战骨", "type": "bone", "description": "装备后幻兽属性提升,物防+6、法防+6", "stackable": true, "max_stack": 99},
+  {"id": 9103, "name": "原始臂骨战骨", "type": "bone", "description": "装备后幻兽属性提升,攻击+10", "stackable": true, "max_stack": 99},
+  {"id": 9104, "name": "原始手骨战骨", "type": "bone", "description": "装备后幻兽属性提升,攻击+6", "stackable": true, "max_stack": 99},
+  {"id": 9105, "name": "原始腿骨战骨", "type": "bone", "description": "装备后幻兽属性提升,物防+4、速度+2", "stackable": true, "max_stack": 99},
+  {"id": 9106, "name": "原始尾骨战骨", "type": "bone", "description": "装备后幻兽属性提升,速度+4", "stackable": true, "max_stack": 99},
+  {"id": 9107, "name": "原始元魂战骨", "type": "bone", "description": "装备后幻兽属性提升,气血+2、攻击+8", "stackable": true, "max_stack": 99},
 
   {"id": 10001, "name": "必杀书", "type": "skill_book", "description": "教会幻兽【必杀】技能", "stackable": true, "max_stack": 99},
   {"id": 10002, "name": "连击书", "type": "skill_book", "description": "教会幻兽【连击】技能", "stackable": true, "max_stack": 99},

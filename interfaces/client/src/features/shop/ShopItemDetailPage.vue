@@ -132,6 +132,9 @@ onMounted(() => {
 
 .item-desc {
   color: #000;
+  /* 商城描述来是长文案；允许换行避免被挤压 */
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .item-price {
