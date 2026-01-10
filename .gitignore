@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.Python
+
+# Virtual environments
+env/
+venv/
+.venv/
+# Vite cache
+interfaces/client/.vite/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Distribution
+dist/
+build/
+*.egg-info/
+
+# Testing
+.pytest_cache/
+.coverage
+
+# Misc
+*.log
+.DS_Store

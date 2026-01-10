@@ -1,0 +1,429 @@
+{
+  "vip_levels": [
+    {
+      "level": 0,
+      "name": "非VIP",
+      "required_diamond": 0,
+      "welcome_gift": null,
+      "privileges": {
+        "daily_copper_chest": 0,
+        "fortune_talisman_uses": 3,
+        "vitality_max": 100,
+        "cultivation_modes": [8],
+        "one_key_soul_hunt": false,
+        "tower_encourage": false,
+        "cultivation_speed_times": 0,
+        "manor_cooldown_speed_times": 0,
+        "manor_money_tree_count": 0,
+        "manor_spirit_tree_count": 0,
+        "manor_yellow_land_open": false,
+        "manor_silver_land_open": false,
+        "manor_gold_land_open": false,
+        "arena_normal_limit": 5,
+        "arena_gold_limit": 10,
+        "dungeon_reset_limit": 0,
+        "beast_slot": 5,
+        "tower_reset_count_extra": 0,
+        "soul_container_max": 50,
+        "war_spirit_free_wash": 1
+      }
+    },
+    {
+      "level": 1,
+      "name": "VIP1",
+      "required_diamond": 1,
+      "welcome_gift": {
+        "items": [
+          {"item_id": "yuan_bao", "name": "元宝", "amount": 100},
+          {"item_id": "copper", "name": "铜钱", "amount": 10000},
+          {"item_id": "hua_xian_dan", "name": "化仙丹", "amount": 1},
+          {"item_id": "dice_pack", "name": "骰子包", "amount": 1},
+          {"item_id": "gold_bag", "name": "金袋", "amount": 1}
+        ]
+      },
+      "privileges": {
+        "daily_copper_chest": 10000,
+        "fortune_talisman_uses": 5,
+        "vitality_max": 110,
+        "cultivation_modes": [8],
+        "one_key_soul_hunt": false,
+        "tower_encourage": false,
+        "cultivation_speed_times": 0,
+        "manor_cooldown_speed_times": 0,
+        "manor_money_tree_count": 0,
+        "manor_spirit_tree_count": 0,
+        "manor_yellow_land_open": false,
+        "manor_silver_land_open": false,
+        "manor_gold_land_open": false,
+        "arena_normal_limit": 6,
+        "arena_gold_limit": 10,
+        "dungeon_reset_limit": 0,
+        "beast_slot": 5,
+        "tower_reset_count_extra": 0,
+        "soul_container_max": 50,
+        "war_spirit_free_wash": 1
+      }
+    },
+    {
+      "level": 2,
+      "name": "VIP2",
+      "required_diamond": 50,
+      "welcome_gift": {
+        "items": [
+          {"item_id": "yuan_bao", "name": "元宝", "amount": 200},
+          {"item_id": "copper", "name": "铜钱", "amount": 30000},
+          {"item_id": "hua_xian_dan", "name": "化仙丹", "amount": 2},
+          {"item_id": "dice_pack", "name": "骰子包", "amount": 2},
+          {"item_id": "rebirth_pill", "name": "重生丹", "amount": 5},
+          {"item_id": "soul_refine_pill", "name": "炼魂丹", "amount": 1},
+          {"item_id": "gold_bag", "name": "金袋", "amount": 2},
+          {"item_id": "earth_spirit_stone", "name": "土灵石", "amount": 1}
+        ]
+      },
+      "privileges": {
+        "daily_copper_chest": 15000,
+        "fortune_talisman_uses": 6,
+        "vitality_max": 120,
+        "cultivation_modes": [8, 12],
+        "one_key_soul_hunt": false,
+        "tower_encourage": false,
+        "cultivation_speed_times": 0,
+        "manor_cooldown_speed_times": 0,
+        "manor_money_tree_count": 0,
+        "manor_spirit_tree_count": 0,
+        "manor_yellow_land_open": false,
+        "manor_silver_land_open": false,
+        "manor_gold_land_open": false,
+        "arena_normal_limit": 7,
+        "arena_gold_limit": 10,
+        "dungeon_reset_limit": 0,
+        "beast_slot": 7,
+        "tower_reset_count_extra": 0,
+        "soul_container_max": 50,
+        "war_spirit_free_wash": 1
+      }
+    },
+    {
+      "level": 3,
+      "name": "VIP3",
+      "required_diamond": 100,
+      "welcome_gift": {
+        "items": [
+          {"item_id": "yuan_bao", "name": "元宝", "amount": 500},
+          {"item_id": "copper", "name": "铜钱", "amount": 60000},
+          {"item_id": "wash_pulp_pill", "name": "洗髓丹", "amount": 1},
+          {"item_id": "dice_pack", "name": "骰子包", "amount": 3},
+          {"item_id": "fortune_talisman", "name": "招财神符", "amount": 1},
+          {"item_id": "teleport_talisman", "name": "传送符", "amount": 5},
+          {"item_id": "soul_refine_pill", "name": "炼魂丹", "amount": 2},
+          {"item_id": "condensed_spirit_incense", "name": "凝神香", "amount": 1},
+          {"item_id": "gold_bag", "name": "金袋", "amount": 3},
+          {"item_id": "fire_spirit_stone", "name": "火灵石", "amount": 1}
+        ]
+      },
+      "privileges": {
+        "daily_copper_chest": 20000,
+        "fortune_talisman_uses": 6,
+        "vitality_max": 130,
+        "cultivation_modes": [8, 12],
+        "one_key_soul_hunt": false,
+        "tower_encourage": false,
+        "cultivation_speed_times": 0,
+        "manor_cooldown_speed_times": 0,
+        "manor_money_tree_count": 0,
+        "manor_spirit_tree_count": 0,
+        "manor_yellow_land_open": false,
+        "manor_silver_land_open": false,
+        "manor_gold_land_open": false,
+        "arena_normal_limit": 8,
+        "arena_gold_limit": 10,
+        "dungeon_reset_limit": 0,
+        "beast_slot": 8,
+        "tower_reset_count_extra": 0,
+        "soul_container_max": 50,
+        "war_spirit_free_wash": 1
+      }
+    },
+    {
+      "level": 4,
+      "name": "VIP4",
+      "required_diamond": 200,
+      "welcome_gift": {
+        "items": [
+          {"item_id": "yuan_bao", "name": "元宝", "amount": 1000},
+          {"item_id": "copper", "name": "铜钱", "amount": 100000},
+          {"item_id": "wash_pulp_pill", "name": "洗髓丹", "amount": 2},
+          {"item_id": "dice_pack", "name": "骰子包", "amount": 5},
+          {"item_id": "fortune_talisman", "name": "招财神符", "amount": 2},
+          {"item_id": "teleport_talisman", "name": "传送符", "amount": 10},
+          {"item_id": "soul_refine_pill", "name": "炼魂丹", "amount": 3},
+          {"item_id": "condensed_spirit_incense", "name": "凝神香", "amount": 2},
+          {"item_id": "gold_bag", "name": "金袋", "amount": 6},
+          {"item_id": "water_spirit_stone", "name": "水灵石", "amount": 1}
+        ]
+      },
+      "privileges": {
+        "daily_copper_chest": 25000,
+        "fortune_talisman_uses": 6,
+        "vitality_max": 140,
+        "cultivation_modes": [8, 12],
+        "one_key_soul_hunt": false,
+        "tower_encourage": false,
+        "cultivation_speed_times": 0,
+        "manor_cooldown_speed_times": 0,
+        "manor_money_tree_count": 0,
+        "manor_spirit_tree_count": 0,
+        "manor_yellow_land_open": true,
+        "manor_silver_land_open": false,
+        "manor_gold_land_open": false,
+        "arena_normal_limit": 9,
+        "arena_gold_limit": 15,
+        "dungeon_reset_limit": 0,
+        "beast_slot": 9,
+        "tower_reset_count_extra": 0,
+        "soul_container_max": 50,
+        "war_spirit_free_wash": 1
+      }
+    },
+    {
+      "level": 5,
+      "name": "VIP5",
+      "required_diamond": 500,
+      "welcome_gift": {
+        "items": [
+          {"item_id": "yuan_bao", "name": "元宝", "amount": 2000},
+          {"item_id": "copper", "name": "铜钱", "amount": 300000},
+          {"item_id": "vitality_grass", "name": "活力草", "amount": 5},
+          {"item_id": "soul_chase_treasure", "name": "追魂法宝", "amount": 5},
+          {"item_id": "demon_seal_talisman", "name": "镇妖符", "amount": 5},
+          {"item_id": "fortune_talisman", "name": "招财神符", "amount": 3},
+          {"item_id": "wood_spirit_stone", "name": "木灵石", "amount": 1},
+          {"item_id": "rebirth_pill", "name": "重生丹", "amount": 10},
+          {"item_id": "skill_book_pocket", "name": "技能书口袋", "amount": 1}
+        ]
+      },
+      "privileges": {
+        "daily_copper_chest": 30000,
+        "fortune_talisman_uses": 7,
+        "vitality_max": 150,
+        "cultivation_modes": [8, 12, 24],
+        "one_key_soul_hunt": false,
+        "tower_encourage": false,
+        "cultivation_speed_times": 0,
+        "manor_cooldown_speed_times": 0,
+        "manor_money_tree_count": 0,
+        "manor_spirit_tree_count": 0,
+        "manor_yellow_land_open": true,
+        "manor_silver_land_open": false,
+        "manor_gold_land_open": false,
+        "arena_normal_limit": 10,
+        "arena_gold_limit": 20,
+        "dungeon_reset_limit": 0,
+        "beast_slot": 10,
+        "tower_reset_count_extra": 0,
+        "soul_container_max": 50,
+        "war_spirit_free_wash": 1
+      }
+    },
+    {
+      "level": 6,
+      "name": "VIP6",
+      "required_diamond": 1000,
+      "welcome_gift": {
+        "items": [
+          {"item_id": "yuan_bao", "name": "元宝", "amount": 5000},
+          {"item_id": "copper", "name": "铜钱", "amount": 500000},
+          {"item_id": "vitality_grass", "name": "活力草", "amount": 10},
+          {"item_id": "soul_chase_treasure", "name": "追魂法宝", "amount": 10},
+          {"item_id": "demon_seal_talisman", "name": "镇妖符", "amount": 8},
+          {"item_id": "fortune_talisman", "name": "招财神符", "amount": 5},
+          {"item_id": "gold_spirit_stone", "name": "金灵石", "amount": 1},
+          {"item_id": "rebirth_pill", "name": "重生丹", "amount": 15},
+          {"item_id": "skill_book_pocket", "name": "技能书口袋", "amount": 3}
+        ]
+      },
+      "privileges": {
+        "daily_copper_chest": 40000,
+        "fortune_talisman_uses": 8,
+        "vitality_max": 160,
+        "cultivation_modes": [8, 12, 24],
+        "one_key_soul_hunt": false,
+        "tower_encourage": false,
+        "cultivation_speed_times": 0,
+        "manor_cooldown_speed_times": 0,
+        "manor_money_tree_count": 0,
+        "manor_spirit_tree_count": 0,
+        "manor_yellow_land_open": true,
+        "manor_silver_land_open": true,
+        "manor_gold_land_open": false,
+        "arena_normal_limit": 12,
+        "arena_gold_limit": 22,
+        "dungeon_reset_limit": 0,
+        "beast_slot": 11,
+        "tower_reset_count_extra": 0,
+        "soul_container_max": 50,
+        "war_spirit_free_wash": 1
+      }
+    },
+    {
+      "level": 7,
+      "name": "VIP7",
+      "required_diamond": 2000,
+      "welcome_gift": {
+        "items": [
+          {"item_id": "yuan_bao", "name": "元宝", "amount": 10000},
+          {"item_id": "copper", "name": "铜钱", "amount": 1000000},
+          {"item_id": "vitality_grass", "name": "活力草", "amount": 15},
+          {"item_id": "soul_chase_treasure", "name": "追魂法宝", "amount": 15},
+          {"item_id": "demon_seal_talisman", "name": "镇妖符", "amount": 10},
+          {"item_id": "fortune_talisman", "name": "招财神符", "amount": 8},
+          {"item_id": "gold_spirit_stone", "name": "金灵石", "amount": 1},
+          {"item_id": "magic_rebirth_pill", "name": "神奇重生丹", "amount": 1},
+          {"item_id": "skill_book_pocket", "name": "技能书口袋", "amount": 5}
+        ]
+      },
+      "privileges": {
+        "daily_copper_chest": 50000,
+        "fortune_talisman_uses": 9,
+        "vitality_max": 170,
+        "cultivation_modes": [8, 12, 24],
+        "one_key_soul_hunt": false,
+        "tower_encourage": false,
+        "cultivation_speed_times": 0,
+        "manor_cooldown_speed_times": 0,
+        "manor_money_tree_count": 0,
+        "manor_spirit_tree_count": 0,
+        "manor_yellow_land_open": true,
+        "manor_silver_land_open": true,
+        "manor_gold_land_open": false,
+        "arena_normal_limit": 15,
+        "arena_gold_limit": 25,
+        "dungeon_reset_limit": 0,
+        "beast_slot": 12,
+        "tower_reset_count_extra": 0,
+        "soul_container_max": 50,
+        "war_spirit_free_wash": 5
+      }
+    },
+    {
+      "level": 8,
+      "name": "VIP8",
+      "required_diamond": 5000,
+      "welcome_gift": {
+        "items": [
+          {"item_id": "yuan_bao", "name": "元宝", "amount": 20000},
+          {"item_id": "copper", "name": "铜钱", "amount": 3000000},
+          {"item_id": "vitality_grass", "name": "活力草", "amount": 20},
+          {"item_id": "soul_chase_treasure", "name": "追魂法宝", "amount": 20},
+          {"item_id": "demon_seal_talisman", "name": "镇妖符", "amount": 15},
+          {"item_id": "fortune_talisman", "name": "招财神符", "amount": 10},
+          {"item_id": "god_spirit_stone", "name": "神灵石", "amount": 1},
+          {"item_id": "magic_rebirth_pill", "name": "神奇重生丹", "amount": 1},
+          {"item_id": "skill_book_pocket", "name": "技能书口袋", "amount": 8}
+        ]
+      },
+      "privileges": {
+        "daily_copper_chest": 60000,
+        "fortune_talisman_uses": 10,
+        "vitality_max": 180,
+        "cultivation_modes": [8, 12, 24],
+        "one_key_soul_hunt": false,
+        "tower_encourage": false,
+        "cultivation_speed_times": 0,
+        "manor_cooldown_speed_times": 0,
+        "manor_money_tree_count": 0,
+        "manor_spirit_tree_count": 0,
+        "manor_yellow_land_open": true,
+        "manor_silver_land_open": true,
+        "manor_gold_land_open": true,
+        "arena_normal_limit": 20,
+        "arena_gold_limit": 25,
+        "dungeon_reset_limit": 0,
+        "beast_slot": 13,
+        "tower_reset_count_extra": 0,
+        "soul_container_max": 50,
+        "war_spirit_free_wash": 6
+      }
+    },
+    {
+      "level": 9,
+      "name": "VIP9",
+      "required_diamond": 10000,
+      "welcome_gift": {
+        "items": [
+          {"item_id": "yuan_bao", "name": "元宝", "amount": 30000},
+          {"item_id": "copper", "name": "铜钱", "amount": 5000000},
+          {"item_id": "vitality_grass", "name": "活力草", "amount": 30},
+          {"item_id": "soul_chase_treasure", "name": "追魂法宝", "amount": 30},
+          {"item_id": "demon_seal_talisman", "name": "镇妖符", "amount": 20},
+          {"item_id": "fortune_talisman", "name": "招财神符", "amount": 15},
+          {"item_id": "god_spirit_stone", "name": "神灵石", "amount": 1},
+          {"item_id": "magic_rebirth_pill", "name": "神奇重生丹", "amount": 1},
+          {"item_id": "skill_book_pocket", "name": "技能书口袋", "amount": 10}
+        ]
+      },
+      "privileges": {
+        "daily_copper_chest": 70000,
+        "fortune_talisman_uses": 11,
+        "vitality_max": 190,
+        "cultivation_modes": [8, 12, 24],
+        "one_key_soul_hunt": false,
+        "tower_encourage": false,
+        "cultivation_speed_times": 0,
+        "manor_cooldown_speed_times": 0,
+        "manor_money_tree_count": 0,
+        "manor_spirit_tree_count": 0,
+        "manor_yellow_land_open": true,
+        "manor_silver_land_open": true,
+        "manor_gold_land_open": true,
+        "arena_normal_limit": 25,
+        "arena_gold_limit": 30,
+        "dungeon_reset_limit": 0,
+        "beast_slot": 14,
+        "tower_reset_count_extra": 0,
+        "soul_container_max": 50,
+        "war_spirit_free_wash": 8
+      }
+    },
+    {
+      "level": 10,
+      "name": "VIP10",
+      "required_diamond": 20000,
+      "welcome_gift": {
+        "items": [
+          {"item_id": "yuan_bao", "name": "元宝", "amount": 50000},
+          {"item_id": "copper", "name": "铜钱", "amount": 10000000},
+          {"item_id": "vitality_grass", "name": "活力草", "amount": 50},
+          {"item_id": "soul_chase_treasure", "name": "追魂法宝", "amount": 50},
+          {"item_id": "demon_seal_talisman", "name": "镇妖符", "amount": 30},
+          {"item_id": "fortune_talisman", "name": "招财神符", "amount": 20},
+          {"item_id": "god_spirit_stone", "name": "神灵石", "amount": 1},
+          {"item_id": "magic_rebirth_pill", "name": "神奇重生丹", "amount": 1},
+          {"item_id": "skill_book_pocket", "name": "技能书口袋", "amount": 15}
+        ]
+      },
+      "privileges": {
+        "daily_copper_chest": 80000,
+        "fortune_talisman_uses": 12,
+        "vitality_max": 200,
+        "cultivation_modes": [8, 12, 24],
+        "one_key_soul_hunt": false,
+        "tower_encourage": false,
+        "cultivation_speed_times": 0,
+        "manor_cooldown_speed_times": 0,
+        "manor_money_tree_count": 0,
+        "manor_spirit_tree_count": 0,
+        "manor_yellow_land_open": true,
+        "manor_silver_land_open": true,
+        "manor_gold_land_open": true,
+        "arena_normal_limit": 30,
+        "arena_gold_limit": 30,
+        "dungeon_reset_limit": 0,
+        "beast_slot": 15,
+        "tower_reset_count_extra": 0,
+        "soul_container_max": 50,
+        "war_spirit_free_wash": 10
+      }
+    }
+  ]
+}

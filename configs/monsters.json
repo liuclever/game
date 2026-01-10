@@ -1,0 +1,6 @@
+[
+  { "id": 1, "name": "小黑鼠",   "map_id": 1, "level": 3,  "base_exp": 20, "base_gold": 15 },
+  { "id": 2, "name": "追风狼",   "map_id": 1, "level": 5,  "base_exp": 30, "base_gold": 20 },
+  { "id": 3, "name": "呼啸平原狼", "map_id": 2, "level": 12, "base_exp": 60, "base_gold": 40 },
+  { "id": 4, "name": "天罚山蛮兵", "map_id": 2, "level": 18, "base_exp": 90, "base_gold": 60 }
+]

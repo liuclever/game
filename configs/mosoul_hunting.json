@@ -1,0 +1,135 @@
+{
+  "description": "魔魂猎魂系统配置",
+  "normal_field": {
+    "description": "普通场猎魂",
+    "npcs": [
+      {
+        "id": "amy",
+        "name": "艾米",
+        "cost": 8000,
+        "cost_type": "copper",
+        "unlock_condition": "always",
+        "next_npc_chance": 0.5,
+        "next_npc": "koko",
+        "drop_rates": {
+          "waste_soul": 33.3,
+          "yellow_soul": 33.3,
+          "dark_soul": 33.4
+        }
+      },
+      {
+        "id": "koko",
+        "name": "科科",
+        "cost": 10000,
+        "cost_type": "copper",
+        "unlock_condition": "previous_npc",
+        "next_npc_chance": 0.35,
+        "next_npc": "boer",
+        "drop_rates": {
+          "waste_soul": 30.0,
+          "yellow_soul": 35.0,
+          "dark_soul": 35.0
+        }
+      },
+      {
+        "id": "boer",
+        "name": "波尔",
+        "cost": 20000,
+        "cost_type": "copper",
+        "unlock_condition": "previous_npc",
+        "next_npc_chance": 0.2,
+        "next_npc": "walter",
+        "drop_rates": {
+          "waste_soul": 20.0,
+          "yellow_soul": 20.0,
+          "dark_soul": 20.0,
+          "earth_soul": 40.0
+        }
+      },
+      {
+        "id": "walter",
+        "name": "沃特",
+        "cost": 40000,
+        "cost_type": "copper",
+        "unlock_condition": "previous_npc",
+        "next_npc_chance": 0.05,
+        "next_npc": "kevin",
+        "drop_rates": {
+          "waste_soul": 8.0,
+          "yellow_soul": 30.0,
+          "dark_soul": 30.0,
+          "earth_soul": 30.0,
+          "heaven_soul": 2.0
+        }
+      },
+      {
+        "id": "kevin",
+        "name": "凯文",
+        "cost": 60000,
+        "cost_type": "copper",
+        "unlock_condition": "previous_npc",
+        "next_npc_chance": 0,
+        "next_npc": null,
+        "drop_rates": {
+          "yellow_soul": 25.0,
+          "dark_soul": 25.0,
+          "earth_soul": 31.0,
+          "heaven_soul": 19.0
+        },
+        "note": "普通场凯文没有自然概率产出龙魂，仅通过累计铜钱消耗触发保底"
+      }
+    ],
+    "flow_description": "首次只能点击艾米→点击后50%出现科科→35%出现波尔→20%出现沃特→5%出现凯文"
+  },
+  "advanced_field": {
+    "description": "高级场猎魂，需要追魂法宝",
+    "npcs": [
+      {
+        "id": "walter_adv",
+        "name": "沃特",
+        "cost": 4,
+        "cost_type": "soul_charm",
+        "unlock_condition": "always",
+        "next_npc_chance": 0.1,
+        "next_npc": "kevin_adv",
+        "drop_rates": {
+          "earth_soul": 84.0,
+          "heaven_soul": 16.0
+        }
+      },
+      {
+        "id": "kevin_adv",
+        "name": "凯文",
+        "cost": 6,
+        "cost_type": "soul_charm",
+        "unlock_condition": "previous_npc",
+        "next_npc_chance": 0,
+        "next_npc": null,
+        "drop_rates": {
+          "god_soul": 32.0,
+          "earth_soul": 32.0,
+          "heaven_soul": 36.0
+        },
+        "pity_system": {
+          "enabled": true,
+          "description": "高级场龙魂获取规则：1.个人累计消耗4000追魂法宝必得；2.全服累计消耗40000追魂法宝（由第40000个消耗者获得）",
+          "individual_pity": 4000,
+          "global_pity": 40000,
+          "scope": "mixed"
+        }
+      }
+    ],
+    "flow_description": "只能点击沃特→点击后10%出现凯文→凯文点击后消失需再次触发"
+  },
+  "waste_soul_auto_sell": {
+    "enabled": true,
+    "price": 5000,
+    "currency": "copper",
+    "description": "废魂猎出后系统自动售卖，一个废魂5000铜钱"
+  },
+  "dragon_soul_types": [
+    {"id": 101, "name": "斗战不息"},
+    {"id": 102, "name": "光流暮霭"},
+    {"id": 103, "name": "谁与争锋"}
+  ]
+}

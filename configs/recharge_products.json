@@ -1,0 +1,64 @@
+{
+  "products": [
+    {
+      "id": "diamond_10",
+      "name": "10宝石",
+      "price": "0.01",
+      "diamond": 10,
+      "vip_exp": 1000,
+      "description": "充值10宝石"
+    },
+    {
+      "id": "diamond_30",
+      "name": "30宝石",
+      "price": "30.00",
+      "diamond": 30,
+      "vip_exp": 3000,
+      "description": "充值30宝石"
+    },
+    {
+      "id": "diamond_50",
+      "name": "50宝石",
+      "price": "50.00",
+      "diamond": 50,
+      "vip_exp": 5000,
+      "description": "充值50宝石"
+    },
+    {
+      "id": "diamond_100",
+      "name": "100宝石",
+      "price": "100.00",
+      "diamond": 100,
+      "vip_exp": 10000,
+      "description": "充值100宝石"
+    },
+    {
+      "id": "diamond_300",
+      "name": "300宝石",
+      "price": "300.00",
+      "diamond": 300,
+      "vip_exp": 30000,
+      "first_bonus": 300,
+      "description": "充值300宝石，首充双倍"
+    },
+    {
+      "id": "diamond_500",
+      "name": "500宝石",
+      "price": "500.00",
+      "diamond": 500,
+      "vip_exp": 50000,
+      "first_bonus": 500,
+      "description": "充值500宝石，首充双倍"
+    },
+    {
+      "id": "diamond_1000",
+      "name": "1000宝石",
+      "price": "1000.00",
+      "diamond": 1000,
+      "vip_exp": 100000,
+      "first_bonus": 1000,
+      "description": "充值1000宝石，首充双倍"
+    }
+  ],
+  "exchange_rate": 100
+}

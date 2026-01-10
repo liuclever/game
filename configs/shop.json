@@ -1,0 +1,328 @@
+{
+  "categories": [
+    {
+      "key": "copper",
+      "name": "铜钱",
+      "currency": "gold",
+      "description": "使用铜钱购买"
+    },
+    {
+      "key": "yuanbao",
+      "name": "元宝",
+      "currency": "yuanbao",
+      "description": "使用元宝购买"
+    },
+    {
+      "key": "limited",
+      "name": "限时",
+      "currency": "gold",
+      "description": "限时特惠商品"
+    },
+    {
+      "key": "compensation",
+      "name": "补偿",
+      "currency": "gold",
+      "description": "补偿商品"
+    }
+  ],
+  "items": [
+    {
+      "id": 1,
+      "category": "copper",
+      "item_id": 4002,
+      "name": "捕捉球",
+      "price": 1800,
+      "description": "普通捕捉球，用于捕捉幻兽"
+    },
+    {
+      "id": 2,
+      "category": "copper",
+      "item_id": 9101,
+      "name": "原始头骨",
+      "price": 2000,
+      "description": "原始战骨-头部"
+    },
+    {
+      "id": 3,
+      "category": "copper",
+      "item_id": 9102,
+      "name": "原始胸骨",
+      "price": 2000,
+      "description": "原始战骨-胸部"
+    },
+    {
+      "id": 4,
+      "category": "copper",
+      "item_id": 9103,
+      "name": "原始臂骨",
+      "price": 2000,
+      "description": "原始战骨-臂部"
+    },
+    {
+      "id": 5,
+      "category": "copper",
+      "item_id": 9104,
+      "name": "原始手骨",
+      "price": 2000,
+      "description": "原始战骨-手部"
+    },
+    {
+      "id": 6,
+      "category": "copper",
+      "item_id": 9105,
+      "name": "原始腿骨",
+      "price": 2000,
+      "description": "原始战骨-腿部"
+    },
+    {
+      "id": 7,
+      "category": "copper",
+      "item_id": 9106,
+      "name": "原始尾骨",
+      "price": 2000,
+      "description": "原始战骨-尾部"
+    },
+    {
+      "id": 8,
+      "category": "copper",
+      "item_id": 9107,
+      "name": "原始元魂",
+      "price": 2000,
+      "description": "原始战骨-元魂"
+    },
+    {
+      "id": 101,
+      "category": "yuanbao",
+      "item_id": 6001,
+      "name": "镇妖符",
+      "price": 50,
+      "description": "镇妖符：镇妖一次消耗一张"
+    },
+    {
+      "id": 102,
+      "category": "yuanbao",
+      "item_id": 6002,
+      "name": "迷踪符",
+      "price": 30,
+      "description": "迷踪符：地图副本中使用，可前进1-6步"
+    },
+    {
+      "id": 103,
+      "category": "yuanbao",
+      "item_id": 6003,
+      "name": "远古秘银宝箱",
+      "price": 50,
+      "description": "远古秘银宝箱：开启随机获得以下一种道具：技能书口袋/神·逆鳞/神·逆鳞碎片/凝神香/强力捕捉球/骰子包/魔纹布/七类结晶随机/化仙丹/双倍卡/丝线/活力草"
+    },
+    {
+      "id": 104,
+      "category": "yuanbao",
+      "item_id": 6004,
+      "name": "招财神符",
+      "price": 100,
+      "description": "招财神符，增加铜钱获取",
+      "daily_limit": 5
+    },
+    {
+      "id": 105,
+      "category": "yuanbao",
+      "item_id": 6005,
+      "name": "金袋",
+      "price": 100,
+      "description": "金袋：联盟物资库捐献使用，每个=100联盟资金"
+    },
+    {
+      "id": 106,
+      "category": "yuanbao",
+      "item_id": 6006,
+      "name": "战灵钥匙",
+      "price": 100,
+      "description": "战灵钥匙：开启战灵属性条的道具"
+    },
+    {
+      "id": 107,
+      "category": "yuanbao",
+      "item_id": 6007,
+      "name": "技能书口袋",
+      "price": 800,
+      "description": "技能书口袋：打开随机获得一本技能书"
+    },
+    {
+      "id": 108,
+      "category": "yuanbao",
+      "item_id": 6008,
+      "name": "幸运宝箱",
+      "price": 100,
+      "description": "幸运宝箱，随机获得1-10万铜钱",
+      "daily_limit": 10
+    },
+    {
+      "id": 109,
+      "category": "yuanbao",
+      "item_id": 6009,
+      "name": "凝神香",
+      "price": 300,
+      "description": "凝神香：使用后24小时内修行声望+20%"
+    },
+    {
+      "id": 110,
+      "category": "yuanbao",
+      "item_id": 6025,
+      "name": "骰子包",
+      "price": 300,
+      "description": "骰子包：在地图副本中使用，使用后增加10个骰子"
+    },
+    {
+      "id": 111,
+      "category": "yuanbao",
+      "item_id": 4003,
+      "name": "强力捕捉球",
+      "price": 120,
+      "description": "强力捕捉球：在地图副本中捕捉幻兽，成功率45%"
+    },
+    {
+      "id": 112,
+      "category": "yuanbao",
+      "item_id": 4004,
+      "name": "小喇叭",
+      "price": 10,
+      "description": "小喇叭，用于世界频道喊话"
+    },
+    {
+      "id": 113,
+      "category": "yuanbao",
+      "item_id": 4001,
+      "name": "活力草",
+      "price": 100,
+      "description": "活力草：使用后恢复50活力"
+    },
+    {
+      "id": 114,
+      "category": "yuanbao",
+      "item_id": 6014,
+      "name": "远古钛金宝箱",
+      "price": 200,
+      "description": "远古钛金宝箱：开启随机获得以下一种道具：技能书口袋/神·逆鳞/神·逆鳞碎片/追魂法宝/金袋/重生丹/招财神符/化仙丹/骰子包/魔纹布/强力捕捉球/双倍卡/丝线/活力草/凝神香"
+    },
+    {
+      "id": 115,
+      "category": "yuanbao",
+      "item_id": 6015,
+      "name": "化仙丹",
+      "price": 100,
+      "description": "化仙丹：在化仙池功能中使用"
+    },
+    {
+      "id": 116,
+      "category": "yuanbao",
+      "item_id": 6016,
+      "name": "神奇重生丹",
+      "price": 2000,
+      "description": "神奇重生丹：重塑进化过幻兽资质（等级技能不变）"
+    },
+    {
+      "id": 117,
+      "category": "yuanbao",
+      "item_id": 6017,
+      "name": "重生丹",
+      "price": 300,
+      "description": "重生丹：幻兽等级变1、境界地界、资质技能重置"
+    },
+    {
+      "id": 118,
+      "category": "yuanbao",
+      "item_id": 6018,
+      "name": "传送符",
+      "price": 30,
+      "description": "传送符：地图间传送消耗"
+    },
+    {
+      "id": 119,
+      "category": "yuanbao",
+      "item_id": 6019,
+      "name": "追魂法宝",
+      "price": 300,
+      "description": "追魂法宝：魔魂-猎魂高级场消耗"
+    },
+    {
+      "id": 122,
+      "category": "yuanbao",
+      "item_id": 6022,
+      "name": "魔纹布",
+      "price": 80,
+      "description": "魔纹布：背包升级材料"
+    },
+    {
+      "id": 123,
+      "category": "yuanbao",
+      "item_id": 6023,
+      "name": "丝线",
+      "price": 40,
+      "description": "丝线：背包升级材料"
+    },
+    {
+      "id": 124,
+      "category": "yuanbao",
+      "item_id": 6024,
+      "name": "双倍卡",
+      "price": 50,
+      "description": "双倍卡：地图副本宝箱/战利品掉落翻倍"
+    },
+    {
+      "id": 126,
+      "category": "yuanbao",
+      "item_id": 11001,
+      "name": "盟主证明",
+      "price": 3000,
+      "description": "盟主证明，用于创建联盟"
+    },
+    {
+      "id": 127,
+      "category": "yuanbao",
+      "item_id": 6027,
+      "name": "补签卡",
+      "price": 200,
+      "description": "补签卡，补签错过的签到"
+    },
+    {
+      "id": 128,
+      "category": "yuanbao",
+      "item_id": 6028,
+      "name": "炼魂丹",
+      "price": 50,
+      "description": "炼魂丹：炼妖壶消耗"
+    },
+    {
+      "id": 129,
+      "category": "yuanbao",
+      "item_id": 6029,
+      "name": "庄园建造手册",
+      "price": 160,
+      "description": "庄园建造手册：庄园扩建土地消耗"
+    },
+    {
+      "id": 130,
+      "category": "yuanbao",
+      "item_id": 6030,
+      "name": "远古进化宝箱",
+      "price": 500,
+      "description": "远古进化宝箱：开启随机获得以下一种道具：进化神草/进化圣水晶/进化碎片"
+    },
+    {
+      "id": 131,
+      "category": "yuanbao",
+      "item_id": 6031,
+      "name": "洗髓丹",
+      "price": 500,
+      "description": "洗髓丹，重置幻兽资质"
+    },
+    {
+      "id": 132,
+      "category": "yuanbao",
+      "item_id": 6032,
+      "name": "坐骑口粮",
+      "price": 100,
+      "description": "坐骑口粮，喂养坐骑"
+    }
+  ]
+}

@@ -1,0 +1,104 @@
+{
+  "description": "幻兽资质与星级对应配置",
+  "star_calculation": {
+    "description": "资质星数计算规则",
+    "formula": "星数 = (当前资质 - 最低资质) / 35，每35点为半星，每70点为1星",
+    "half_star_range": 35,
+    "full_star_range": 70,
+    "max_stars": 5,
+    "min_display": 0.5,
+    "aptitude_total_range": 350,
+    "notes": [
+      "最低资质数值对应0星",
+      "每35资质数值对应半颗星☆",
+      "每70资质数值对应一颗星★",
+      "星数显示：最低半颗星，最高五颗星",
+      "最低资质 = 最高资质 - 350"
+    ],
+    "example": {
+      "beast": "小黑鼠",
+      "attribute": "物攻资质",
+      "max_aptitude": 842,
+      "min_aptitude": 492,
+      "calculation": [
+        {"aptitude": 492, "stars": 0, "display": "☆(半星)"},
+        {"aptitude": 527, "stars": 1, "display": "★"},
+        {"aptitude": 562, "stars": 1.5, "display": "★☆"},
+        {"aptitude": 597, "stars": 1.5, "display": "★☆"},
+        {"aptitude": 632, "stars": 2, "display": "★★"},
+        {"aptitude": 702, "stars": 3, "display": "★★★"},
+        {"aptitude": 772, "stars": 4, "display": "★★★★"},
+        {"aptitude": 842, "stars": 5, "display": "★★★★★"}
+      ]
+    }
+  },
+  "realm_aptitude_bonus": {
+    "description": "境界进阶时资质增长规则",
+    "notes": [
+      "幻兽从地界进化到灵界，气血、攻击、防御、速度会固定增长一定数值",
+      "具体增长数值不会超过增长最大值，在0到最大值范围内随机取数",
+      "增长最大值 = 灵界满资质 - 地界满资质"
+    ],
+    "地界_to_灵界": {
+      "bonus_percent": 6.25,
+      "notes": "资质上限提升约6.25%"
+    },
+    "灵界_to_神界": {
+      "bonus_percent": 6.0,
+      "notes": "资质上限提升约6%"
+    },
+    "神界_to_天界": {
+      "bonus_percent": 6.0,
+      "notes": "资质上限提升约6%（仅神兽可达）"
+    }
+  },
+  "growth_score_stars": {
+    "description": "成长率星级对应表",
+    "ranges": [
+      {"min": 0, "max": 499, "stars": 1, "display": "★"},
+      {"min": 500, "max": 599, "stars": 2, "display": "★★"},
+      {"min": 600, "max": 699, "stars": 3, "display": "★★★"},
+      {"min": 700, "max": 799, "stars": 4, "display": "★★★★"},
+      {"min": 800, "max": 999, "stars": 5, "display": "★★★★★"}
+    ]
+  },
+  "aptitude_quality": {
+    "description": "资质品质评价",
+    "levels": [
+      {"name": "极品", "percent_range": [95, 100], "color": "#FF6600"},
+      {"name": "上品", "percent_range": [80, 95], "color": "#9933FF"},
+      {"name": "中品", "percent_range": [60, 80], "color": "#3399FF"},
+      {"name": "下品", "percent_range": [40, 60], "color": "#33CC33"},
+      {"name": "劣品", "percent_range": [0, 40], "color": "#999999"}
+    ],
+    "formula": "品质百分比 = (当前资质 - 最低资质) / (最高资质 - 最低资质) * 100"
+  },
+  "initial_aptitude_rules": {
+    "description": "幻兽初始化时资质随机规则",
+    "min_percent": 70,
+    "max_percent": 100,
+    "notes": [
+      "捕捉到的幻兽资质随机在 [最低资质, 最高资质] 范围内",
+      "最低资质 = 最高资质 * 0.7（约70%）",
+      "精英幻兽最低资质 = 最高资质 * 0.8（约80%）",
+      "首领幻兽资质固定为最高资质"
+    ],
+    "by_rarity": {
+      "普通": {"min_percent": 70, "max_percent": 100},
+      "精英": {"min_percent": 80, "max_percent": 100},
+      "首领": {"min_percent": 100, "max_percent": 100},
+      "神兽": {"min_percent": 100, "max_percent": 100}
+    }
+  },
+  "aptitude_reset": {
+    "description": "资质重置规则",
+    "notes": [
+      "对于幻兽的资质数值和星数不满意，可以通过使用重生丹或神奇重生丹来重新获得资质数值和星数",
+      "幻兽的资质数值也可以通过炼妖壶功能进行提高"
+    ],
+    "items": [
+      {"name": "重生丹", "effect": "重新随机资质"},
+      {"name": "神奇重生丹", "effect": "重新随机资质，保底更高"}
+    ]
+  }
+}
