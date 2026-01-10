@@ -32,7 +32,7 @@
       "item_id": 4002,
       "name": "捕捉球",
       "price": 1800,
-      "description": "普通捕捉球，用于捕捉幻兽"
+      "description": "捕捉球：在地图副本中捕捉幻兽，成功率25%"
     },
     {
       "id": 2,
@@ -40,7 +40,7 @@
       "item_id": 9101,
       "name": "原始头骨",
       "price": 2000,
-      "description": "原始战骨-头部"
+      "description": "装备后幻兽属性提升,气血+12、法防+4"
     },
     {
       "id": 3,
@@ -48,7 +48,7 @@
       "item_id": 9102,
       "name": "原始胸骨",
       "price": 2000,
-      "description": "原始战骨-胸部"
+      "description": "装备后幻兽属性提升,物防+6、法防+6"
     },
     {
       "id": 4,
@@ -56,7 +56,7 @@
       "item_id": 9103,
       "name": "原始臂骨",
       "price": 2000,
-      "description": "原始战骨-臂部"
+      "description": "装备后幻兽属性提升,攻击+10"
     },
     {
       "id": 5,
@@ -64,7 +64,7 @@
       "item_id": 9104,
       "name": "原始手骨",
       "price": 2000,
-      "description": "原始战骨-手部"
+      "description": "装备后幻兽属性提升,攻击+6"
     },
     {
       "id": 6,
@@ -72,7 +72,7 @@
       "item_id": 9105,
       "name": "原始腿骨",
       "price": 2000,
-      "description": "原始战骨-腿部"
+      "description": "装备后幻兽属性提升,物防+4、速度+2"
     },
     {
       "id": 7,
@@ -80,7 +80,7 @@
       "item_id": 9106,
       "name": "原始尾骨",
       "price": 2000,
-      "description": "原始战骨-尾部"
+      "description": "装备后幻兽属性提升,速度+4"
     },
     {
       "id": 8,
@@ -88,7 +88,7 @@
       "item_id": 9107,
       "name": "原始元魂",
       "price": 2000,
-      "description": "原始战骨-元魂"
+      "description": "装备后幻兽属性提升,气血+2、攻击+8"
     },
     {
       "id": 101,

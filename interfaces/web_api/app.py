@@ -20,6 +20,12 @@ from flask import Flask, request, jsonify, session
 app = Flask(__name__)
 app.secret_key = 'game_tower_secret_key_2024'
 
+# Session Cookie（生产/开发通用的最常见方式：HttpOnly Cookie + 同源访问）
+# - 前端通过相对路径请求 /api（生产同域；开发用 Vite proxy 转发到后端）
+# - 登录态由浏览器保存的 session cookie 维护（HttpOnly，前端 JS 不可读，更安全）。
+app.config.setdefault("SESSION_COOKIE_HTTPONLY", True)
+app.config.setdefault("SESSION_COOKIE_SAMESITE", "Lax")
+
 # ===== 注册路由蓝图 =====
 from interfaces.routes.auth_routes import auth_bp
 from interfaces.routes.player_routes import player_bp
@@ -49,6 +55,9 @@ from interfaces.routes.home_gift_routes import gifts_bp
 from interfaces.routes.pay_routes import pay_bp
 from interfaces.routes.vip_routes import vip_bp
 from interfaces.routes.vip_test_routes import vip_test_bp
+from interfaces.routes.handbook_routes import handbook_bp
+from interfaces.routes.tree_routes import tree_bp
+from interfaces.routes.dragonpalace_routes import dragonpalace_bp
 
 app.register_blueprint(auth_bp)
 app.register_blueprint(player_bp)
@@ -78,6 +87,9 @@ app.register_blueprint(gifts_bp)
 app.register_blueprint(pay_bp)
 app.register_blueprint(vip_bp)
 app.register_blueprint(vip_test_bp)
+app.register_blueprint(handbook_bp)
+app.register_blueprint(tree_bp)
+app.register_blueprint(dragonpalace_bp)
 
 
 # ===== 以下为旧接口，暂时保留兼容 =====

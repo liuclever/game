@@ -369,10 +369,24 @@ def get_beast_detail(beast_id: int):
     beast_dict = beast.to_dict()
     # 添加升级所需经验
     beast_dict['exp_max'] = get_exp_to_next_level(beast.level)
-    
-    # 根据幻兽名称查找模板ID
-    template = services.beast_template_repo.get_by_name(beast.name)
-    beast_dict['template_id'] = template.id if template else None
+
+    template_id = int(beast_dict.get("template_id") or getattr(beast, "template_id", 0) or 0)
+    if template_id > 0:
+        beast_dict["template_id"] = template_id
+    else:
+        name = str(getattr(beast, "name", "") or "")
+        template = services.beast_template_repo.get_by_name(name)
+        if template is None:
+            def _norm(s: str) -> str:
+                return "".join(ch for ch in str(s or "") if ch not in {" ", "\t", "\r", "\n", "·"})
+
+            key = _norm(name)
+            if key:
+                for tpl in services.beast_template_repo.get_all().values():
+                    if _norm(getattr(tpl, "name", "")) == key:
+                        template = tpl
+                        break
+        beast_dict["template_id"] = template.id if template else None
     
     print("DEBUG magic_attack_aptitude =", beast.magic_attack_aptitude)
     # 计算资质星级
@@ -1257,8 +1271,23 @@ def evolve_beast():
     
     # 返回更新后的幻兽信息
     beast_dict = beast.to_dict()
-    template = services.beast_template_repo.get_by_name(beast.name)
-    beast_dict['template_id'] = template.id if template else None
+    template_id = int(beast_dict.get("template_id") or getattr(beast, "template_id", 0) or 0)
+    if template_id > 0:
+        beast_dict["template_id"] = template_id
+    else:
+        name = str(getattr(beast, "name", "") or "")
+        template = services.beast_template_repo.get_by_name(name)
+        if template is None:
+            def _norm(s: str) -> str:
+                return "".join(ch for ch in str(s or "") if ch not in {" ", "\t", "\r", "\n", "·"})
+
+            key = _norm(name)
+            if key:
+                for tpl in services.beast_template_repo.get_all().values():
+                    if _norm(getattr(tpl, "name", "")) == key:
+                        template = tpl
+                        break
+        beast_dict["template_id"] = template.id if template else None
     
     return jsonify({
         "ok": True,

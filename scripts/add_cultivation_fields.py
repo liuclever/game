@@ -9,7 +9,7 @@ import pymysql
 DB_CONFIG = {
     'host': 'localhost',
     'user': 'root',
-    'password': 'root',
+    'password': '12345',
     'database': 'game_tower',
     'charset': 'utf8mb4'
 }

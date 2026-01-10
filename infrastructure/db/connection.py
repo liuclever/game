@@ -10,7 +10,7 @@ DB_CONFIG = {
     'host': 'localhost',
     'port': 3306,
     'user': 'root',
-    'password': 'Wxs1230.0',
+    'password': '12345',
     'database': 'game_tower',
     'charset': 'utf8mb4',
     'cursorclass': DictCursor,

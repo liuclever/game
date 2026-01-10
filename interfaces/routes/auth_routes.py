@@ -113,11 +113,16 @@ def auth_status():
                 "crystal_tower": player.crystal_tower,
                 "energy": player.energy,
                 "prestige": player.prestige,
-                "gold": player.copper,
+                # 金币/铜钱字段历史遗留较多：这里保持语义清晰
+                "gold": player.gold,
                 "copper": player.copper,
                 "spirit_stone": player.spirit_stone,
                 "yuanbao": player.yuanbao,
                 "silver_diamond": getattr(player, "silver_diamond", 0),
+                "last_signin_date": (
+                    player.last_signin_date.isoformat() if getattr(player, "last_signin_date", None) else None
+                ),
+                "signin_streak": int(getattr(player, "signin_streak", 0) or 0),
             })
     return jsonify({"ok": True, "logged_in": False})
 

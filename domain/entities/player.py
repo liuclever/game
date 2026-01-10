@@ -174,6 +174,7 @@ class Player:
 
     location: str = "林中空地"                # 当前所在地点
     last_signin_date: Optional[date] = None  # 上次签到日期
+    signin_streak: int = 0                   # 连续签到天数（用于中断重置与>=5天翻倍）
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 

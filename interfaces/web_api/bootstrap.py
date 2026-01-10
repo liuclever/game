@@ -12,6 +12,7 @@ from infrastructure.config.item_repo_from_config import ConfigItemRepo
 from infrastructure.config.beast_template_repo_from_config import ConfigBeastTemplateRepo
 from infrastructure.config.bone_template_repo_from_config import ConfigBoneTemplateRepo
 from infrastructure.config.tower_config_repo import ConfigTowerRepo
+from infrastructure.config.handbook_repo_from_config import ConfigHandbookRepo
 
 from infrastructure.db.inventory_repo_mysql import MySQLInventoryRepo
 from infrastructure.db.tower_state_repo_mysql import MySQLTowerStateRepo
@@ -30,6 +31,8 @@ from infrastructure.db.month_card_repo_mysql import MySQLMonthCardRepo
 from infrastructure.db.immortalize_pool_repo_mysql import MySQLImmortalizePoolRepo
 from infrastructure.db.player_effect_repo_mysql import MySQLPlayerEffectRepo
 from infrastructure.db.player_gift_claim_repo_mysql import MySQLPlayerGiftClaimRepo
+from infrastructure.db.tree_repo_mysql import MySQLTreeRepo
+from infrastructure.db.dragonpalace_repo_mysql import MySQLDragonPalaceRepo
 from infrastructure.memory.beast_repo_inmemory import InMemoryBeastRepo
 
 from application.services.battle_service import BattleService
@@ -52,11 +55,14 @@ from application.services.task_reward_service import TaskRewardService
 from application.services.daily_activity_service import DailyActivityService
 from application.services.activity_gift_service import ActivityGiftService
 from application.services.cultivation_service import CultivationService
+from application.services.handbook_service import HandbookService
 from application.services.manor_service import ManorService
 from application.services.refine_pot_service import RefinePotService
 from application.services.month_card_service import MonthCardService
 from application.services.immortalize_pool_service import ImmortalizePoolService
 from application.services.home_gift_service import HomeGiftService
+from application.services.tree_service import TreeService
+from application.services.dragonpalace_service import DragonPalaceService
 from infrastructure.config.immortalize_config import ImmortalizeConfig
 
 
@@ -69,6 +75,7 @@ class ServiceContainer:
         self.map_repo = ConfigMapRepo()
         self.monster_repo = ConfigMonsterRepo()
         self.item_repo = ConfigItemRepo()
+        self.handbook_repo = ConfigHandbookRepo()
         self.inventory_repo = MySQLInventoryRepo()
         self.beast_template_repo = ConfigBeastTemplateRepo()
         # 暂时使用内存仓库保存玩家幻兽（重启进程后会清空）
@@ -91,6 +98,8 @@ class ServiceContainer:
         self.immortalize_config = ImmortalizeConfig()
         self.player_effect_repo = MySQLPlayerEffectRepo()
         self.player_gift_claim_repo = MySQLPlayerGiftClaimRepo()
+        self.tree_repo = MySQLTreeRepo()
+        self.dragonpalace_repo = MySQLDragonPalaceRepo()
 
         # 战灵仓库
         self.spirit_repo = MySQLSpiritRepo()
@@ -147,7 +156,8 @@ class ServiceContainer:
             monster_repo=self.monster_repo, 
             drop_service=self.drop_service
         )
-        self.signin_service = SigninService(player_repo=self.player_repo_inmemory)
+        # 同时依赖联盟仓库：用于从盟战榜前三联盟随机选取“颁发者”
+        self.signin_service = SigninService(player_repo=self.player_repo, alliance_repo=self.alliance_repo)
         self.map_service = MapService(
             map_repo=self.map_repo, 
             monster_repo=self.monster_repo
@@ -218,6 +228,21 @@ class ServiceContainer:
             player_repo=self.player_repo,
             item_repo=self.item_repo,
         )
+        # 古树（每周幸运数字）
+        self.tree_service = TreeService(
+            tree_repo=self.tree_repo,
+            player_repo=self.player_repo,
+            inventory_service=self.inventory_service,
+        )
+        # 龙宫之谜（活动副本）
+        self.dragonpalace_service = DragonPalaceService(
+            dragonpalace_repo=self.dragonpalace_repo,
+            player_repo=self.player_repo,
+            player_beast_repo=self.player_beast_repo,
+            beast_pvp_service=self.beast_pvp_service,
+            inventory_service=self.inventory_service,
+            item_repo=self.item_repo,
+        )
         self.immortalize_pool_service = ImmortalizePoolService(
             pool_repo=self.immortalize_pool_repo,
             player_repo=self.player_repo,
@@ -241,6 +266,9 @@ class ServiceContainer:
             inventory_service=self.inventory_service,
             month_card_repo=self.month_card_repo,
         )
+
+        # 图鉴（独立模块）
+        self.handbook_service = HandbookService(repo=self.handbook_repo)
 
 
 # 全局服务容器实例

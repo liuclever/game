@@ -45,12 +45,23 @@ const errorMsg = ref('')
 const beast = ref({})
 
 // ========== 动态导入图片 ==========
-const beastImageModules = import.meta.glob('@/assets/images/image*.jpeg', { eager: true })
+const beastImageModules = {
+  ...import.meta.glob('@/assets/images/image*.png', { eager: true }),
+  ...import.meta.glob('@/assets/images/image*.gif', { eager: true }),
+  ...import.meta.glob('@/assets/images/image*.jpg', { eager: true }),
+  ...import.meta.glob('@/assets/images/image*.jpeg', { eager: true }),
+  ...import.meta.glob('@/assets/images/image*.webp', { eager: true }),
+}
 const getBeastImage = (templateId) => {
-  if (!templateId) return ''
-  const key = `/src/assets/images/image${templateId}.jpeg`
-  const module = beastImageModules[key]
-  return module?.default || ''
+  const id = Number(templateId)
+  if (!Number.isFinite(id)) return ''
+  const base = `/src/assets/images/image${id}`
+  for (const ext of ['png', 'gif', 'jpg', 'jpeg', 'webp']) {
+    const mod = beastImageModules[`${base}.${ext}`]
+    if (!mod) continue
+    return mod.default || mod || ''
+  }
+  return ''
 }
 
 // ========== 加载幻兽详情 ==========
