@@ -59,6 +59,9 @@ from interfaces.routes.handbook_routes import handbook_bp
 from interfaces.routes.tree_routes import tree_bp
 from interfaces.routes.dragonpalace_routes import dragonpalace_bp
 from interfaces.routes.arena_streak_routes import arena_streak_bp
+from interfaces.routes.world_chat_routes import world_chat_bp
+from interfaces.routes.dynamics_routes import dynamics_bp
+from interfaces.routes.mail_routes import mail_bp
 
 app.register_blueprint(auth_bp)
 app.register_blueprint(player_bp)
@@ -92,6 +95,9 @@ app.register_blueprint(handbook_bp)
 app.register_blueprint(tree_bp)
 app.register_blueprint(dragonpalace_bp)
 app.register_blueprint(arena_streak_bp)
+app.register_blueprint(world_chat_bp)
+app.register_blueprint(dynamics_bp)
+app.register_blueprint(mail_bp)
 
 
 # ===== 以下为旧接口，暂时保留兼容 =====
@@ -223,7 +229,7 @@ def signin():
 @app.get("/api/signin/info")
 def get_signin_info():
     """获取签到信息"""
-    from datetime import date
+    from datetime import date, datetime
     
     user_id = get_current_user_id()
     if not user_id:
@@ -235,7 +241,13 @@ def get_signin_info():
             return jsonify({"ok": False, "error": "玩家不存在"}), 404
         
         today = date.today()
-        has_signed = player.last_signin_date == today
+        
+        # 处理 last_signin_date 可能是 datetime 或 date 类型
+        last_signin = player.last_signin_date
+        if isinstance(last_signin, datetime):
+            last_signin = last_signin.date()
+        
+        has_signed = last_signin == today if last_signin else False
         streak = int(getattr(player, "signin_streak", 0) or 0)
         
         return jsonify({

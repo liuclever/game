@@ -63,6 +63,7 @@ from application.services.immortalize_pool_service import ImmortalizePoolService
 from application.services.home_gift_service import HomeGiftService
 from application.services.tree_service import TreeService
 from application.services.dragonpalace_service import DragonPalaceService
+from application.services.world_chat_service import WorldChatService
 from infrastructure.config.immortalize_config import ImmortalizeConfig
 
 
@@ -269,6 +270,12 @@ class ServiceContainer:
 
         # 图鉴（独立模块）
         self.handbook_service = HandbookService(repo=self.handbook_repo)
+        
+        # 世界聊天服务
+        self.world_chat_service = WorldChatService(
+            player_repo=self.player_repo,
+            inventory_service=self.inventory_service,
+        )
 
 
 # 全局服务容器实例

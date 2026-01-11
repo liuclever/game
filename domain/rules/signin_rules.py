@@ -1,5 +1,5 @@
 # game/domain/rules/signin_rules.py
-from datetime import date
+from datetime import date, datetime
 from domain.entities.player import Player
 
 
@@ -7,7 +7,13 @@ def has_signed_today(player: Player, today: date | None = None) -> bool:
     """判断今天是否已经签到"""
     if today is None:
         today = date.today()
-    return player.last_signin_date == today
+    
+    # 处理 last_signin_date 可能是 datetime 或 date 类型
+    last_signin = player.last_signin_date
+    if isinstance(last_signin, datetime):
+        last_signin = last_signin.date()
+    
+    return last_signin == today if last_signin else False
 
 
 def can_signin(player: Player, today: date | None = None) -> bool:

@@ -2,6 +2,7 @@
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import http from '@/services/http'
+import ChatPanel from '@/features/lobby/components/ChatPanel.vue'
 
 const router = useRouter()
 
@@ -685,7 +686,8 @@ const handleLink = (name) => {
     </div>
 
     <!-- 聊天区 -->
-   
+    <div class="section title">【聊天区】</div>
+    <ChatPanel />
 
     <!-- 导航菜单 -->
     <div class="section">

@@ -135,6 +135,9 @@ import DailyTasksPage from '@/features/tasks/DailyTasksPage.vue'
 import CompletedTasksPage from '@/features/tasks/CompletedTasksPage.vue'
 import ActivityGiftsPage from '@/features/tasks/ActivityGiftsPage.vue'
 import CultivationPage from '@/features/cultivation/CultivationPage.vue'
+import WorldChatPage from '@/features/world-chat/WorldChatPage.vue'
+import DynamicsPage from '@/features/dynamics/DynamicsPage.vue'
+import PrivateMessageChatPage from '@/features/mail/PrivateMessageChatPage.vue'
 import HandbookIndexPage from '@/features/handbook/HandbookIndexPage.vue'
 import HandbookIntroPage from '@/features/handbook/HandbookIntroPage.vue'
 import HandbookPetDetailPage from '@/features/handbook/HandbookPetDetailPage.vue'
@@ -534,6 +537,21 @@ const routes = [
     path: '/mail',
     name: 'Mail',
     component: MailPage,
+  },
+  {
+    path: '/mail/chat',
+    name: 'PrivateMessageChat',
+    component: PrivateMessageChatPage,
+  },
+  {
+    path: '/world-chat',
+    name: 'WorldChat',
+    component: WorldChatPage,
+  },
+  {
+    path: '/dynamics',
+    name: 'Dynamics',
+    component: DynamicsPage,
   },
   {
     path: '/friend',

@@ -6,7 +6,7 @@
 
 from __future__ import annotations
 
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from typing import Optional, Tuple
 
 
@@ -42,13 +42,18 @@ def calc_next_signin_streak(
     prev_streak: int,
     today: date,
 ) -> int:
-    """计算本次签到后的连续签到天数（不处理“今日已签”的校验）。
+    """计算本次签到后的连续签到天数（不处理"今日已签"的校验）。
 
     - 若昨天已签到：streak+1
     - 若中断/首次：streak=1
     """
     if last_signin_date is None:
         return 1
+    
+    # 处理 last_signin_date 可能是 datetime 类型
+    if isinstance(last_signin_date, datetime):
+        last_signin_date = last_signin_date.date()
+    
     if last_signin_date == today - timedelta(days=1):
         return max(1, int(prev_streak or 0) + 1)
     return 1
@@ -59,5 +64,3 @@ def calc_signin_copper(level: int, streak_after_signin: int) -> Tuple[int, int]:
     base = base_copper_by_level(level)
     multi = 2 if int(streak_after_signin or 0) >= 5 else 1
     return base, int(base * multi)
-
-

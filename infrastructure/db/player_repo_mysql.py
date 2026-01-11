@@ -15,7 +15,7 @@ class MySQLPlayerRepo(IPlayerRepo):
         """获取玩家信息"""
         sql_candidates = [
             """
-            SELECT user_id, username, nickname, level, exp, gold, copper, silver_diamond, yuanbao, dice, enhancement_stone, energy, prestige, crystal_tower, charm, location, vip_level, vip_exp, last_energy_recovery_time, last_signin_date, signin_streak, created_at, updated_at,
+            SELECT user_id, username, nickname, level, exp, gold, copper, silver_diamond, yuanbao, dice, enhancement_stone, energy, prestige, crystal_tower, charm, location, vip_level, vip_exp, last_energy_recovery_time, last_signin_date, consecutive_signin_days AS signin_streak, created_at, updated_at,
                    cultivation_start_time, cultivation_duration, cultivation_area, cultivation_dungeon
             FROM player WHERE user_id = %s
             """,
@@ -84,7 +84,7 @@ class MySQLPlayerRepo(IPlayerRepo):
         """根据账号获取玩家"""
         sql_candidates = [
             """
-            SELECT user_id, username, nickname, level, exp, gold, copper, silver_diamond, yuanbao, dice, enhancement_stone, energy, prestige, crystal_tower, charm, location, vip_level, vip_exp, last_energy_recovery_time, last_signin_date, signin_streak, created_at, updated_at,
+            SELECT user_id, username, nickname, level, exp, gold, copper, silver_diamond, yuanbao, dice, enhancement_stone, energy, prestige, crystal_tower, charm, location, vip_level, vip_exp, last_energy_recovery_time, last_signin_date, consecutive_signin_days AS signin_streak, created_at, updated_at,
                    cultivation_start_time, cultivation_duration, cultivation_area, cultivation_dungeon
             FROM player WHERE username = %s
             """,
@@ -153,7 +153,7 @@ class MySQLPlayerRepo(IPlayerRepo):
         """验证登录"""
         sql_candidates = [
             """
-            SELECT user_id, username, nickname, level, exp, gold, copper, silver_diamond, yuanbao, dice, enhancement_stone, energy, prestige, crystal_tower, charm, location, vip_level, vip_exp, last_energy_recovery_time, last_signin_date, signin_streak, created_at, updated_at,
+            SELECT user_id, username, nickname, level, exp, gold, copper, silver_diamond, yuanbao, dice, enhancement_stone, energy, prestige, crystal_tower, charm, location, vip_level, vip_exp, last_energy_recovery_time, last_signin_date, consecutive_signin_days AS signin_streak, created_at, updated_at,
                    cultivation_start_time, cultivation_duration, cultivation_area, cultivation_dungeon
             FROM player WHERE username = %s AND password = %s
             """,
@@ -220,10 +220,10 @@ class MySQLPlayerRepo(IPlayerRepo):
     
     def save(self, player: Player) -> None:
         """保存玩家信息"""
-        # 兼容老库：last_signin_date / signin_streak 字段可能不存在
+        # 兼容老库：last_signin_date / consecutive_signin_days 字段可能不存在
         sql = """
             UPDATE player 
-            SET nickname = %s, level = %s, exp = %s, gold = %s, copper = %s, silver_diamond = %s, yuanbao = %s, dice = %s, enhancement_stone = %s, energy = %s, prestige = %s, crystal_tower = %s, charm = %s, location = %s, vip_level = %s, vip_exp = %s, last_energy_recovery_time = %s, last_signin_date = %s, signin_streak = %s,
+            SET nickname = %s, level = %s, exp = %s, gold = %s, copper = %s, silver_diamond = %s, yuanbao = %s, dice = %s, enhancement_stone = %s, energy = %s, prestige = %s, crystal_tower = %s, charm = %s, location = %s, vip_level = %s, vip_exp = %s, last_energy_recovery_time = %s, last_signin_date = %s, consecutive_signin_days = %s,
                 cultivation_start_time = %s, cultivation_duration = %s, cultivation_area = %s, cultivation_dungeon = %s
             WHERE user_id = %s
         """

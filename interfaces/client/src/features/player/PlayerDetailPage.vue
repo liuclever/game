@@ -141,12 +141,33 @@ const loadPlayerInfo = async () => {
 
 // 写信
 const sendMessage = () => {
-  alert('写信功能')
+  if (!player.value?.id) return
+  router.push({ 
+    path: '/mail/chat', 
+    query: { target_id: player.value.id, name: player.value.nickname } 
+  })
 }
 
 // 加为好友
-const addFriend = () => {
-  alert('添加好友')
+const addingFriend = ref(false)
+const addFriend = async () => {
+  if (!player.value?.id) return
+  if (addingFriend.value) return
+  
+  addingFriend.value = true
+  try {
+    const res = await http.post('/mail/friend-request/send', { target_id: player.value.id })
+    if (res.data.ok) {
+      alert(res.data.message || '好友请求已发送')
+    } else {
+      alert(res.data.error || '发送失败')
+    }
+  } catch (e) {
+    console.error('发送好友请求失败', e)
+    alert(e?.response?.data?.error || '发送失败')
+  } finally {
+    addingFriend.value = false
+  }
 }
 
 // 拉黑
@@ -271,9 +292,9 @@ onMounted(async () => {
       </div>
 
       <!-- 操作按钮 -->
-      <div class="section">
+      <div class="section" v-if="isOtherPlayer">
         <a class="link" @click="sendMessage">写信</a> 
-        <a class="link" @click="addFriend">加为好友</a> 
+        <a class="link" @click="addFriend">{{ addingFriend ? '发送中...' : '加为好友' }}</a> 
         <a class="link" @click="blockPlayer">拉黑</a>
       </div>
 
