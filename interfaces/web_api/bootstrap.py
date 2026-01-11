@@ -1,4 +1,4 @@
-# interfaces/web_api/bootstrap.py
+﻿# interfaces/web_api/bootstrap.py
 """
 服务依赖初始化（依赖注入容器）
 所有服务实例在此创建，供路由模块使用
@@ -158,7 +158,7 @@ class ServiceContainer:
             drop_service=self.drop_service
         )
         # 同时依赖联盟仓库：用于从盟战榜前三联盟随机选取“颁发者”
-        self.signin_service = SigninService(player_repo=self.player_repo, alliance_repo=self.alliance_repo)
+        self.signin_service = SigninService(player_repo=self.player_repo)
         self.map_service = MapService(
             map_repo=self.map_repo, 
             monster_repo=self.monster_repo
@@ -280,3 +280,4 @@ class ServiceContainer:
 
 # 全局服务容器实例
 services = ServiceContainer()
+

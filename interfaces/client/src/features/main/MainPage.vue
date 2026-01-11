@@ -601,7 +601,7 @@ const handleLink = (name) => {
     <!-- 常用功能 -->
     <div class="section title">【常用功能】</div>
     <div class="section indent">
-      【<a class="link" @click="toggleCultivationOptions">修行</a>| 竞技| <a class="link" @click="handleLink('任务')">任务</a>| 师徒】
+      【<a class="link" @click="toggleCultivationOptions">修行</a>| <a class="link" @click="handleLink('竞技')">竞技</a>| <a class="link" @click="handleLink('任务')">任务</a>| 师徒】
     </div>
       <!-- 修行选项 -->
       <template v-if="isLoggedIn">

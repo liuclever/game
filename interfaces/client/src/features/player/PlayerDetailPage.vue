@@ -11,7 +11,12 @@ const player = ref(null)
 const currentUserId = ref(null)
 
 const isOtherPlayer = computed(() => {
-  return player.value && currentUserId.value && player.value.id !== currentUserId.value
+  // 如果没有加载到玩家信息，返回 false
+  if (!player.value) return false
+  // 如果没有获取到当前用户ID（未登录），也显示切磋按钮
+  if (!currentUserId.value) return true
+  // 如果是查看其他玩家，显示切磋按钮
+  return player.value.id !== currentUserId.value
 })
 
 const formatReputation = (prestige, required) => {
@@ -292,7 +297,7 @@ onMounted(async () => {
       </div>
 
       <!-- 操作按钮 -->
-      <div class="section" v-if="isOtherPlayer">
+      <div class="section">
         <a class="link" @click="sendMessage">写信</a> 
         <a class="link" @click="addFriend">{{ addingFriend ? '发送中...' : '加为好友' }}</a> 
         <a class="link" @click="blockPlayer">拉黑</a>
@@ -321,8 +326,8 @@ onMounted(async () => {
 
       <!-- 战力信息 -->
       <div class="section">综合战力:{{ player.battlePower }}</div>
-      <div class="section">战绩:{{ player.battleRecord }} <span v-if="isOtherPlayer" class="link readonly">切磋</span></div>
-      
+      <div class="section">战绩:{{ player.battleRecord }} <a v-if="isOtherPlayer" class="link" @click="challenge">{{ sparring ? '切磋中...' : '切磋' }}</a></div>
+      <div class="section">挑战排名: {{ player.challengeRank }}</div>
       <div class="section">状态:{{ player.status }}</div>
      
       

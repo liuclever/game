@@ -199,29 +199,12 @@ def signin():
         result = services.signin_service.do_signin(player_id=user_id)
         player = services.player_repo.get_by_id(user_id)
         
-        # 构建返回消息
-        reward = result.get("reward", {})
-        copper = reward.get("copper", 0)
-        streak = result.get("signin_streak", 1)
-        issuer = result.get("issuer_name", "系统")
-        
-        message = f"签到成功！获得铜钱：{copper}"
-        if reward.get("multiplier", 1) > 1:
-            message += f"（连续签到{streak}天，奖励翻倍）"
-        else:
-            message += f"（连续签到{streak}天）"
-        
-        return jsonify({
-            "ok": True,
-            "message": message,
-            "gold_reward": copper,
-            "consecutive_days": streak,
-            "sponsor": issuer,
-            "user": player_to_dict(player) if player else None
-        })
+        # 直接返回 signin_service 的结果，它已经包含了正确的格式
+        result["user"] = player_to_dict(player) if player else None
+        return jsonify(result)
     except SigninError as e:
         error_msg = str(e)
-        if error_msg == "already_signed_today":
+        if error_msg == "already_signed_today" or "已经签到" in error_msg:
             error_msg = "今日已签到"
         return jsonify({"ok": False, "error": error_msg}), 400
 
