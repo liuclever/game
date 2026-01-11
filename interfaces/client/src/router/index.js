@@ -48,6 +48,12 @@ import MoSoulWarehousePage from '@/features/beast/MoSoulWarehousePage.vue'
 import MoSoulHuntingPage from '@/features/beast/MoSoulHuntingPage.vue'
 import MoSoulAbsorbPage from '@/features/beast/MoSoulAbsorbPage.vue'
 import DungeonChallengePage from '@/features/dungeon/DungeonChallengePage.vue'
+import ArenaStreak from '@/views/ArenaStreak.vue'
+import ArenaStreakBattleReport from '@/views/ArenaStreakBattleReport.vue'
+import ArenaStreakBattle from '@/views/ArenaStreakBattle.vue'
+import SigninPage from '@/features/signin/SigninPage.vue'
+import SigninMakeupPage from '@/features/signin/SigninMakeupPage.vue'
+import SigninRewardPage from '@/features/signin/SigninRewardPage.vue'
 import MizongPage from '@/features/dungeon/MizongPage.vue'
 import DungeonBattleResultPage from '@/features/dungeon/DungeonBattleResultPage.vue'
 import DungeonDetailReportPage from '@/features/dungeon/DungeonDetailReportPage.vue'
@@ -73,6 +79,7 @@ import ArenaIntroPage from '@/features/arena/ArenaIntroPage.vue'
 import SummonKingChallengePage from '@/features/king/SummonKingChallengePage.vue'
 import KingIntroPage from '@/features/king/KingIntroPage.vue'
 import KingRankingPage from '@/features/king/KingRankingPage.vue'
+import KingBattleReportPage from '@/features/king/KingBattleReportPage.vue'
 import ShopPage from '@/features/shop/ShopPage.vue'
 import ShopItemDetailPage from '@/features/shop/ShopItemDetailPage.vue'
 import ShopBuySuccessPage from '@/features/shop/ShopBuySuccessPage.vue'
@@ -559,6 +566,21 @@ const routes = [
     component: ArenaBattlePage,
   },
   {
+    path: '/arena/streak',
+    name: 'ArenaStreak',
+    component: ArenaStreak,
+  },
+  {
+    path: '/arena/streak/battle-report',
+    name: 'ArenaStreakBattleReport',
+    component: ArenaStreakBattleReport,
+  },
+  {
+    path: '/arena/streak/battle',
+    name: 'ArenaStreakBattle',
+    component: ArenaStreakBattle,
+  },
+  {
     path: '/king',
     name: 'SummonKingChallenge',
     component: SummonKingChallengePage,
@@ -572,6 +594,11 @@ const routes = [
     path: '/king/ranking',
     name: 'KingRanking',
     component: KingRankingPage,
+  },
+  {
+    path: '/king/battle-report',
+    name: 'KingBattleReport',
+    component: KingBattleReportPage,
   },
   {
     path: '/arena/intro',
@@ -692,6 +719,21 @@ const routes = [
     path: '/main',
     name: 'Main',
     component: MainPage,
+  },
+  {
+    path: '/signin',
+    name: 'Signin',
+    component: SigninPage,
+  },
+  {
+    path: '/signin/makeup',
+    name: 'SigninMakeup',
+    component: SigninMakeupPage,
+  },
+  {
+    path: '/signin/reward',
+    name: 'SigninReward',
+    component: SigninRewardPage,
   },
     {
       path: '/spar/report',

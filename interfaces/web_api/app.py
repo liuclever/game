@@ -58,6 +58,7 @@ from interfaces.routes.vip_test_routes import vip_test_bp
 from interfaces.routes.handbook_routes import handbook_bp
 from interfaces.routes.tree_routes import tree_bp
 from interfaces.routes.dragonpalace_routes import dragonpalace_bp
+from interfaces.routes.arena_streak_routes import arena_streak_bp
 
 app.register_blueprint(auth_bp)
 app.register_blueprint(player_bp)
@@ -90,6 +91,7 @@ app.register_blueprint(vip_test_bp)
 app.register_blueprint(handbook_bp)
 app.register_blueprint(tree_bp)
 app.register_blueprint(dragonpalace_bp)
+app.register_blueprint(arena_streak_bp)
 
 
 # ===== 以下为旧接口，暂时保留兼容 =====
@@ -182,11 +184,69 @@ def get_me():
 
 @app.post("/api/signin")
 def signin():
+    """每日签到"""
+    user_id = get_current_user_id()
+    if not user_id:
+        return jsonify({"ok": False, "error": "请先登录"}), 401
+    
     try:
-        player = services.signin_service.do_signin(player_id=1)
-        return jsonify({"ok": True, "user": player_to_dict(player)})
+        result = services.signin_service.do_signin(player_id=user_id)
+        player = services.player_repo.get_by_id(user_id)
+        
+        # 构建返回消息
+        reward = result.get("reward", {})
+        copper = reward.get("copper", 0)
+        streak = result.get("signin_streak", 1)
+        issuer = result.get("issuer_name", "系统")
+        
+        message = f"签到成功！获得铜钱：{copper}"
+        if reward.get("multiplier", 1) > 1:
+            message += f"（连续签到{streak}天，奖励翻倍）"
+        else:
+            message += f"（连续签到{streak}天）"
+        
+        return jsonify({
+            "ok": True,
+            "message": message,
+            "gold_reward": copper,
+            "consecutive_days": streak,
+            "sponsor": issuer,
+            "user": player_to_dict(player) if player else None
+        })
     except SigninError as e:
-        return jsonify({"ok": False, "error": str(e)}), 400
+        error_msg = str(e)
+        if error_msg == "already_signed_today":
+            error_msg = "今日已签到"
+        return jsonify({"ok": False, "error": error_msg}), 400
+
+
+@app.get("/api/signin/info")
+def get_signin_info():
+    """获取签到信息"""
+    from datetime import date
+    
+    user_id = get_current_user_id()
+    if not user_id:
+        return jsonify({"ok": False, "error": "请先登录"}), 401
+    
+    try:
+        player = services.player_repo.get_by_id(user_id)
+        if not player:
+            return jsonify({"ok": False, "error": "玩家不存在"}), 404
+        
+        today = date.today()
+        has_signed = player.last_signin_date == today
+        streak = int(getattr(player, "signin_streak", 0) or 0)
+        
+        return jsonify({
+            "ok": True,
+            "hasSigned": has_signed,
+            "consecutiveDays": streak,
+            "currentMonth": today.month,
+            "currentYear": today.year,
+        })
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
 
 
 @app.get("/api/maps")

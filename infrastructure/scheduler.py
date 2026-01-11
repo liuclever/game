@@ -25,6 +25,11 @@ from infrastructure.db.immortalize_pool_repo_mysql import MySQLImmortalizePoolRe
 from infrastructure.db.battlefield_repo_mysql import MySQLBattlefieldBattleRepo
 from application.services.battlefield_service import BattlefieldService
 from application.services.immortalize_pool_service import ImmortalizePoolService
+from domain.services.king_final_service import (
+    reset_weekly_registration,
+    advance_to_finals,
+    run_final_stage
+)
 
 logger = logging.getLogger(__name__)
 
@@ -152,6 +157,36 @@ def _run_immortalize_formation():
             logger.exception("[Scheduler] 化仙阵结算失败 user=%s: %s", user_id, exc)
 
 
+def _run_king_weekly_reset():
+    """每周一00:00执行：重置召唤之王报名状态"""
+    logger.info("[Scheduler] 开始执行召唤之王周报名重置任务")
+    try:
+        reset_weekly_registration()
+        logger.info("[Scheduler] 召唤之王周报名重置完成")
+    except Exception as e:
+        logger.exception(f"[Scheduler] 召唤之王周报名重置失败: {e}")
+
+
+def _run_king_advance_to_finals():
+    """每周四23:59执行：选出各赛区前16名进入正赛"""
+    logger.info("[Scheduler] 开始执行召唤之王晋级正赛任务")
+    try:
+        count = advance_to_finals()
+        logger.info(f"[Scheduler] 召唤之王晋级正赛完成，共{count}名选手")
+    except Exception as e:
+        logger.exception(f"[Scheduler] 召唤之王晋级正赛失败: {e}")
+
+
+def _run_king_final_stage(stage: str):
+    """执行召唤之王正赛阶段"""
+    logger.info(f"[Scheduler] 开始执行召唤之王{stage}强赛")
+    try:
+        run_final_stage(stage)
+        logger.info(f"[Scheduler] 召唤之王{stage}强赛完成")
+    except Exception as e:
+        logger.exception(f"[Scheduler] 召唤之王{stage}强赛失败: {e}")
+
+
 def start_scheduler():
     """启动后台调度器（应在应用启动时调用一次）"""
     global _scheduler
@@ -184,8 +219,42 @@ def start_scheduler():
         id="immortalize_formation",
         replace_existing=True,
     )
+    
+    # ===== 召唤之王定时任务 =====
+    # 每周一 00:00 - 重置报名状态
+    _scheduler.add_job(
+        _run_king_weekly_reset,
+        trigger="cron",
+        day_of_week="mon",
+        hour=0,
+        minute=0,
+        id="king_weekly_reset",
+        replace_existing=True,
+    )
+    # 每周四 23:59 - 晋级正赛
+    _scheduler.add_job(
+        _run_king_advance_to_finals,
+        trigger="cron",
+        day_of_week="thu",
+        hour=23,
+        minute=59,
+        id="king_advance_finals",
+        replace_existing=True,
+    )
+    # 每周五 12:00-16:00 - 正赛各阶段
+    for hour, stage in [(12, '32'), (13, '16'), (14, '8'), (15, '4'), (16, '2')]:
+        _scheduler.add_job(
+            lambda s=stage: _run_king_final_stage(s),
+            trigger="cron",
+            day_of_week="fri",
+            hour=hour,
+            minute=0,
+            id=f"king_{stage}_stage",
+            replace_existing=True,
+        )
+    
     _scheduler.start()
-    logger.info("[Scheduler] 后台调度器已启动，每日 00:05 自动开赛，每分钟活力+1")
+    logger.info("[Scheduler] 后台调度器已启动，包含召唤之王定时任务")
 
 
 def shutdown_scheduler():

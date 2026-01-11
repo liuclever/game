@@ -356,7 +356,8 @@ const goHome = () => {
 
     <!-- 皇城 -->
     <div class="section spacer">
-      皇城:<span class="link readonly">召唤之王挑战赛</span>
+      皇城:<a class="link" @click="handleLink('召唤之王挑战赛')">召唤之王挑战赛</a>. 
+      <a class="link" @click="router.push('/arena/streak')">连胜竞技场</a>
     </div>
 
     <!-- 导航菜单 -->
@@ -375,7 +376,7 @@ const goHome = () => {
       <a class="link" @click="handleLink('化仙')">化仙</a>
     </div>
     <div class="section">
-      <span class="link readonly">切磋</span>. 
+      <a class="link" @click="router.push('/spar/report')">切磋</a>. 
       <a class="link" @click="handleLink('闯塔')">闯塔</a>. 
       <a class="link" @click="handleLink('战场')">战场</a>. 
       <a class="link active">擂台</a>. 

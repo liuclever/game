@@ -695,13 +695,13 @@ const handleLink = (name) => {
       <a class="link" @click="handleLink('联盟')">联盟</a>. <a class="link" @click="handleLink('盟战')">盟战</a>. <a class="link" @click="goMap">地图</a>. <span class="link readonly">天赋</span>. <a class="link" @click="handleLink('化仙')">化仙</a>
     </div>
     <div class="section">
-      <span class="link readonly">切磋</span>. <a class="link" @click="goTower">闯塔</a>. <a class="link" @click="handleLink('战场')">战场</a>. <a class="link" @click="handleLink('擂台')">擂台</a>. <span class="link readonly">坐骑</span>
+      <a class="link" @click="router.push('/spar/report')">切磋</a>. <a class="link" @click="goTower">闯塔</a>. <a class="link" @click="handleLink('战场')">战场</a>. <a class="link" @click="handleLink('擂台')">擂台</a>. <span class="link readonly">坐骑</span>
     </div>
     <div class="section">
       <a class="link" @click="router.push('/tree')">古树</a>. <a class="link" @click="handleLink('排行')">排行</a>. <span class="link readonly">成就</span>. <a class="link" @click="handleLink('图鉴')">图鉴</a>. <span class="link readonly">攻略</span>
     </div>
     <div class="section">
-      <a class="link" @click="handleLink('兑换')">兑换</a>. <span class="link readonly">签到</span>. <span class="link readonly">论坛</span>. <a class="link" @click="handleLink('VIP')">VIP</a>. <span class="link readonly">安全锁</span>
+      <a class="link" @click="handleLink('兑换')">兑换</a>. <a class="link" @click="router.push('/signin')">签到</a>. <span class="link readonly">论坛</span>. <a class="link" @click="handleLink('VIP')">VIP</a>. <span class="link readonly">安全锁</span>
     </div>
 
     <!-- 退出登录（按需求放到底部） -->
