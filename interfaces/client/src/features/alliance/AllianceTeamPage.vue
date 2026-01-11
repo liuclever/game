@@ -10,9 +10,18 @@ const activeFilter = ref('未分配')
 const currentPage = ref(1)
 const pageSize = ref(10)
 
-const filters = ['未分配', '飞龙军', '伏虎军']
+const filters = ['未分配', '犊虎队', '白虎队', '青龙队', '朱雀队', '玄武队', '战神队']
 
-const fetchBarracks = async () => {
+const teamMap = {
+  '犊虎队': 1,
+  '白虎队': 2,
+  '青龙队': 3,
+  '朱雀队': 4,
+  '玄武队': 5,
+  '战神队': 6,
+}
+
+const fetchTeam = async () => {
   loading.value = true
   try {
     const res = await http.get('/alliance/members')
@@ -21,33 +30,32 @@ const fetchBarracks = async () => {
       currentPage.value = 1
     }
   } catch (err) {
-    console.error('load barracks failed', err)
+    console.error('load team failed', err)
   } finally {
     loading.value = false
   }
 }
 
-onMounted(fetchBarracks)
+onMounted(fetchTeam)
 
-const myArmy = computed(() => {
-  const member = info.value?.members?.find(m => m.is_self)
-  if (!member) return ''
-  const armyType = member.army_type || 0
-  if (armyType === 1) return '飞龙军'
-  if (armyType === 2) return '伏虎军'
-  return '未分配'
+const myTeam = computed(() => {
+  if (!info.value?.members) return '未分配'
+  const member = info.value.members.find(m => m.is_self)
+  if (!member) return '未分配'
+  const teamType = member.team_type || 0
+  if (teamType === 0) return '未分配'
+  const teamName = Object.keys(teamMap).find(name => teamMap[name] === teamType)
+  return teamName || '未分配'
 })
 
 const filteredMembers = computed(() => {
   const members = info.value?.members || []
   if (activeFilter.value === '未分配') {
-    return members.filter(m => !m.army_type || m.army_type === 0)
+    return members.filter(m => !m.team_type || m.team_type === 0)
   }
-  if (activeFilter.value === '飞龙军') {
-    return members.filter(m => m.army_type === 1)
-  }
-  if (activeFilter.value === '伏虎军') {
-    return members.filter(m => m.army_type === 2)
+  const teamType = teamMap[activeFilter.value]
+  if (teamType) {
+    return members.filter(m => m.team_type === teamType)
   }
   return members
 })
@@ -75,13 +83,13 @@ const goHome = () => router.push('/')
 <template>
   <div>
     <div>
-      <h1>【联盟兵营】</h1>
+      <h1>【联盟战队】</h1>
     </div>
     
     <div v-if="loading" style="padding: 20px;">加载中...</div>
     <template v-else-if="info">
       <div style="padding: 10px;">
-        所属军队:{{ myArmy }}
+        所属军队:{{ myTeam }}
       </div>
       
       <div style="padding: 10px;">
@@ -105,13 +113,13 @@ const goHome = () => router.push('/')
       </div>
       
       <div style="padding: 10px;">
-        昵称/等级/加入军队
+        昵称.等级.战力.加入军队
       </div>
       
       <div style="padding: 10px;">
         <div v-if="paginatedMembers.length > 0">
           <div v-for="member in paginatedMembers" :key="member.user_id" style="padding: 5px 0; color: #cc0000;">
-            {{ member.nickname || `玩家${member.user_id}` }}/{{ member.level || 1 }}
+            {{ member.nickname || `玩家${member.user_id}` }} /{{ member.level || 1 }}/{{ member.battle_power || 0 }}
           </div>
         </div>
         <div v-else style="padding: 20px; color: #999;">暂无成员</div>

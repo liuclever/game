@@ -6,31 +6,25 @@ import http from '@/services/http'
 const router = useRouter()
 const loading = ref(true)
 const info = ref(null)
-const activeCategory = ref('道具')
+const playerBeasts = ref([])
+const viewMode = ref('storage') // 'bag' for 背包寄存, 'storage' for 仓库取出
 const currentPage = ref(1)
 const pageSize = ref(20)
-const viewMode = ref('bag') // 'bag' for 背包寄存, 'storage' for 仓库取出
-
-const categories = ['道具', '材料', '召唤球', '卷轴', '技能书']
-
-const mapTypeToCategory = (type) => {
-  if (!type) return '材料'
-  const typeLower = (type || '').toLowerCase()
-  if (typeLower.includes('consumable')) return '道具'
-  if (typeLower.includes('material')) return '材料'
-  if (typeLower.includes('capture') || typeLower.includes('捕捉')) return '召唤球'
-  if (typeLower.includes('scroll')) return '卷轴'
-  if (typeLower.includes('skill')) return '技能书'
-  return '材料'
-}
 
 const fetchStorageInfo = async () => {
   loading.value = true
   try {
-    const res = await http.get('/alliance/item-storage')
+    const res = await http.get('/alliance/beast-storage')
     if (res.data?.ok) {
       info.value = res.data
-      currentPage.value = 1
+    }
+    
+    // 获取玩家幻兽列表
+    const beastRes = await http.get('/beast/list')
+    if (beastRes.data?.ok) {
+      // 过滤掉战斗队中的幻兽（不能寄存）
+      // 注意：后端API已经过滤掉了已存储的幻兽
+      playerBeasts.value = (beastRes.data.beastList || []).filter(beast => !beast.inTeam)
     }
   } catch (err) {
     console.error('load storage failed', err)
@@ -39,43 +33,37 @@ const fetchStorageInfo = async () => {
   }
 }
 
-const depositItem = async (itemId, quantity) => {
+const storeBeast = async (beastId) => {
   try {
-    const res = await http.post('/alliance/item-storage/deposit', {
-      itemId: itemId,
-      quantity: quantity
-    })
+    const res = await http.post('/alliance/beast-storage/store', { beastId })
     if (res.data?.ok) {
       await fetchStorageInfo()
     } else {
       alert(res.data?.error || '寄存失败')
     }
   } catch (err) {
-    console.error('deposit item failed', err)
+    console.error('store beast failed', err)
     alert(err.response?.data?.error || '寄存失败')
   }
 }
 
-const withdrawItem = async (storageId, quantity) => {
+const retrieveBeast = async (storageId) => {
   try {
-    const res = await http.post('/alliance/item-storage/withdraw', {
-      storageId: storageId,
-      quantity: quantity
-    })
+    const res = await http.post('/alliance/beast-storage/retrieve', { storageId })
     if (res.data?.ok) {
       await fetchStorageInfo()
     } else {
       alert(res.data?.error || '取出失败')
     }
   } catch (err) {
-    console.error('withdraw item failed', err)
+    console.error('retrieve beast failed', err)
     alert(err.response?.data?.error || '取出失败')
   }
 }
 
 onMounted(fetchStorageInfo)
 
-const storageLevel = computed(() => info.value?.storage?.level || 1)
+const beastRoomLevel = computed(() => info.value?.beastRoomLevel || info.value?.storage?.level || 1)
 const storageCapacity = computed(() => {
   const storage = info.value?.storage
   return {
@@ -84,35 +72,30 @@ const storageCapacity = computed(() => {
   }
 })
 
-const bagInfo = computed(() => info.value?.bag || null)
+const beastPenInfo = computed(() => info.value?.beastPen || info.value?.playerBeastSlots || { used: 0, capacity: 0 })
 
-// 背包物品（用于寄存）
-const bagItems = computed(() => info.value?.inventory || [])
+// 仓库物品（用于取出）- 只显示当前用户的
+const storageList = computed(() => {
+  const list = info.value?.storageList || info.value?.storage?.items || []
+  return list.filter(item => item.ownerIsSelf !== false)
+})
 
-// 仓库物品（用于取出）
-const storageItems = computed(() => info.value?.storage?.ownItems || [])
-
-// 当前视图的物品列表
-const currentItems = computed(() => {
+// 当前视图的幻兽列表
+const currentBeasts = computed(() => {
   if (viewMode.value === 'bag') {
-    return bagItems.value
+    return playerBeasts.value
   } else {
-    return storageItems.value
+    return storageList.value
   }
 })
 
-const filteredItems = computed(() => {
-  const items = currentItems.value
-  return items.filter(item => mapTypeToCategory(item.type) === activeCategory.value)
-})
-
-const paginatedItems = computed(() => {
+const paginatedBeasts = computed(() => {
   const start = (currentPage.value - 1) * pageSize.value
-  return filteredItems.value.slice(start, start + pageSize.value)
+  return currentBeasts.value.slice(start, start + pageSize.value)
 })
 
 const totalPages = computed(() => {
-  return Math.max(1, Math.ceil(filteredItems.value.length / pageSize.value))
+  return Math.max(1, Math.ceil(currentBeasts.value.length / pageSize.value))
 })
 
 const goToPage = (page) => {
@@ -124,8 +107,17 @@ const goToPage = (page) => {
 
 const switchViewMode = (mode) => {
   viewMode.value = mode
-  activeCategory.value = '道具'
   currentPage.value = 1
+}
+
+const formatBeastName = (beast) => {
+  const name = beast.name || beast.nickname || `幻兽${beast.id || beast.beastId}`
+  const realm = beast.realm || ''
+  const level = beast.level || 0
+  if (realm) {
+    return `${name}-${realm}(${level}级)`
+  }
+  return `${name}(${level}级)`
 }
 
 const goAlliance = () => router.push('/alliance')
@@ -135,35 +127,19 @@ const goHome = () => router.push('/')
 <template>
   <div>
     <div>
-      <h1>【寄存仓库】</h1>
-      <p>帮助成员存放暂时不用的背包物品</p>
+      <h1>【幻兽室】简介 <a href="#" @click.prevent="goAlliance" style="color: #0066cc; text-decoration: underline;">返回</a></h1>
+      <p>帮助成员幻兽更好成长的场所,目前暂只开放幻兽寄存。</p>
     </div>
     
     <div v-if="loading" style="padding: 20px;">加载中...</div>
     <template v-else-if="info">
       <div style="padding: 10px;">
-        <div>建筑等级:{{ storageLevel }}级</div>
-        <div>可寄存物品{{ storageCapacity.capacity }}格</div>
+        <div>建筑等级:{{ beastRoomLevel }}级</div>
+        <div>可寄存幻兽:{{ storageCapacity.capacity }}只</div>
       </div>
       
       <div style="padding: 10px;">
-        【背包({{ bagInfo?.used_slots || 0 }}/{{ bagInfo?.capacity || 0 }})|仓库({{ storageCapacity.used }}/{{ storageCapacity.capacity }})】
-      </div>
-      
-      <div style="padding: 10px;">
-        <span
-          v-for="(cat, index) in categories"
-          :key="cat"
-        >
-          <a
-            v-if="activeCategory !== cat"
-            href="#"
-            @click.prevent="activeCategory = cat; currentPage = 1"
-            style="color: #0066cc; text-decoration: underline;"
-          >{{ cat }}</a>
-          <span v-else style="color: #0066cc; font-weight: bold;">{{ cat }}</span>
-          <span v-if="index < categories.length - 1"> | </span>
-        </span>
+        【幻兽栏({{ beastPenInfo.used }}/{{ beastPenInfo.capacity }})|寄存室({{ storageCapacity.used }}/{{ storageCapacity.capacity }})】
       </div>
       
       <div style="padding: 10px;">
@@ -181,17 +157,17 @@ const goHome = () => router.push('/')
       </div>
       
       <div style="padding: 10px;">
-        <div v-if="paginatedItems.length > 0">
-          <div v-for="item in paginatedItems" :key="viewMode === 'bag' ? item.itemId : item.storageId" style="padding: 5px 0;">
+        <div v-if="paginatedBeasts.length > 0">
+          <div v-for="(beast, index) in paginatedBeasts" :key="viewMode === 'bag' ? beast.id : beast.storageId" style="padding: 5px 0;">
             <span v-if="viewMode === 'bag'">
-              {{ item.name }}×{{ item.quantity }} <a href="#" @click.prevent="depositItem(item.itemId, item.quantity)" style="color: #0066cc; text-decoration: underline;">寄存</a>
+              {{ (currentPage - 1) * pageSize + index + 1 }}. {{ formatBeastName(beast) }} <a href="#" @click.prevent="storeBeast(beast.id)" style="color: #0066cc; text-decoration: underline; margin-left: 5px;">寄存</a>
             </span>
             <span v-else>
-              {{ item.name }}×{{ item.quantity }} <a href="#" @click.prevent="withdrawItem(item.storageId, item.quantity)" style="color: #0066cc; text-decoration: underline;">取出</a>
+              {{ (currentPage - 1) * pageSize + index + 1 }}. {{ formatBeastName(beast) }} <a href="#" @click.prevent="retrieveBeast(beast.storageId)" style="color: #0066cc; text-decoration: underline; margin-left: 5px;">取出</a>
             </span>
           </div>
         </div>
-        <div v-else style="padding: 20px; color: #999;">暂无物品</div>
+        <div v-else style="padding: 20px; color: #999;">暂无幻兽</div>
       </div>
       
       <div v-if="totalPages > 1" style="padding: 10px;">
@@ -217,10 +193,6 @@ const goHome = () => router.push('/')
           style="width: 40px;"
         />
         <span> 跳转</span>
-      </div>
-      
-      <div style="padding: 10px; color: #666;">
-        注:离开联盟后,只要加入新联盟,物品会重新显示
       </div>
       
       <div style="padding: 10px;">

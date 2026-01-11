@@ -8,9 +8,9 @@ from pymysql.cursors import DictCursor
 # 数据库配置
 DB_CONFIG = {
 'host': 'localhost',
-    'port': 7778,
+    'port': 3306,
     'user': 'root',
-    'password': 'root',
+    'password': '1234',
     'database': 'game_tower',
     'charset': 'utf8mb4',
     'cursorclass': DictCursor,

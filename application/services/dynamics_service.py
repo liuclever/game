@@ -117,18 +117,28 @@ class DynamicsService:
             if log.is_challenger_win:
                 if consecutive_wins <= 1:
                     text = f"在{type_name}率先抢占擂台"
+                    opponent_id = None
+                    opponent_name = None
                 else:
                     text = f"在{type_name}战胜 {log.champion_name} 成功守擂，连胜{consecutive_wins}场"
+                    opponent_id = log.champion_id
+                    opponent_name = log.champion_name
             else:
                 text = f"在{type_name}惜败 {log.champion_name}"
+                opponent_id = log.champion_id
+                opponent_name = log.champion_name
         else:
             if log.is_challenger_win:
                 text = f"在{type_name}被 {log.challenger_name} 挑战失败"
+                opponent_id = log.challenger_id
+                opponent_name = log.challenger_name
             else:
                 if consecutive_wins > 0:
                     text = f"在{type_name}战胜 {log.challenger_name} 成功守擂，连胜{consecutive_wins}场"
                 else:
                     text = f"在{type_name}战胜 {log.challenger_name} 成功守擂"
+                opponent_id = log.challenger_id
+                opponent_name = log.challenger_name
         
         return {
             "id": log.id,
@@ -136,6 +146,8 @@ class DynamicsService:
             "text": text,
             "battle_id": log.id,
             "has_detail": True,
+            "opponent_id": opponent_id,
+            "opponent_name": opponent_name,
         }
     
     def _format_zhenyao_dynamic(self, log, user_id: int) -> Dict:
@@ -156,13 +168,21 @@ class DynamicsService:
         if is_attacker:
             if log.is_success:
                 text = f"在镇妖塔第{log.floor}层战胜 {log.defender_name} 成功占领"
+                opponent_id = log.defender_id
+                opponent_name = log.defender_name
             else:
                 text = f"在镇妖塔第{log.floor}层挑战 {log.defender_name} 失败"
+                opponent_id = log.defender_id
+                opponent_name = log.defender_name
         else:
             if log.is_success:
                 text = f"在镇妖塔第{log.floor}层被 {log.attacker_name} 挑战失败"
+                opponent_id = log.attacker_id
+                opponent_name = log.attacker_name
             else:
                 text = f"在镇妖塔第{log.floor}层成功防守 {log.attacker_name} 的挑战"
+                opponent_id = log.attacker_id
+                opponent_name = log.attacker_name
         
         return {
             "id": log.id,
@@ -170,6 +190,8 @@ class DynamicsService:
             "text": text,
             "battle_id": log.id,
             "has_detail": True,
+            "opponent_id": opponent_id,
+            "opponent_name": opponent_name,
         }
     
     def _get_battlefield_battles(self, user_id: int, limit: int) -> List[Dict]:
@@ -203,9 +225,11 @@ class DynamicsService:
         
         if is_first:
             opponent_name = log.get('second_user_name', '未知')
+            opponent_id = log.get('second_user_id')
             is_win = bool(log.get('is_first_win'))
         else:
             opponent_name = log.get('first_user_name', '未知')
+            opponent_id = log.get('first_user_id')
             is_win = not bool(log.get('is_first_win'))
         
         result_label = log.get('result_label', '')
@@ -220,6 +244,8 @@ class DynamicsService:
             "text": text,
             "battle_id": log['id'],
             "has_detail": True,
+            "opponent_id": opponent_id,
+            "opponent_name": opponent_name,
         }
     
     def _get_spar_battles(self, user_id: int, limit: int) -> List[Dict]:
@@ -251,9 +277,11 @@ class DynamicsService:
         
         if is_attacker:
             opponent_name = log.get('defender_name', '未知')
+            opponent_id = log.get('defender_id')
             is_win = bool(log.get('is_attacker_win'))
         else:
             opponent_name = log.get('attacker_name', '未知')
+            opponent_id = log.get('attacker_id')
             is_win = not bool(log.get('is_attacker_win'))
         
         text = f"与 {opponent_name} 切磋，{'完美胜利' if is_win else '失败'}"
@@ -264,4 +292,6 @@ class DynamicsService:
             "text": text,
             "battle_id": log['id'],
             "has_detail": True,
+            "opponent_id": opponent_id,
+            "opponent_name": opponent_name,
         }

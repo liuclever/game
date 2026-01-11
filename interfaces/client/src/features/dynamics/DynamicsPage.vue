@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import http from '@/services/http'
 
@@ -29,21 +29,59 @@ const jumpToPage = () => {
   else pageInput.value = String(currentPage.value)
 }
 const nextPage = () => { if (currentPage.value < totalPages.value) loadDynamics(currentPage.value + 1) }
+const prevPage = () => { if (currentPage.value > 1) loadDynamics(currentPage.value - 1) }
+const firstPage = () => { loadDynamics(1) }
 const lastPage = () => { loadDynamics(totalPages.value) }
 const goBack = () => { router.back() }
+const goHome = () => { router.push('/') }
+
+const viewBattleDetail = (dynamic) => {
+  if (!dynamic.has_detail || !dynamic.battle_id) return
+  router.push({
+    path: '/dynamics/battle-report',
+    query: {
+      type: dynamic.battle_type,
+      id: dynamic.battle_id
+    }
+  })
+}
+
+const viewPlayer = (playerId) => {
+  if (!playerId) return
+  router.push({
+    path: '/player/detail',
+    query: { id: playerId }
+  })
+}
 
 onMounted(() => { loadDynamics(1) })
 </script>
 
 <template>
   <div class="dynamics-page">
-    <div class="section title">我的动态</div>
+    <div class="section title">【我的动态】</div>
     <div class="section dynamics-list">
       <div v-if="loading" class="item">加载中...</div>
-      <div v-for="d in dynamics" :key="d.id" class="item">({{ d.time }}) {{ d.text }}</div>
+      <div v-for="(d, index) in dynamics" :key="d.id" class="item">
+        {{ index + 1 }}.({{ d.time }})
+        <template v-if="d.opponent_name && d.opponent_id">
+          <template v-for="(part, partIndex) in d.text.split(d.opponent_name)" :key="partIndex">
+            <a 
+              v-if="partIndex > 0" 
+              class="link player-name" 
+              @click="viewPlayer(d.opponent_id)"
+            >{{ d.opponent_name }}</a>
+            <span>{{ part }}</span>
+          </template>
+        </template>
+        <span v-else>{{ d.text }}</span>
+        <a v-if="d.has_detail" class="link" @click="viewBattleDetail(d)">查看</a>
+      </div>
       <div v-if="!loading && dynamics.length === 0" class="item gray">暂无动态</div>
     </div>
     <div class="section pager">
+      <a class="link" @click="prevPage" v-if="currentPage > 1">上页</a>
+      <a class="link" @click="firstPage" v-if="currentPage > 1">首页</a>
       <a class="link" @click="nextPage" v-if="currentPage < totalPages">下页</a>
       <a class="link" @click="lastPage" v-if="currentPage < totalPages">末页</a>
       <span>{{ currentPage }}/{{ totalPages }}页</span>
@@ -51,6 +89,7 @@ onMounted(() => { loadDynamics(1) })
       <button class="btn" @click="jumpToPage">跳转</button>
     </div>
     <div class="section"><a class="link" @click="goBack">返回前页</a></div>
+    <div class="section"><a class="link" @click="goHome">返回游戏首页</a></div>
   </div>
 </template>
 
@@ -64,6 +103,7 @@ onMounted(() => { loadDynamics(1) })
 .pager { display: flex; gap: 8px; align-items: center; }
 .page-input { width: 50px; padding: 2px 4px; border: 1px solid #ccc; text-align: center; }
 .btn { padding: 4px 12px; background: #0066CC; color: white; border: 1px solid #0066CC; cursor: pointer; font-size: 13px; }
-.link { color: #0066CC; cursor: pointer; }
+.link { color: #0066CC; cursor: pointer; text-decoration: underline; }
 .link:hover { text-decoration: underline; }
+.player-name { color: #0066CC; }
 </style>
