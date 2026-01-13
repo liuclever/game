@@ -388,6 +388,9 @@ class AllianceService:
                 "role": m.role,
                 "role_label": AllianceRules.role_label(m.role),
                 "contribution": m.contribution,
+                "army_type": m.army_type or 0,
+                "team_type": getattr(m, 'team_type', 0) or 0,
+                "is_self": m.user_id == user_id,
                 "can_kick": self._can_kick(member, m),
                 "can_assign_role": self._can_assign_role(member, m)
             })
@@ -467,18 +470,19 @@ class AllianceService:
         if not alliance:
             return {"ok": False, "error": "联盟数据异常"}
 
-        building_level = alliance.level or 1
+        building_map = self._get_building_level_map(alliance.id)
+        talent_pool_level = building_map.get("talent", 1)
         research_map = self._get_talent_research_map(alliance.id)
         player_map = self._get_player_talent_map(user_id)
 
         talent_rows = []
         for key in AllianceRules.TALENT_KEYS:
             research_level = research_map.get(key, 1)
-            max_level = AllianceRules.get_talent_max_level(building_level, research_level)
+            max_level = AllianceRules.get_talent_max_level(talent_pool_level, research_level)
             player_level = player_map.get(key, 0)
             can_research_talent = (
                 AllianceRules.can_research_talent(member.role)
-                and research_level < building_level
+                and research_level < talent_pool_level
             )
             next_research_level = research_level + 1
             research_cost = None
@@ -506,7 +510,7 @@ class AllianceService:
 
         return {
             "ok": True,
-            "building_level": building_level,
+            "building_level": talent_pool_level,
             "can_research": AllianceRules.can_research_talent(member.role),
             "member": {
                 "contribution": member.contribution or 0,
@@ -526,11 +530,13 @@ class AllianceService:
         if not alliance:
             return {"ok": False, "error": "联盟数据异常"}
 
+        building_map = self._get_building_level_map(alliance.id)
+        talent_pool_level = building_map.get("talent", 1)
         research_map = self._get_talent_research_map(member.alliance_id)
         player_map = self._get_player_talent_map(user_id)
 
         research_level = research_map.get(talent_key, 1)
-        max_level = AllianceRules.get_talent_max_level(alliance.level or 1, research_level)
+        max_level = AllianceRules.get_talent_max_level(talent_pool_level, research_level)
         current_level = player_map.get(talent_key, 0)
 
         if current_level >= max_level:
@@ -571,11 +577,12 @@ class AllianceService:
         if not alliance:
             return {"ok": False, "error": "联盟数据异常"}
 
-        building_level = alliance.level or 1
+        building_map = self._get_building_level_map(alliance.id)
+        talent_pool_level = building_map.get("talent", 1)
         research_map = self._get_talent_research_map(alliance.id)
         current_level = research_map.get(talent_key, 1)
 
-        if current_level >= building_level:
+        if current_level >= talent_pool_level:
             return {"ok": False, "error": "研究等级已达到建筑上限"}
 
         next_level = current_level + 1
@@ -595,9 +602,9 @@ class AllianceService:
             self.alliance_repo.update_alliance_crystals(alliance.id, -cost["crystals"])
             alliance.crystals = (alliance.crystals or 0) - cost["crystals"]
 
-        new_level = min(building_level, next_level)
+        new_level = min(talent_pool_level, next_level)
         self.alliance_repo.update_alliance_talent_research(alliance.id, talent_key, new_level)
-        max_level = AllianceRules.get_talent_max_level(building_level, new_level)
+        max_level = AllianceRules.get_talent_max_level(talent_pool_level, new_level)
 
         self._record_activity(
             alliance_id=alliance.id,
@@ -611,7 +618,7 @@ class AllianceService:
         return {
             "ok": True,
             "research_level": new_level,
-            "building_level": building_level,
+            "building_level": talent_pool_level,
             "max_level": max_level,
             "cost": cost,
             "alliance": {
@@ -1436,7 +1443,9 @@ class AllianceService:
         records = self.alliance_repo.get_item_storage(alliance.id)
         storage_items, own_storage_items = self._build_storage_payload(records, user_id)
 
-        capacity = AllianceRules.item_storage_capacity(alliance.level or 1)
+        building_map = self._get_building_level_map(alliance.id)
+        storage_level = building_map.get("warehouse", 1)
+        capacity = AllianceRules.item_storage_capacity_from_level(storage_level)
         used = self.alliance_repo.count_item_storage(alliance.id)
 
         return {
@@ -1449,6 +1458,7 @@ class AllianceService:
             "bag": bag_info,
             "inventory": bag_items,
             "storage": {
+                "level": storage_level,
                 "capacity": capacity,
                 "used": used,
                 "items": storage_items,
@@ -1474,7 +1484,9 @@ class AllianceService:
         if available < quantity:
             return {"ok": False, "error": "背包中该物品数量不足"}
 
-        capacity = AllianceRules.item_storage_capacity(alliance.level or 1)
+        building_map = self._get_building_level_map(alliance.id)
+        storage_level = building_map.get("warehouse", 1)
+        capacity = AllianceRules.item_storage_capacity_from_level(storage_level)
         used_slots = self.alliance_repo.count_item_storage(alliance.id)
         owner_slots = self.alliance_repo.get_item_storage_slots(alliance.id, user_id, item_id)
 
@@ -1596,21 +1608,34 @@ class AllianceService:
         return [record.beast_id for record in records]
 
     def get_beast_storage_info(self, user_id: int) -> dict:
-        _, alliance, error = self._get_alliance_context(user_id)
+        member, alliance, error = self._get_alliance_context(user_id)
         if error:
             return error
-        capacity = AllianceRules.beast_storage_capacity(alliance.level or 1)
+        
+        building_map = self._get_building_level_map(alliance.id)
+        beast_room_level = building_map.get("beast", 1)
+        capacity = AllianceRules.beast_room_capacity_from_level(beast_room_level)
         records = self.alliance_repo.get_beast_storage(alliance.id)
+        
+        # 获取玩家幻兽栏信息
+        player = self.player_repo.get_by_id(user_id)
+        player_beasts = self.beast_repo.get_by_user_id(user_id)
+        from application.services.vip_service import get_beast_slot_limit
+        beast_slot_capacity = get_beast_slot_limit(player.vip_level if player else 0)
+        beast_slot_used = len(player_beasts)
+        
         storage_list = []
         for record in records:
             beast = self.beast_repo.get_by_id(record.beast_id)
             beast_name = ""
             beast_level = 0
+            beast_realm = ""
             template_id = None
             if beast:
-                beast_name = beast.nickname or f"幻兽{beast.id}"
+                beast_name = beast.nickname or getattr(beast, 'name', '') or f"幻兽{beast.id}"
                 beast_level = beast.level
-                template_id = beast.template_id
+                beast_realm = getattr(beast, 'realm', '') or ''
+                template_id = getattr(beast, 'template_id', None)
             stored_at = self._format_datetime(record.stored_at)
             storage_list.append({
                 "storageId": record.id,
@@ -1619,6 +1644,7 @@ class AllianceService:
                 "ownerIsSelf": record.owner_user_id == user_id,
                 "name": beast_name,
                 "level": beast_level,
+                "realm": beast_realm,
                 "templateId": template_id,
                 "storedAt": stored_at,
             })
@@ -1626,8 +1652,16 @@ class AllianceService:
             "ok": True,
             "allianceId": alliance.id,
             "allianceLevel": alliance.level or 1,
-            "capacity": capacity,
-            "count": len(storage_list),
+            "beastRoomLevel": beast_room_level,
+            "storage": {
+                "level": beast_room_level,
+                "capacity": capacity,
+                "used": len(storage_list),
+            },
+            "beastPen": {
+                "used": beast_slot_used,
+                "capacity": beast_slot_capacity,
+            },
             "storageList": storage_list,
         }
 

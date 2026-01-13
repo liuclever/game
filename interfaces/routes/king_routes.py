@@ -1,70 +1,61 @@
-# interfaces/routes/king_routes.py
 """召唤之王挑战赛路由"""
-
-from flask import Blueprint, request, jsonify, session
-from infrastructure.db.connection import execute_query, execute_update
+from flask import Blueprint, jsonify, request
+from datetime import datetime, date, timedelta
+from infrastructure.db.connection import execute_query, execute_update, get_connection
+from interfaces.routes.auth_routes import get_current_user_id
+from domain.services.pvp_battle_engine import run_pvp_battle, PvpPlayer
+from interfaces.web_api.bootstrap import services
+import random
+import json
 
 king_bp = Blueprint('king', __name__, url_prefix='/api/king')
 
-
-def get_current_user_id() -> int:
-    return session.get('user_id', 0)
-
-
-KING_DAILY_MAX_CHALLENGES = 15
-KING_WIN_REWARD = 20000
-KING_LOSE_REWARD = 2000
+# 常量配置
+KING_DAILY_MAX_CHALLENGES = 15  # 每日最大挑战次数
+KING_CHALLENGE_COOLDOWN = 60  # 挑战冷却时间（秒）
+KING_WIN_REWARD = 20000  # 胜利奖励
+KING_LOSE_REWARD = 2000  # 失败奖励
 
 # 正赛奖励配置
-# 物品ID: 5001=强力草, 5002=追魂法宝, 5003=技能书口袋
 KING_FINAL_REWARDS = {
-    "champion": {
-        "name": "冠军", "min": 1, "max": 1, "gold": 450000,
-        "items": [{"id": 5001, "name": "强力草", "qty": 10}, {"id": 5002, "name": "追魂法宝", "qty": 12}, {"id": 5003, "name": "技能书口袋", "qty": 2}]
-    },
-    "runner_up": {
-        "name": "亚军", "min": 2, "max": 2, "gold": 400000,
-        "items": [{"id": 5001, "name": "强力草", "qty": 10}, {"id": 5002, "name": "追魂法宝", "qty": 10}, {"id": 5003, "name": "技能书口袋", "qty": 1}]
-    },
-    "top4": {
-        "name": "四强", "min": 3, "max": 4, "gold": 350000,
-        "items": [{"id": 5001, "name": "强力草", "qty": 10}, {"id": 5002, "name": "追魂法宝", "qty": 8}]
-    },
-    "top8": {
-        "name": "八强", "min": 5, "max": 8, "gold": 300000,
-        "items": [{"id": 5001, "name": "强力草", "qty": 7}, {"id": 5002, "name": "追魂法宝", "qty": 6}]
-    },
-    "top16": {
-        "name": "十六强", "min": 9, "max": 16, "gold": 250000,
-        "items": [{"id": 5001, "name": "强力草", "qty": 5}, {"id": 5002, "name": "追魂法宝", "qty": 4}]
-    },
-    "top32": {
-        "name": "三十二强", "min": 17, "max": 32, "gold": 200000,
-        "items": [{"id": 5001, "name": "强力草", "qty": 3}, {"id": 5002, "name": "追魂法宝", "qty": 2}]
-    },
+    "champion": {"name": "冠军", "gold": 450000, "items": [(5001, 50), (5002, 30)]},
+    "runner_up": {"name": "亚军", "gold": 350000, "items": [(5001, 40), (5002, 25)]},
+    "top_4": {"name": "4强", "gold": 250000, "items": [(5001, 30), (5002, 20)]},
+    "top_8": {"name": "8强", "gold": 150000, "items": [(5001, 20), (5002, 15)]},
+    "top_16": {"name": "16强", "gold": 100000, "items": [(5001, 15), (5002, 10)]},
+    "top_32": {"name": "32强", "gold": 50000, "items": [(5001, 10), (5002, 5)]},
 }
 
 
+def get_current_season():
+    """获取当前赛季编号"""
+    now = datetime.now()
+    year = now.year
+    week = now.isocalendar()[1]
+    return year * 100 + week
+
+
 def ensure_king_rank(user_id):
-    """确保玩家有挑战赛排名记录"""
+    """确保玩家有挑战赛排名记录，没有则初始化"""
     rows = execute_query("SELECT * FROM king_challenge_rank WHERE user_id = %s", (user_id,))
     if rows:
         return rows[0]
     
-    total_rows = execute_query("SELECT COUNT(*) AS total FROM player")
-    total = total_rows[0].get('total', 0) if total_rows else 0
+    # 新玩家：分配赛区（保证两个赛区人数一致）
+    area_1_count = execute_query(
+        "SELECT COUNT(*) as count FROM king_challenge_rank WHERE area_index = 1"
+    )[0]['count']
+    area_2_count = execute_query(
+        "SELECT COUNT(*) as count FROM king_challenge_rank WHERE area_index = 2"
+    )[0]['count']
     
-    idx_rows = execute_query("SELECT COUNT(*) AS idx FROM player WHERE user_id <= %s", (user_id,))
-    my_index = idx_rows[0].get('idx', 1) if idx_rows else 1
-    
-    half = (total + 1) // 2
-    area_index = 1 if my_index <= half else 2
+    area_index = 1 if area_1_count <= area_2_count else 2
     
     max_rank_rows = execute_query(
         "SELECT COALESCE(MAX(rank_position), 0) AS max_rank FROM king_challenge_rank WHERE area_index = %s",
         (area_index,)
     )
-    new_rank = (max_rank_rows[0].get('max_rank', 0) if max_rank_rows else 0) + 1
+    new_rank = max_rank_rows[0]['max_rank'] + 1
     
     execute_update(
         """INSERT INTO king_challenge_rank (user_id, area_index, rank_position, today_challenges, last_challenge_date)
@@ -72,20 +63,13 @@ def ensure_king_rank(user_id):
         (user_id, area_index, new_rank)
     )
     
-    return {
-        'user_id': user_id,
-        'area_index': area_index,
-        'rank_position': new_rank,
-        'win_streak': 0,
-        'total_wins': 0,
-        'total_losses': 0,
-        'today_challenges': 0
-    }
+    rows = execute_query("SELECT * FROM king_challenge_rank WHERE user_id = %s", (user_id,))
+    return rows[0] if rows else None
 
 
 @king_bp.get("/info")
 def get_king_info():
-    """获取召唤之王挑战赛信息"""
+    """返回召唤之王挑战赛信息"""
     user_id = get_current_user_id()
     if not user_id:
         return jsonify({"ok": False, "error": "请先登录"})
@@ -95,13 +79,21 @@ def get_king_info():
     my_rank = my_rank_info['rank_position']
     win_streak = my_rank_info['win_streak']
     
-    today_challenges = my_rank_info['today_challenges']
+    today = date.today()
     last_date = my_rank_info.get('last_challenge_date')
-    from datetime import date
-    if last_date and str(last_date) != str(date.today()):
+    if last_date and last_date < today:
+        execute_update(
+            "UPDATE king_challenge_rank SET today_challenges = 0, last_challenge_date = %s WHERE user_id = %s",
+            (today, user_id)
+        )
         today_challenges = 0
+    else:
+        today_challenges = my_rank_info.get('today_challenges', 0)
     
-    area_name = '一赛区' if area_index == 1 else '二赛区'
+    total_players = execute_query(
+        "SELECT COUNT(*) as count FROM king_challenge_rank WHERE area_index = %s",
+        (area_index,)
+    )[0]['count']
     
     challengers = []
     if my_rank > 1:
@@ -111,127 +103,267 @@ def get_king_info():
                JOIN player p ON k.user_id = p.user_id
                WHERE k.area_index = %s AND k.rank_position < %s
                ORDER BY k.rank_position DESC
-               LIMIT 3""",
+               LIMIT 5""",
             (area_index, my_rank)
         )
-        for row in challenger_rows:
-            challengers.append({
-                "userId": row['user_id'],
-                "nickname": row['nickname'],
-                "rank": row['rank_position']
-            })
+        challengers = [
+            {"userId": row['user_id'], "rank": row['rank_position'], "nickname": row['nickname']}
+            for row in challenger_rows
+        ]
     
-    total_rows = execute_query("SELECT COUNT(*) AS total FROM player")
-    total_players = total_rows[0].get('total', 0) if total_rows else 0
-
+    cooldown_remaining = 0
+    if my_rank_info.get('last_challenge_time'):
+        last_time = my_rank_info['last_challenge_time']
+        if isinstance(last_time, str):
+            last_time = datetime.strptime(last_time, '%Y-%m-%d %H:%M:%S')
+        elapsed = (datetime.now() - last_time).total_seconds()
+        if elapsed < KING_CHALLENGE_COOLDOWN:
+            cooldown_remaining = int(KING_CHALLENGE_COOLDOWN - elapsed)
+    
     return jsonify({
         "ok": True,
-        "phase": "pre",
+        "areaName": f"{area_index}赛区",
         "totalPlayers": total_players,
-        "areaIndex": area_index,
-        "areaName": area_name,
         "myRank": my_rank,
         "winStreak": win_streak,
         "todayChallenges": today_challenges,
         "todayMax": KING_DAILY_MAX_CHALLENGES,
         "challengers": challengers,
+        "cooldownRemaining": cooldown_remaining,
+        "isRegistered": my_rank_info.get('is_registered', 0) == 1,
     })
 
 
 @king_bp.post("/challenge")
 def king_challenge():
-    """发起挑战"""
+    """发起挑战（带并发控制和冷却检查）"""
     user_id = get_current_user_id()
     if not user_id:
         return jsonify({"ok": False, "error": "请先登录"})
     
     data = request.get_json() or {}
-    target_user_id = data.get('targetUserId')
+    target_user_id = data.get("targetUserId")
     if not target_user_id:
-        return jsonify({"ok": False, "error": "请选择挑战对象"})
+        return jsonify({"ok": False, "error": "缺少目标玩家ID"})
     
-    from datetime import date
-    import random
+    target_user_id = int(target_user_id)
+    if target_user_id == user_id:
+        return jsonify({"ok": False, "error": "不能挑战自己"})
     
-    my_rank_info = ensure_king_rank(user_id)
-    my_area = my_rank_info['area_index']
-    my_rank = my_rank_info['rank_position']
+    conn = get_connection()
+    cursor = conn.cursor()
     
-    today_challenges = my_rank_info['today_challenges']
-    last_date = my_rank_info.get('last_challenge_date')
-    if last_date and str(last_date) != str(date.today()):
-        today_challenges = 0
-    
-    if today_challenges >= KING_DAILY_MAX_CHALLENGES:
-        return jsonify({"ok": False, "error": "今日挑战次数已用完"})
-    
-    target_rows = execute_query(
-        "SELECT k.*, p.nickname FROM king_challenge_rank k JOIN player p ON k.user_id = p.user_id WHERE k.user_id = %s",
-        (target_user_id,)
-    )
-    if not target_rows:
-        return jsonify({"ok": False, "error": "对手不存在"})
-    
-    target_info = target_rows[0]
-    target_rank = target_info['rank_position']
-    target_nickname = target_info['nickname']
-    target_area = target_info['area_index']
-    
-    if target_area != my_area:
-        return jsonify({"ok": False, "error": "只能挑战同赛区的玩家"})
-    
-    if target_rank >= my_rank:
-        return jsonify({"ok": False, "error": "只能挑战排名比自己高的玩家"})
-    
-    challenger_wins = random.choice([True, False])
-    reward = KING_WIN_REWARD if challenger_wins else KING_LOSE_REWARD
-    
-    execute_update(
-        "UPDATE player SET gold = gold + %s WHERE user_id = %s",
-        (reward, user_id)
-    )
-    
-    execute_update(
-        """UPDATE king_challenge_rank 
-           SET today_challenges = %s, last_challenge_date = CURDATE()
-           WHERE user_id = %s""",
-        (today_challenges + 1, user_id)
-    )
-    
-    if challenger_wins:
-        execute_update(
-            "UPDATE king_challenge_rank SET rank_position = %s, win_streak = win_streak + 1, total_wins = total_wins + 1 WHERE user_id = %s",
-            (target_rank, user_id)
+    try:
+        conn.begin()
+        
+        cursor.execute("SELECT * FROM king_challenge_rank WHERE user_id = %s FOR UPDATE", (user_id,))
+        my_rank_info = cursor.fetchone()
+        
+        if not my_rank_info:
+            conn.rollback()
+            return jsonify({"ok": False, "error": "玩家排名记录不存在"})
+        
+        cursor.execute("SELECT * FROM king_challenge_rank WHERE user_id = %s FOR UPDATE", (target_user_id,))
+        target_rank_info = cursor.fetchone()
+        
+        if not target_rank_info:
+            conn.rollback()
+            return jsonify({"ok": False, "error": "目标玩家排名记录不存在"})
+        
+        if my_rank_info['area_index'] != target_rank_info['area_index']:
+            conn.rollback()
+            return jsonify({"ok": False, "error": "不能挑战其他赛区的玩家"})
+        
+        my_rank = my_rank_info['rank_position']
+        target_rank = target_rank_info['rank_position']
+        if target_rank >= my_rank:
+            conn.rollback()
+            return jsonify({"ok": False, "error": "只能挑战排名比你高的玩家"})
+        
+        today = date.today()
+        last_date = my_rank_info.get('last_challenge_date')
+        if last_date and last_date < today:
+            today_challenges = 0
+        else:
+            today_challenges = my_rank_info.get('today_challenges', 0)
+        
+        if today_challenges >= KING_DAILY_MAX_CHALLENGES:
+            conn.rollback()
+            return jsonify({"ok": False, "error": "今日挑战次数已用完"})
+        
+        if my_rank_info.get('last_challenge_time'):
+            last_time = my_rank_info['last_challenge_time']
+            if isinstance(last_time, str):
+                last_time = datetime.strptime(last_time, '%Y-%m-%d %H:%M:%S')
+            elapsed = (datetime.now() - last_time).total_seconds()
+            if elapsed < KING_CHALLENGE_COOLDOWN:
+                remaining = int(KING_CHALLENGE_COOLDOWN - elapsed)
+                conn.rollback()
+                return jsonify({"ok": False, "error": f"冷却中，还需等待{remaining}秒"})
+        
+        attacker = services.player_repo.get_by_id(user_id)
+        defender = services.player_repo.get_by_id(target_user_id)
+        
+        if not attacker or not defender:
+            conn.rollback()
+            return jsonify({"ok": False, "error": "玩家信息不存在"})
+        
+        attacker_beasts = services.player_beast_repo.get_team_beasts(user_id)
+        defender_beasts = services.player_beast_repo.get_team_beasts(target_user_id)
+        
+        if not attacker_beasts:
+            conn.rollback()
+            return jsonify({"ok": False, "error": "你没有出战幻兽"})
+        if not defender_beasts:
+            conn.rollback()
+            return jsonify({"ok": False, "error": "对方没有出战幻兽"})
+        
+        attacker_pvp_beasts = services.beast_pvp_service.to_pvp_beasts(attacker_beasts)
+        defender_pvp_beasts = services.beast_pvp_service.to_pvp_beasts(defender_beasts)
+        
+        attacker_player = PvpPlayer(
+            player_id=user_id, level=attacker.level,
+            beasts=attacker_pvp_beasts, name=attacker.nickname,
         )
-        execute_update(
-            "UPDATE king_challenge_rank SET rank_position = %s, win_streak = 0, total_losses = total_losses + 1 WHERE user_id = %s",
-            (my_rank, target_user_id)
+        defender_player = PvpPlayer(
+            player_id=target_user_id, level=defender.level,
+            beasts=defender_pvp_beasts, name=defender.nickname,
         )
         
-        return jsonify({
-            "ok": True,
-            "win": True,
-            "message": f"恭喜！你击败了{target_nickname}，排名上升至第{target_rank}名！获得{KING_WIN_REWARD}铜钱",
-            "newRank": target_rank,
-            "reward": KING_WIN_REWARD
-        })
-    else:
-        execute_update(
-            "UPDATE king_challenge_rank SET win_streak = 0, total_losses = total_losses + 1 WHERE user_id = %s",
-            (user_id,)
+        pvp_result = run_pvp_battle(attacker_player, defender_player, max_log_turns=50)
+        challenger_wins = pvp_result.winner_player_id == user_id
+        
+        from interfaces.routes.player_routes import _build_spar_battle_data
+        battle_report_data = _build_spar_battle_data(
+            pvp_result, attacker_player, defender_player,
+            attacker_beasts, defender_beasts
         )
-        execute_update(
-            "UPDATE king_challenge_rank SET win_streak = win_streak + 1, total_wins = total_wins + 1 WHERE user_id = %s",
-            (target_user_id,)
+        battle_report_data['current_streak'] = my_rank_info.get('win_streak', 0) + (1 if challenger_wins else 0)
+        
+        reward = KING_WIN_REWARD if challenger_wins else KING_LOSE_REWARD
+        cursor.execute("UPDATE player SET gold = gold + %s WHERE user_id = %s", (reward, user_id))
+        
+        cursor.execute(
+            """UPDATE king_challenge_rank 
+               SET today_challenges = %s, last_challenge_date = CURDATE(), last_challenge_time = NOW()
+               WHERE user_id = %s""",
+            (today_challenges + 1, user_id)
         )
         
+        if challenger_wins:
+            cursor.execute(
+                "UPDATE king_challenge_rank SET rank_position = %s, win_streak = win_streak + 1, total_wins = total_wins + 1 WHERE user_id = %s",
+                (target_rank, user_id)
+            )
+            cursor.execute(
+                "UPDATE king_challenge_rank SET rank_position = %s, win_streak = 0, total_losses = total_losses + 1 WHERE user_id = %s",
+                (my_rank, target_user_id)
+            )
+            message = f"恭喜！你击败了{defender.nickname}，排名上升至第{target_rank}名！获得{KING_WIN_REWARD}铜钱"
+            new_rank = target_rank
+        else:
+            cursor.execute(
+                "UPDATE king_challenge_rank SET win_streak = 0, total_losses = total_losses + 1 WHERE user_id = %s",
+                (user_id,)
+            )
+            cursor.execute(
+                "UPDATE king_challenge_rank SET win_streak = win_streak + 1, total_wins = total_wins + 1 WHERE user_id = %s",
+                (target_user_id,)
+            )
+            message = f"挑战失败！{defender.nickname}成功防守，排名保持第{my_rank}名。获得{KING_LOSE_REWARD}铜钱"
+            new_rank = my_rank
+        
+        battle_report_json = json.dumps(battle_report_data, ensure_ascii=False)
+        
+        try:
+            cursor.execute(
+                """INSERT INTO king_challenge_logs 
+                   (challenger_id, challenger_name, defender_id, defender_name, 
+                    challenger_wins, challenger_rank_before, challenger_rank_after,
+                    defender_rank_before, defender_rank_after, area_index, battle_report)
+                   VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
+                (user_id, attacker.nickname or f"玩家{user_id}", 
+                 target_user_id, defender.nickname or f"玩家{target_user_id}",
+                 challenger_wins, my_rank, new_rank, 
+                 target_rank, my_rank if challenger_wins else target_rank,
+                 my_rank_info['area_index'], battle_report_json)
+            )
+        except Exception as e:
+            print(f"保存战报失败，使用旧版本: {e}")
+            cursor.execute(
+                """INSERT INTO king_challenge_logs 
+                   (challenger_id, challenger_name, defender_id, defender_name, 
+                    challenger_wins, challenger_rank_before, challenger_rank_after,
+                    defender_rank_before, defender_rank_after, area_index)
+                   VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
+                (user_id, attacker.nickname or f"玩家{user_id}", 
+                 target_user_id, defender.nickname or f"玩家{target_user_id}",
+                 challenger_wins, my_rank, new_rank, 
+                 target_rank, my_rank if challenger_wins else target_rank,
+                 my_rank_info['area_index'])
+            )
+        
+        conn.commit()
+        
         return jsonify({
-            "ok": True,
-            "win": False,
-            "message": f"挑战失败！{target_nickname}成功防守，排名保持第{my_rank}名。获得{KING_LOSE_REWARD}铜钱",
-            "newRank": my_rank,
-            "reward": KING_LOSE_REWARD
+            "ok": True, "win": challenger_wins, "message": message,
+            "newRank": new_rank, "reward": reward, "battleReport": battle_report_data
         })
+        
+    except Exception as e:
+        conn.rollback()
+        print(f"挑战失败: {e}")
+        return jsonify({"ok": False, "error": str(e)})
+    finally:
+        cursor.close()
+
+
+@king_bp.post("/register")
+def king_register():
+    """报名参加本周挑战赛"""
+    user_id = get_current_user_id()
+    if not user_id:
+        return jsonify({"ok": False, "error": "请先登录"})
+    
+    today = datetime.now()
+    if today.weekday() != 0:
+        return jsonify({"ok": False, "error": "只能在星期一报名"})
+    
+    rank_info = ensure_king_rank(user_id)
+    
+    if rank_info['is_registered']:
+        return jsonify({"ok": False, "error": "本周已报名"})
+    
+    execute_update(
+        "UPDATE king_challenge_rank SET is_registered = 1 WHERE user_id = %s",
+        (user_id,)
+    )
+    
+    return jsonify({"ok": True, "message": "报名成功！预选赛将于周二开始"})
+
+
+@king_bp.get("/ranking")
+def get_king_ranking():
+    """获取赛区排名"""
+    area = request.args.get('area', 1, type=int)
+    
+    rankings = execute_query(
+        """SELECT k.rank_position, p.nickname, k.win_streak, k.total_wins, k.total_losses
+           FROM king_challenge_rank k
+           JOIN player p ON k.user_id = p.user_id
+           WHERE k.area_index = %s
+           ORDER BY k.rank_position ASC""",
+        (area,)
+    )
+    
+    return jsonify({
+        "ok": True,
+        "rankings": [
+            {"rank": r['rank_position'], "nickname": r['nickname'], "winStreak": r['win_streak'],
+             "totalWins": r['total_wins'], "totalLosses": r['total_losses']}
+            for r in rankings
+        ]
+    })
 
 
 @king_bp.get("/reward_info")
@@ -245,32 +377,35 @@ def get_king_reward_info():
         "SELECT rank_position, area_index FROM king_challenge_rank WHERE user_id = %s",
         (user_id,)
     )
+    
     if not rank_rows:
-        return jsonify({"ok": True, "myRank": 0, "rewardTier": None, "canClaim": False})
+        return jsonify({"ok": False, "error": "未找到排名记录"})
     
     my_rank = rank_rows[0]['rank_position']
     
     reward_tier = None
-    for key, cfg in KING_FINAL_REWARDS.items():
-        if cfg['min'] <= my_rank <= cfg['max']:
-            reward_tier = {
-                "key": key,
-                "name": cfg['name'],
-                "gold": cfg['gold'],
-                "items": cfg['items'],
-            }
-            break
+    if my_rank == 1:
+        reward_tier = {"key": "champion", **KING_FINAL_REWARDS["champion"]}
+    elif my_rank == 2:
+        reward_tier = {"key": "runner_up", **KING_FINAL_REWARDS["runner_up"]}
+    elif my_rank <= 4:
+        reward_tier = {"key": "top_4", **KING_FINAL_REWARDS["top_4"]}
+    elif my_rank <= 8:
+        reward_tier = {"key": "top_8", **KING_FINAL_REWARDS["top_8"]}
+    elif my_rank <= 16:
+        reward_tier = {"key": "top_16", **KING_FINAL_REWARDS["top_16"]}
+    elif my_rank <= 32:
+        reward_tier = {"key": "top_32", **KING_FINAL_REWARDS["top_32"]}
     
+    season = get_current_season()
     claimed_rows = execute_query(
-        "SELECT * FROM king_reward_claimed WHERE user_id = %s AND season = 1",
-        (user_id,)
+        "SELECT * FROM king_reward_claimed WHERE user_id = %s AND season = %s",
+        (user_id, season)
     )
     already_claimed = len(claimed_rows) > 0
     
     return jsonify({
-        "ok": True,
-        "myRank": my_rank,
-        "rewardTier": reward_tier,
+        "ok": True, "myRank": my_rank, "rewardTier": reward_tier,
         "canClaim": reward_tier is not None and not already_claimed,
         "alreadyClaimed": already_claimed,
         "allRewards": [{"key": k, **v} for k, v in KING_FINAL_REWARDS.items()]
@@ -288,54 +423,131 @@ def claim_king_reward():
         "SELECT rank_position FROM king_challenge_rank WHERE user_id = %s",
         (user_id,)
     )
+    
     if not rank_rows:
-        return jsonify({"ok": False, "error": "你还没有参加挑战赛"})
+        return jsonify({"ok": False, "error": "未找到排名记录"})
     
     my_rank = rank_rows[0]['rank_position']
     
     reward_cfg = None
-    for key, cfg in KING_FINAL_REWARDS.items():
-        if cfg['min'] <= my_rank <= cfg['max']:
-            reward_cfg = cfg
-            break
+    if my_rank == 1:
+        reward_cfg = KING_FINAL_REWARDS["champion"]
+    elif my_rank == 2:
+        reward_cfg = KING_FINAL_REWARDS["runner_up"]
+    elif my_rank <= 4:
+        reward_cfg = KING_FINAL_REWARDS["top_4"]
+    elif my_rank <= 8:
+        reward_cfg = KING_FINAL_REWARDS["top_8"]
+    elif my_rank <= 16:
+        reward_cfg = KING_FINAL_REWARDS["top_16"]
+    elif my_rank <= 32:
+        reward_cfg = KING_FINAL_REWARDS["top_32"]
     
     if not reward_cfg:
-        return jsonify({"ok": False, "error": "你的排名不在奖励范围内"})
+        return jsonify({"ok": False, "error": "排名不在奖励范围内"})
     
+    season = get_current_season()
     claimed_rows = execute_query(
-        "SELECT * FROM king_reward_claimed WHERE user_id = %s AND season = 1",
-        (user_id,)
+        "SELECT * FROM king_reward_claimed WHERE user_id = %s AND season = %s",
+        (user_id, season)
     )
+    
     if claimed_rows:
-        return jsonify({"ok": False, "error": "你已经领取过本赛季奖励了"})
+        return jsonify({"ok": False, "error": "本周奖励已领取"})
     
     execute_update(
         "UPDATE player SET gold = gold + %s WHERE user_id = %s",
         (reward_cfg['gold'], user_id)
     )
     
-    items_msg = []
-    for item in reward_cfg.get('items', []):
-        execute_update(
-            """INSERT INTO player_inventory (user_id, item_id, quantity, is_temporary)
-               VALUES (%s, %s, %s, 0)
-               ON DUPLICATE KEY UPDATE quantity = quantity + %s""",
-            (user_id, item['id'], item['qty'], item['qty'])
-        )
-        items_msg.append(f"{item['name']}x{item['qty']}")
+    for item_id, count in reward_cfg.get('items', []):
+        try:
+            services.inventory_service.add_item(user_id, item_id, count)
+        except Exception as e:
+            print(f"发放物品失败: {e}")
     
     execute_update(
-        "INSERT INTO king_reward_claimed (user_id, season, reward_tier, claimed_at) VALUES (%s, 1, %s, NOW())",
-        (user_id, reward_cfg['name'])
+        "INSERT INTO king_reward_claimed (user_id, season, reward_tier, claimed_at) VALUES (%s, %s, %s, NOW())",
+        (user_id, season, reward_cfg['name'])
     )
-    
-    msg = f"恭喜获得{reward_cfg['name']}奖励！铜钱+{reward_cfg['gold']}"
-    if items_msg:
-        msg += "，" + "、".join(items_msg)
     
     return jsonify({
         "ok": True,
-        "message": msg,
-        "gold": reward_cfg['gold'],
-        "items": reward_cfg.get('items', [])
+        "message": f"领取成功！获得{reward_cfg['gold']}铜钱和其他奖励"
     })
+
+
+@king_bp.get("/dynamics")
+def get_king_dynamics():
+    """获取预选赛动态（最近的挑战记录）"""
+    user_id = get_current_user_id()
+    if not user_id:
+        return jsonify({"ok": False, "error": "请先登录"})
+    
+    rank_info = ensure_king_rank(user_id)
+    area_index = rank_info['area_index']
+    
+    logs = execute_query(
+        """SELECT 
+            id, challenger_id, challenger_name, defender_id, defender_name,
+            challenger_wins, challenger_rank_before, challenger_rank_after,
+            defender_rank_before, defender_rank_after, challenge_time
+           FROM king_challenge_logs
+           WHERE area_index = %s
+           ORDER BY challenge_time DESC
+           LIMIT 20""",
+        (area_index,)
+    )
+    
+    dynamics = []
+    for log in logs:
+        time_str = log['challenge_time'].strftime('%m-%d %H:%M')
+        
+        if log['challenger_wins']:
+            if log['challenger_rank_after'] < log['challenger_rank_before']:
+                text = f"{log['challenger_name']} 挑战 {log['defender_name']}，大胜而归，排名从第{log['challenger_rank_before']}名上升至第{log['challenger_rank_after']}名"
+            else:
+                text = f"{log['challenger_name']} 挑战 {log['defender_name']}，大胜而归，排名保持第{log['challenger_rank_after']}名"
+        else:
+            text = f"{log['challenger_name']} 挑战 {log['defender_name']}，惜败，排名保持第{log['challenger_rank_after']}名"
+        
+        is_related = (log['challenger_id'] == user_id or log['defender_id'] == user_id)
+        
+        dynamics.append({
+            "time": time_str, "text": text, "canView": is_related, "logId": log['id'],
+            "challengerId": log['challenger_id'], "defenderId": log['defender_id']
+        })
+    
+    return jsonify({"ok": True, "dynamics": dynamics})
+
+
+@king_bp.get("/battle-report/<int:log_id>")
+def get_battle_report(log_id):
+    """获取指定挑战记录的战报"""
+    user_id = get_current_user_id()
+    if not user_id:
+        return jsonify({"ok": False, "error": "请先登录"})
+    
+    logs = execute_query(
+        """SELECT challenger_id, defender_id, battle_report, challenger_name, defender_name
+           FROM king_challenge_logs WHERE id = %s""",
+        (log_id,)
+    )
+    
+    if not logs:
+        return jsonify({"ok": False, "error": "战报不存在"})
+    
+    log = logs[0]
+    
+    if log['challenger_id'] != user_id and log['defender_id'] != user_id:
+        return jsonify({"ok": False, "error": "无权查看此战报"})
+    
+    if not log['battle_report']:
+        return jsonify({"ok": False, "error": "战报数据不存在"})
+    
+    try:
+        battle_data = json.loads(log['battle_report'])
+        return jsonify({"ok": True, "battleReport": battle_data})
+    except Exception as e:
+        print(f"解析战报失败: {e}")
+        return jsonify({"ok": False, "error": f"战报数据格式错误: {str(e)}"})

@@ -244,7 +244,8 @@ def stop_cultivation():
 
 
 # ===== 切磋系统 =====
-def _build_spar_battle_data(pvp_result, attacker_player: PvpPlayer, defender_player: PvpPlayer) -> dict:
+def _build_spar_battle_data(pvp_result, attacker_player: PvpPlayer, defender_player: PvpPlayer,
+                           attacker_beasts=None, defender_beasts=None) -> dict:
     """根据 PvpBattleResult 构建切磋战报数据结构"""
     attacker_name = attacker_player.name or str(attacker_player.player_id)
     defender_name = defender_player.name or str(defender_player.player_id)
@@ -361,15 +362,91 @@ def _build_spar_battle_data(pvp_result, attacker_player: PvpPlayer, defender_pla
         battles.append(build_battle_segment(len(battles) + 1, current_logs))
 
     is_victory = pvp_result.winner_player_id == attacker_player.player_id
+    
+    # 计算战斗结果符号
+    attacker_wins = sum(1 for b in battles if b.get('winner') == 'attacker')
+    defender_wins = len(battles) - attacker_wins
+    
+    # 生成结果符号，例如 (⚬⚬⚬⚬:×××)
+    result_symbol = f"({'⚬' * attacker_wins}:{'×' * defender_wins})"
+    
+    # 判断胜利类型
+    if is_victory:
+        if defender_wins == 0:
+            result_text = f"完美胜利{result_symbol}"
+        else:
+            result_text = f"胜利{result_symbol}"
+    else:
+        result_text = f"失败{result_symbol}"
+    
+    # 构建幻兽信息（用于显示经验）
+    attacker_beasts_info = []
+    if attacker_beasts:
+        realm_names = ['', '凡界', '人界', '地界', '天界', '神界']
+        for beast in attacker_beasts:
+            realm_str = str(beast.realm) if hasattr(beast, 'realm') and beast.realm else ''
+            if realm_str.isdigit():
+                realm_idx = int(realm_str)
+                realm_name = realm_names[realm_idx] if realm_idx < len(realm_names) else '凡界'
+            else:
+                realm_name = realm_str or '凡界'
+            
+            attacker_beasts_info.append({
+                "name": beast.name,
+                "realm": realm_name,
+                "exp_gain": 0,
+                "template_id": beast.template_id if hasattr(beast, 'template_id') else None,
+            })
+    else:
+        for beast in attacker_player.beasts:
+            attacker_beasts_info.append({
+                "name": beast.name, "realm": "凡界", "exp_gain": 0, "template_id": None,
+            })
+    
+    defender_beasts_info = []
+    if defender_beasts:
+        realm_names = ['', '凡界', '人界', '地界', '天界', '神界']
+        for beast in defender_beasts:
+            realm_str = str(beast.realm) if hasattr(beast, 'realm') and beast.realm else ''
+            if realm_str.isdigit():
+                realm_idx = int(realm_str)
+                realm_name = realm_names[realm_idx] if realm_idx < len(realm_names) else '凡界'
+            else:
+                realm_name = realm_str or '凡界'
+            
+            defender_beasts_info.append({
+                "name": beast.name,
+                "realm": realm_name,
+                "template_id": beast.template_id if hasattr(beast, 'template_id') else None,
+            })
+    else:
+        for beast in defender_player.beasts:
+            defender_beasts_info.append({
+                "name": beast.name, "realm": "凡界", "template_id": None,
+            })
+    
+    # 生成战斗过程摘要
+    for battle in battles:
+        rounds = battle.get('rounds', [])
+        if rounds:
+            first_action = rounds[0].get('action', '')
+            battle['summary'] = first_action
+        else:
+            battle['summary'] = '战斗结束'
 
     return {
         "is_victory": is_victory,
+        "result": result_text,
         "attacker_id": attacker_player.player_id,
         "attacker_name": attacker_name,
         "defender_id": defender_player.player_id,
         "defender_name": defender_name,
         "total_turns": pvp_result.total_turns,
         "battles": battles,
+        "attacker_beasts": attacker_beasts_info,
+        "defender_beasts": defender_beasts_info,
+        "incense_bonus": "无",
+        "energy_cost": 15,
     }
 
 
@@ -537,9 +614,41 @@ def spar_battle():
     )
 
     pvp_result = run_pvp_battle(attacker_player, defender_player, max_log_turns=50)
-    battle_data = _build_spar_battle_data(pvp_result, attacker_player, defender_player)
-
+    
+    # 保存切磋记录
     is_win = pvp_result.winner_player_id == user_id
+    try:
+        execute_update(
+            "INSERT INTO spar_records (attacker_id, defender_id, is_victory) VALUES (%s, %s, %s)",
+            (user_id, target_id, 1 if is_win else 0)
+        )
+        
+        # 查询切磋战绩
+        spar_stats = execute_query(
+            "SELECT COUNT(*) as total, SUM(is_victory) as wins FROM spar_records WHERE attacker_id = %s OR defender_id = %s",
+            (user_id, user_id)
+        )
+        if spar_stats:
+            total = int(spar_stats[0].get('total', 0))
+            wins = int(spar_stats[0].get('wins', 0) or 0)
+            win_rate = (wins / total * 100) if total > 0 else 0
+        else:
+            total = 0
+            wins = 0
+            win_rate = 0
+    except Exception as e:
+        print(f"保存切磋记录失败: {e}")
+        total = 0
+        wins = 0
+        win_rate = 0
+    
+    battle_data = _build_spar_battle_data(pvp_result, attacker_player, defender_player,
+                                          attacker_beasts, defender_beasts)
+    
+    # 添加战绩统计
+    battle_data['spar_wins'] = wins
+    battle_data['spar_total'] = total
+    battle_data['spar_win_rate'] = f"{win_rate:.2f}"
 
     return jsonify({
         "ok": True,
@@ -547,3 +656,41 @@ def spar_battle():
         "message": f"切磋{'胜利' if is_win else '失败'}！",
         "battle": battle_data,
     })
+
+
+
+@player_bp.get("/player/spar/recent")
+def get_recent_spar_records():
+    """获取最近的切磋记录"""
+    limit = int(request.args.get('limit', 10))
+    
+    try:
+        records = execute_query(
+            """SELECT sr.id, sr.attacker_id, sr.defender_id, sr.is_victory, sr.created_at,
+                      p1.nickname as player1_name, p1.level as player1_level,
+                      p2.nickname as player2_name, p2.level as player2_level
+               FROM spar_records sr
+               LEFT JOIN player p1 ON sr.attacker_id = p1.user_id
+               LEFT JOIN player p2 ON sr.defender_id = p2.user_id
+               ORDER BY sr.created_at DESC
+               LIMIT %s""",
+            (limit,)
+        )
+        
+        result = []
+        for r in records:
+            result.append({
+                'id': r['id'],
+                'player1_id': r['attacker_id'],
+                'player1_name': r['player1_name'] or '未知',
+                'player1_level': r['player1_level'] or 1,
+                'player2_id': r['defender_id'],
+                'player2_name': r['player2_name'] or '未知',
+                'player2_level': r['player2_level'] or 1,
+                'is_victory': bool(r['is_victory']),
+                'created_at': r['created_at'].strftime('%Y-%m-%d %H:%M:%S') if r['created_at'] else ''
+            })
+        
+        return jsonify({"ok": True, "records": result})
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500

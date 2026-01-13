@@ -48,6 +48,13 @@ import MoSoulWarehousePage from '@/features/beast/MoSoulWarehousePage.vue'
 import MoSoulHuntingPage from '@/features/beast/MoSoulHuntingPage.vue'
 import MoSoulAbsorbPage from '@/features/beast/MoSoulAbsorbPage.vue'
 import DungeonChallengePage from '@/features/dungeon/DungeonChallengePage.vue'
+import ArenaIndex from '@/views/ArenaIndex.vue'
+import ArenaStreak from '@/views/ArenaStreak.vue'
+import ArenaStreakBattleReport from '@/views/ArenaStreakBattleReport.vue'
+import ArenaStreakBattle from '@/views/ArenaStreakBattle.vue'
+import SigninPage from '@/features/signin/SigninPage.vue'
+import SigninMakeupPage from '@/features/signin/SigninMakeupPage.vue'
+import SigninRewardPage from '@/features/signin/SigninRewardPage.vue'
 import MizongPage from '@/features/dungeon/MizongPage.vue'
 import DungeonBattleResultPage from '@/features/dungeon/DungeonBattleResultPage.vue'
 import DungeonDetailReportPage from '@/features/dungeon/DungeonDetailReportPage.vue'
@@ -73,6 +80,7 @@ import ArenaIntroPage from '@/features/arena/ArenaIntroPage.vue'
 import SummonKingChallengePage from '@/features/king/SummonKingChallengePage.vue'
 import KingIntroPage from '@/features/king/KingIntroPage.vue'
 import KingRankingPage from '@/features/king/KingRankingPage.vue'
+import KingBattleReportPage from '@/features/king/KingBattleReportPage.vue'
 import ShopPage from '@/features/shop/ShopPage.vue'
 import ShopItemDetailPage from '@/features/shop/ShopItemDetailPage.vue'
 import ShopBuySuccessPage from '@/features/shop/ShopBuySuccessPage.vue'
@@ -104,6 +112,8 @@ import AllianceWarLandListPage from '@/features/alliance/AllianceWarTargetsPage.
 import AllianceWarLandDetailPage from '@/features/alliance/AllianceWarLandDetailPage.vue'
 import AllianceWarDragonSignupPage from '@/features/alliance/AllianceWarDragonSignupPage.vue'
 import AllianceBarracksPage from '@/features/alliance/AllianceBarracksPage.vue'
+import AllianceTeamPage from '@/features/alliance/AllianceTeamPage.vue'
+import AllianceSacredBeastPage from '@/features/alliance/AllianceSacredBeastPage.vue'
 import AllianceChatPage from '@/features/alliance/AllianceChatPage.vue'
 import AllianceCouncilPage from '@/features/alliance/AllianceCouncilPage.vue'
 import AllianceNoticePage from '@/features/alliance/AllianceNoticePage.vue'
@@ -121,6 +131,7 @@ import AllianceWarehousePage from '@/features/alliance/AllianceWarehousePage.vue
 import AllianceTrainingGroundPage from '@/features/alliance/AllianceTrainingGroundPage.vue'
 import AllianceDonatePage from '@/features/alliance/AllianceDonatePage.vue'
 import AllianceItemStoragePage from '@/features/alliance/AllianceItemStoragePage.vue'
+import AllianceBeastStoragePage from '@/features/alliance/AllianceBeastStoragePage.vue'
 import AllianceTrainingIntroPage from '@/features/alliance/AllianceTrainingIntroPage.vue'
 import AllianceRenamePage from '@/features/alliance/AllianceRenamePage.vue'
 import TaskRewardsPage from '@/features/tasks/TaskRewardsPage.vue'
@@ -128,6 +139,10 @@ import DailyTasksPage from '@/features/tasks/DailyTasksPage.vue'
 import CompletedTasksPage from '@/features/tasks/CompletedTasksPage.vue'
 import ActivityGiftsPage from '@/features/tasks/ActivityGiftsPage.vue'
 import CultivationPage from '@/features/cultivation/CultivationPage.vue'
+import WorldChatPage from '@/features/world-chat/WorldChatPage.vue'
+import DynamicsPage from '@/features/dynamics/DynamicsPage.vue'
+import DynamicsBattleReportPage from '@/features/dynamics/BattleReportPage.vue'
+import PrivateMessageChatPage from '@/features/mail/PrivateMessageChatPage.vue'
 import HandbookIndexPage from '@/features/handbook/HandbookIndexPage.vue'
 import HandbookIntroPage from '@/features/handbook/HandbookIntroPage.vue'
 import HandbookPetDetailPage from '@/features/handbook/HandbookPetDetailPage.vue'
@@ -529,6 +544,26 @@ const routes = [
     component: MailPage,
   },
   {
+    path: '/mail/chat',
+    name: 'PrivateMessageChat',
+    component: PrivateMessageChatPage,
+  },
+  {
+    path: '/world-chat',
+    name: 'WorldChat',
+    component: WorldChatPage,
+  },
+  {
+    path: '/dynamics',
+    name: 'Dynamics',
+    component: DynamicsPage,
+  },
+  {
+    path: '/dynamics/battle-report',
+    name: 'DynamicsBattleReport',
+    component: DynamicsBattleReportPage,
+  },
+  {
     path: '/friend',
     name: 'Friend',
     component: FriendPage,
@@ -554,9 +589,29 @@ const routes = [
     component: ArenaPage,
   },
   {
+    path: '/arena/index',
+    name: 'ArenaIndex',
+    component: ArenaIndex,
+  },
+  {
     path: '/arena/battle',
     name: 'ArenaBattle',
     component: ArenaBattlePage,
+  },
+  {
+    path: '/arena/streak',
+    name: 'ArenaStreak',
+    component: ArenaStreak,
+  },
+  {
+    path: '/arena/streak/battle-report',
+    name: 'ArenaStreakBattleReport',
+    component: ArenaStreakBattleReport,
+  },
+  {
+    path: '/arena/streak/battle',
+    name: 'ArenaStreakBattle',
+    component: ArenaStreakBattle,
   },
   {
     path: '/king',
@@ -572,6 +627,11 @@ const routes = [
     path: '/king/ranking',
     name: 'KingRanking',
     component: KingRankingPage,
+  },
+  {
+    path: '/king/battle-report',
+    name: 'KingBattleReport',
+    component: KingBattleReportPage,
   },
   {
     path: '/arena/intro',
@@ -693,6 +753,21 @@ const routes = [
     name: 'Main',
     component: MainPage,
   },
+  {
+    path: '/signin',
+    name: 'Signin',
+    component: SigninPage,
+  },
+  {
+    path: '/signin/makeup',
+    name: 'SigninMakeup',
+    component: SigninMakeupPage,
+  },
+  {
+    path: '/signin/reward',
+    name: 'SigninReward',
+    component: SigninRewardPage,
+  },
     {
       path: '/spar/report',
       name: 'SparBattleReport',
@@ -753,6 +828,16 @@ const routes = [
         path: '/alliance/barracks',
         name: 'AllianceBarracks',
         component: AllianceBarracksPage,
+      },
+      {
+        path: '/alliance/team',
+        name: 'AllianceTeam',
+        component: AllianceTeamPage,
+      },
+      {
+        path: '/alliance/sacred-beast',
+        name: 'AllianceSacredBeast',
+        component: AllianceSacredBeastPage,
       },
       {
         path: '/alliance/chat',
@@ -844,6 +929,11 @@ const routes = [
           path: '/alliance/item-storage',
           name: 'AllianceItemStorage',
           component: AllianceItemStoragePage,
+        },
+        {
+          path: '/alliance/beast-storage',
+          name: 'AllianceBeastStorage',
+          component: AllianceBeastStoragePage,
         },
         {
           path: '/alliance/donate',

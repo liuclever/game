@@ -2,6 +2,7 @@
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import http from '@/services/http'
+import ChatPanel from '@/features/lobby/components/ChatPanel.vue'
 
 const router = useRouter()
 
@@ -532,7 +533,7 @@ const handleLink = (name) => {
       '召唤之王挑战赛': '/king',
       '商城': '/shop',
       '战场': '/battlefield',
-      '竞技': '/pvp',
+      '竞技': '/arena/index',
       '礼包': '/gifts',
         '任务': '/tasks/rewards',
         '查看': '/tasks/daily',
@@ -600,7 +601,7 @@ const handleLink = (name) => {
     <!-- 常用功能 -->
     <div class="section title">【常用功能】</div>
     <div class="section indent">
-      【<a class="link" @click="toggleCultivationOptions">修行</a>| 竞技| <a class="link" @click="handleLink('任务')">任务</a>| 师徒】
+      【<a class="link" @click="toggleCultivationOptions">修行</a>| <a class="link" @click="handleLink('竞技')">竞技</a>| <a class="link" @click="handleLink('任务')">任务</a>| 师徒】
     </div>
       <!-- 修行选项 -->
       <template v-if="isLoggedIn">
@@ -685,7 +686,8 @@ const handleLink = (name) => {
     </div>
 
     <!-- 聊天区 -->
-   
+    <div class="section title">【聊天区】</div>
+    <ChatPanel />
 
     <!-- 导航菜单 -->
     <div class="section">
@@ -695,13 +697,13 @@ const handleLink = (name) => {
       <a class="link" @click="handleLink('联盟')">联盟</a>. <a class="link" @click="handleLink('盟战')">盟战</a>. <a class="link" @click="goMap">地图</a>. <span class="link readonly">天赋</span>. <a class="link" @click="handleLink('化仙')">化仙</a>
     </div>
     <div class="section">
-      <span class="link readonly">切磋</span>. <a class="link" @click="goTower">闯塔</a>. <a class="link" @click="handleLink('战场')">战场</a>. <a class="link" @click="handleLink('擂台')">擂台</a>. <span class="link readonly">坐骑</span>
+      <a class="link" @click="router.push('/spar/report')">切磋</a>. <a class="link" @click="goTower">闯塔</a>. <a class="link" @click="handleLink('战场')">战场</a>. <a class="link" @click="handleLink('擂台')">擂台</a>. <span class="link readonly">坐骑</span>
     </div>
     <div class="section">
       <a class="link" @click="router.push('/tree')">古树</a>. <a class="link" @click="handleLink('排行')">排行</a>. <span class="link readonly">成就</span>. <a class="link" @click="handleLink('图鉴')">图鉴</a>. <span class="link readonly">攻略</span>
     </div>
     <div class="section">
-      <a class="link" @click="handleLink('兑换')">兑换</a>. <span class="link readonly">签到</span>. <span class="link readonly">论坛</span>. <a class="link" @click="handleLink('VIP')">VIP</a>. <span class="link readonly">安全锁</span>
+      <a class="link" @click="handleLink('兑换')">兑换</a>. <a class="link" @click="router.push('/signin')">签到</a>. <span class="link readonly">论坛</span>. <a class="link" @click="handleLink('VIP')">VIP</a>. <span class="link readonly">安全锁</span>
     </div>
 
     <!-- 退出登录（按需求放到底部） -->

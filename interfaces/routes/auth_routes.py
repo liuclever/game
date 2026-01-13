@@ -1,6 +1,7 @@
 # interfaces/routes/auth_routes.py
 """认证相关路由：登录、注册、登出"""
 
+from datetime import datetime
 from flask import Blueprint, request, jsonify, session
 from interfaces.web_api.bootstrap import services
 from application.services.auth_service import is_test_mode
@@ -120,7 +121,7 @@ def auth_status():
                 "yuanbao": player.yuanbao,
                 "silver_diamond": getattr(player, "silver_diamond", 0),
                 "last_signin_date": (
-                    player.last_signin_date.isoformat() if getattr(player, "last_signin_date", None) else None
+                    player.last_signin_date.date().isoformat() if isinstance(player.last_signin_date, datetime) else (player.last_signin_date.isoformat() if getattr(player, "last_signin_date", None) else None)
                 ),
                 "signin_streak": int(getattr(player, "signin_streak", 0) or 0),
             })

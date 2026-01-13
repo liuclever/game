@@ -132,6 +132,22 @@ const goToItemStorage = () => {
   router.push('/alliance/item-storage')
 }
 
+const goToBeastStorage = () => {
+  router.push('/alliance/beast-storage')
+}
+
+const goToBarracks = () => {
+  router.push('/alliance/barracks')
+}
+
+const goToTeam = () => {
+  router.push('/alliance/team')
+}
+
+const goToSacredBeast = () => {
+  router.push('/alliance/sacred-beast')
+}
+
 const activityText = (activity) => {
   const actor = activity.actorName || `玩家${activity.actorUserId || ''}`
   const target = activity.targetName || (activity.targetUserId ? `玩家${activity.targetUserId}` : '')
@@ -199,9 +215,9 @@ onMounted(() => {
       <div class="section-group">
         <div class="group-title">【联盟建筑】</div>
         <div class="group-content building-links">
-          <a class="link" @click="goToCouncil">议事厅</a>. <a class="link">幻兽室</a>. <a class="link" @click="goToTalent">天赋池</a><br>
-          <a class="link" @click="goToWarehouse">物资库</a>. <a class="link">兵营</a>. <a class="link">圣兽山</a><br>
-          <a class="link">精英战队</a>. <a class="link" @click="goToItemStorage">寄存仓库</a>
+          <a class="link" @click="goToCouncil">议事厅</a>. <a class="link" @click="goToBeastStorage">幻兽室</a>. <a class="link" @click="goToTalent">天赋池</a><br>
+          <a class="link" @click="goToWarehouse">物资库</a>. <a class="link" @click="goToBarracks">兵营</a>. <a class="link" @click="goToSacredBeast">圣兽山</a><br>
+          <a class="link" @click="goToTeam">精英战队</a>. <a class="link" @click="goToItemStorage">寄存仓库</a>
         </div>
       </div>
 

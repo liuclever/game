@@ -58,6 +58,10 @@ from interfaces.routes.vip_test_routes import vip_test_bp
 from interfaces.routes.handbook_routes import handbook_bp
 from interfaces.routes.tree_routes import tree_bp
 from interfaces.routes.dragonpalace_routes import dragonpalace_bp
+from interfaces.routes.arena_streak_routes import arena_streak_bp
+from interfaces.routes.world_chat_routes import world_chat_bp
+from interfaces.routes.dynamics_routes import dynamics_bp
+from interfaces.routes.mail_routes import mail_bp
 
 app.register_blueprint(auth_bp)
 app.register_blueprint(player_bp)
@@ -90,6 +94,10 @@ app.register_blueprint(vip_test_bp)
 app.register_blueprint(handbook_bp)
 app.register_blueprint(tree_bp)
 app.register_blueprint(dragonpalace_bp)
+app.register_blueprint(arena_streak_bp)
+app.register_blueprint(world_chat_bp)
+app.register_blueprint(dynamics_bp)
+app.register_blueprint(mail_bp)
 
 
 # ===== 以下为旧接口，暂时保留兼容 =====
@@ -182,11 +190,58 @@ def get_me():
 
 @app.post("/api/signin")
 def signin():
+    """每日签到"""
+    user_id = get_current_user_id()
+    if not user_id:
+        return jsonify({"ok": False, "error": "请先登录"}), 401
+    
     try:
-        player = services.signin_service.do_signin(player_id=1)
-        return jsonify({"ok": True, "user": player_to_dict(player)})
+        result = services.signin_service.do_signin(player_id=user_id)
+        player = services.player_repo.get_by_id(user_id)
+        
+        # 直接返回 signin_service 的结果，它已经包含了正确的格式
+        result["user"] = player_to_dict(player) if player else None
+        return jsonify(result)
     except SigninError as e:
-        return jsonify({"ok": False, "error": str(e)}), 400
+        error_msg = str(e)
+        if error_msg == "already_signed_today" or "已经签到" in error_msg:
+            error_msg = "今日已签到"
+        return jsonify({"ok": False, "error": error_msg}), 400
+
+
+@app.get("/api/signin/info")
+def get_signin_info():
+    """获取签到信息"""
+    from datetime import date, datetime
+    
+    user_id = get_current_user_id()
+    if not user_id:
+        return jsonify({"ok": False, "error": "请先登录"}), 401
+    
+    try:
+        player = services.player_repo.get_by_id(user_id)
+        if not player:
+            return jsonify({"ok": False, "error": "玩家不存在"}), 404
+        
+        today = date.today()
+        
+        # 处理 last_signin_date 可能是 datetime 或 date 类型
+        last_signin = player.last_signin_date
+        if isinstance(last_signin, datetime):
+            last_signin = last_signin.date()
+        
+        has_signed = last_signin == today if last_signin else False
+        streak = int(getattr(player, "signin_streak", 0) or 0)
+        
+        return jsonify({
+            "ok": True,
+            "hasSigned": has_signed,
+            "consecutiveDays": streak,
+            "currentMonth": today.month,
+            "currentYear": today.year,
+        })
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
 
 
 @app.get("/api/maps")

@@ -12,6 +12,13 @@ const beasts = ref([])
 const dynamics = ref([])
 const loading = ref(true)
 const error = ref('')
+const currentUserId = ref(null)
+
+const isOtherPlayer = computed(() => {
+  if (!player.value) return false
+  if (!currentUserId.value) return true
+  return player.value.user_id !== currentUserId.value
+})
 
 const formatReputation = (prestige, required) => {
   const cur = Number(prestige || 0)
@@ -29,6 +36,17 @@ const loadPrestigeRequirement = async () => {
     }
   } catch (e) {
     console.error('加载声望阈值失败', e)
+  }
+}
+
+const loadCurrentUser = async () => {
+  try {
+    const res = await http.get('/auth/status')
+    if (res.data.logged_in) {
+      currentUserId.value = res.data.user_id
+    }
+  } catch (e) {
+    console.error('获取当前用户失败', e)
   }
 }
 
@@ -66,7 +84,8 @@ const loadPlayer = async () => {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
+  await loadCurrentUser()
   loadPlayer()
 })
 
@@ -74,6 +93,31 @@ onMounted(() => {
 const totalPower = computed(() => {
   return beasts.value.reduce((sum, b) => sum + (b.combat_power || 0), 0)
 })
+
+// 切磋
+const sparring = ref(false)
+const challenge = async () => {
+  if (!player.value?.user_id) return
+  if (sparring.value) return
+  
+  sparring.value = true
+  try {
+    const res = await http.post('/player/spar', { target_id: player.value.user_id })
+    if (res.data.ok) {
+      router.push({
+        path: '/spar/report',
+        query: { data: JSON.stringify(res.data.battle) }
+      })
+    } else {
+      alert(res.data.error || '切磋失败')
+    }
+  } catch (e) {
+    console.error('切磋失败', e)
+    alert(e?.response?.data?.error || '切磋失败')
+  } finally {
+    sparring.value = false
+  }
+}
 
 // 返回前页
 const goBack = () => {
@@ -172,7 +216,7 @@ const viewBeast = (beast) => {
         综合战力:{{ totalPower }}
       </div>
       <div class="section">
-        战绩:{{ player.wins || 0 }}/{{ player.battles || 0 }} <span class="link readonly">切磋</span>
+        战绩:{{ player.wins || 0 }}/{{ player.battles || 0 }} <a v-if="isOtherPlayer" class="link" @click="challenge">{{ sparring ? '切磋中...' : '切磋' }}</a>
       </div>
       <div class="section">
         挑战排名: {{ player.arena_rank || 1 }} 赛区.{{ player.arena_position || 1 }} 名

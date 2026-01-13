@@ -1,4 +1,4 @@
-# interfaces/web_api/bootstrap.py
+﻿# interfaces/web_api/bootstrap.py
 """
 服务依赖初始化（依赖注入容器）
 所有服务实例在此创建，供路由模块使用
@@ -63,6 +63,7 @@ from application.services.immortalize_pool_service import ImmortalizePoolService
 from application.services.home_gift_service import HomeGiftService
 from application.services.tree_service import TreeService
 from application.services.dragonpalace_service import DragonPalaceService
+from application.services.world_chat_service import WorldChatService
 from infrastructure.config.immortalize_config import ImmortalizeConfig
 
 
@@ -157,7 +158,7 @@ class ServiceContainer:
             drop_service=self.drop_service
         )
         # 同时依赖联盟仓库：用于从盟战榜前三联盟随机选取“颁发者”
-        self.signin_service = SigninService(player_repo=self.player_repo, alliance_repo=self.alliance_repo)
+        self.signin_service = SigninService(player_repo=self.player_repo)
         self.map_service = MapService(
             map_repo=self.map_repo, 
             monster_repo=self.monster_repo
@@ -269,7 +270,14 @@ class ServiceContainer:
 
         # 图鉴（独立模块）
         self.handbook_service = HandbookService(repo=self.handbook_repo)
+        
+        # 世界聊天服务
+        self.world_chat_service = WorldChatService(
+            player_repo=self.player_repo,
+            inventory_service=self.inventory_service,
+        )
 
 
 # 全局服务容器实例
 services = ServiceContainer()
+

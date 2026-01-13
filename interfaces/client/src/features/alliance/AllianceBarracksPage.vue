@@ -1,178 +1,174 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import http from '@/services/http'
 
 const router = useRouter()
-
 const loading = ref(true)
-const errorMessage = ref('')
-const dragonArmy = ref([])
-const tigerArmy = ref([])
+const info = ref(null)
+const activeFilter = ref('未分配')
+const currentPage = ref(1)
+const pageSize = ref(10)
+
+const filters = ['未分配', '飞龙军', '伏虎军']
 
 const fetchBarracks = async () => {
   loading.value = true
-  errorMessage.value = ''
   try {
-    const res = await http.get('/alliance/barracks')
-    if (res.data?.ok && res.data.data) {
-      const data = res.data.data
-      dragonArmy.value = data.dragon || []
-      tigerArmy.value = data.tiger || []
-    } else {
-      errorMessage.value = res.data?.error || '加载联盟兵营失败'
+    const res = await http.get('/alliance/members')
+    if (res.data?.ok) {
+      info.value = res.data
+      currentPage.value = 1
     }
   } catch (err) {
-    console.error('加载联盟兵营失败', err)
-    errorMessage.value = err.response?.data?.error || '加载联盟兵营失败'
+    console.error('load barracks failed', err)
   } finally {
     loading.value = false
   }
 }
 
-onMounted(() => {
-  fetchBarracks()
+onMounted(fetchBarracks)
+
+const myArmy = computed(() => {
+  const member = info.value?.members?.find(m => m.is_self)
+  if (!member) return ''
+  const armyType = member.army_type || 0
+  if (armyType === 1) return '飞龙军'
+  if (armyType === 2) return '伏虎军'
+  return '未分配'
 })
 
-const goWar = () => router.push('/alliance/war')
+const filteredMembers = computed(() => {
+  const members = info.value?.members || []
+  if (activeFilter.value === '未分配') {
+    return members.filter(m => !m.army_type || m.army_type === 0)
+  }
+  if (activeFilter.value === '飞龙军') {
+    return members.filter(m => m.army_type === 1)
+  }
+  if (activeFilter.value === '伏虎军') {
+    return members.filter(m => m.army_type === 2)
+  }
+  return members
+})
+
+const paginatedMembers = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value
+  return filteredMembers.value.slice(start, start + pageSize.value)
+})
+
+const totalPages = computed(() => {
+  return Math.max(1, Math.ceil(filteredMembers.value.length / pageSize.value))
+})
+
+const goToPage = (page) => {
+  const pageNum = parseInt(page) || 1
+  if (pageNum >= 1 && pageNum <= totalPages.value) {
+    currentPage.value = pageNum
+  }
+}
+
 const goAlliance = () => router.push('/alliance')
 const goHome = () => router.push('/')
 </script>
 
 <template>
-  <div class="barracks-page">
-    <div class="section title-row">
-      【联盟兵营】 <a class="link" @click.prevent="goWar">返回</a>
+  <div>
+    <div>
+      <h1>【联盟兵营】</h1>
     </div>
-
-    <div v-if="loading" class="section">加载中...</div>
-    <div v-else-if="errorMessage" class="section red">{{ errorMessage }}</div>
-
-    <template v-else>
-      <div class="section-group">
-        <div class="group-title">飞龙军 (40级以上)</div>
-        <div v-if="dragonArmy.length" class="group-content">
-          <div
-            v-for="member in dragonArmy"
-            :key="member.user_id"
-            class="army-item"
-          >
-            <span class="name">{{ member.nickname || `玩家${member.user_id}` }}</span>
-            <span class="level">Lv.{{ member.level || '-' }}</span>
-            <span class="score">战功: {{ member.battle_power ?? '-' }}</span>
-          </div>
-        </div>
-        <div v-else class="group-content gray">当前暂无飞龙军成员</div>
+    
+    <div v-if="loading" style="padding: 20px;">加载中...</div>
+    <template v-else-if="info">
+      <div style="padding: 10px;">
+        所属军队:{{ myArmy }}
       </div>
-
-      <div class="section-group">
-        <div class="group-title">伏虎军 (40级及以下)</div>
-        <div v-if="tigerArmy.length" class="group-content">
-          <div
-            v-for="member in tigerArmy"
-            :key="member.user_id"
-            class="army-item"
-          >
-            <span class="name">{{ member.nickname || `玩家${member.user_id}` }}</span>
-            <span class="level">Lv.{{ member.level || '-' }}</span>
-            <span class="score">战功: {{ member.battle_power ?? '-' }}</span>
+      
+      <div style="padding: 10px;">
+        [管理名单]
+      </div>
+      
+      <div style="padding: 10px;">
+        <span
+          v-for="(filter, index) in filters"
+          :key="filter"
+        >
+          <a
+            v-if="activeFilter !== filter"
+            href="#"
+            @click.prevent="activeFilter = filter; currentPage = 1"
+            style="color: #0066cc; text-decoration: underline;"
+          >{{ filter }}</a>
+          <span v-else style="color: #0066cc; font-weight: bold;">{{ filter }}</span>
+          <span v-if="index < filters.length - 1"> | </span>
+        </span>
+      </div>
+      
+      <div style="padding: 10px;">
+        昵称/等级/加入军队
+      </div>
+      
+      <div style="padding: 10px;">
+        <div v-if="paginatedMembers.length > 0">
+          <div v-for="member in paginatedMembers" :key="member.user_id" style="padding: 5px 0; color: #cc0000;">
+            {{ member.nickname || `玩家${member.user_id}` }}/{{ member.level || 1 }}
           </div>
         </div>
-        <div v-else class="group-content gray">当前暂无伏虎军成员</div>
+        <div v-else style="padding: 20px; color: #999;">暂无成员</div>
+      </div>
+      
+      <div v-if="totalPages > 1" style="padding: 10px;">
+        <a
+          href="#"
+          @click.prevent="goToPage(currentPage + 1)"
+          style="color: #0066cc; text-decoration: underline;"
+        >下页</a>
+        <span> </span>
+        <a
+          href="#"
+          @click.prevent="goToPage(totalPages)"
+          style="color: #0066cc; text-decoration: underline;"
+        >末页</a>
+        <span> </span>
+        <span>{{ currentPage }}/{{ totalPages }}页 </span>
+        <input
+          type="number"
+          :min="1"
+          :max="totalPages"
+          :value="currentPage"
+          @change="goToPage($event.target.value)"
+          style="width: 40px;"
+        />
+        <span> 跳转</span>
+      </div>
+      
+      <div style="padding: 10px;">
+        <a
+          href="#"
+          @click.prevent="goAlliance"
+          style="color: #0066cc; text-decoration: underline;"
+        >返回联盟</a>
+        <span> </span>
+        <a
+          href="#"
+          @click.prevent="goHome"
+          style="color: #0066cc; text-decoration: underline;"
+        >返回游戏首页</a>
       </div>
     </template>
-
-    <div class="section spacer">
-      <a class="link" @click.prevent="goWar">返回盟战</a>
-    </div>
-    <div class="section">
-      <a class="link" @click.prevent="goAlliance">返回联盟</a>
-    </div>
-    <div class="section">
-      <a class="link" @click.prevent="goHome">返回游戏首页</a>
-    </div>
-
   </div>
 </template>
 
 <style scoped>
-.barracks-page {
-  background: #fff8dc;
-  min-height: 100vh;
-  padding: 10px 14px 24px;
+div {
+  font-family: SimSun, "宋体", serif;
   font-size: 13px;
-  line-height: 1.7;
-  font-family: SimSun, '宋体', serif;
+  line-height: 1.6;
 }
 
-.section {
-  margin: 6px 0;
-}
-
-.title-row {
+h1 {
+  margin: 10px 0;
+  font-size: 13px;
   font-weight: bold;
-  font-size: 15px;
-}
-
-.section-group {
-  border: 1px solid #e2c48f;
-  background: #fff3bf;
-  padding: 8px;
-  margin-top: 12px;
-}
-
-.group-title {
-  font-weight: bold;
-  margin-bottom: 6px;
-}
-
-.group-content {
-  padding-left: 8px;
-}
-
-.army-item {
-  display: flex;
-  gap: 10px;
-}
-
-.name {
-  color: #0066cc;
-}
-
-.level {
-  color: #c05000;
-}
-
-.score {
-  color: #333;
-}
-
-.link {
-  color: #0066cc;
-  cursor: pointer;
-}
-
-.link:hover {
-  text-decoration: underline;
-}
-
-.gray {
-  color: #777;
-}
-
-.small {
-  font-size: 11px;
-}
-
-.footer {
-  margin-top: 24px;
-}
-
-.spacer {
-  margin-top: 16px;
-}
-
-.red {
-  color: #cc0000;
 }
 </style>

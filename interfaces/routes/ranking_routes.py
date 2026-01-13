@@ -57,7 +57,7 @@ def get_ranking_list():
         
         if user_id:
             rank_rows = execute_query(
-                """SELECT COUNT(*) + 1 as rank FROM player p1
+                """SELECT COUNT(*) + 1 as `rank` FROM player p1
                    WHERE p1.level > (SELECT level FROM player WHERE user_id = %s)
                    OR (p1.level = (SELECT level FROM player WHERE user_id = %s) 
                        AND p1.exp > (SELECT exp FROM player WHERE user_id = %s))""",
@@ -70,7 +70,7 @@ def get_ranking_list():
             SELECT p.user_id as userId, p.nickname, p.level,
                    COALESCE(SUM(b.combat_power), 0) as power
             FROM player p
-            LEFT JOIN player_beast b ON p.user_id = b.user_id AND b.is_team = 1
+            LEFT JOIN player_beast b ON p.user_id = b.user_id AND b.is_in_team = 1
             GROUP BY p.user_id, p.nickname, p.level
             ORDER BY power DESC
             LIMIT %s OFFSET %s
@@ -114,10 +114,10 @@ def get_ranking_list():
     
     elif ranking_type == 'tower':
         sql = """
-            SELECT p.user_id as userId, p.nickname, p.level, t.max_floor as maxFloor
+            SELECT p.user_id as userId, p.nickname, p.level, t.max_floor_record as maxFloor
             FROM player p
             JOIN tower_state t ON p.user_id = t.user_id AND t.tower_type = 'tongtian'
-            ORDER BY t.max_floor DESC
+            ORDER BY t.max_floor_record DESC
             LIMIT %s OFFSET %s
         """
         rows = execute_query(sql, (size, offset))
