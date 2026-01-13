@@ -7,10 +7,10 @@ from pymysql.cursors import DictCursor
 
 # 数据库配置
 DB_CONFIG = {
-    'host': '8.146.206.229',
+    'host': 'localhost',
     'port': 3306,
     'user': 'root',
-    'password': 'Wxs1230.0',
+    'password': '123456',
     'database': 'game_tower',
     'charset': 'utf8mb4',
     'cursorclass': DictCursor,

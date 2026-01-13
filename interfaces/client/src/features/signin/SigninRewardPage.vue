@@ -58,7 +58,7 @@ const currentReward = computed(() => rewardConfig[days.value])
 
 const canClaim = computed(() => {
   if (!rewardInfo.value) return false
-  return rewardInfo.value.consecutiveDays >= days.value && !rewardInfo.value.claimed
+  return rewardInfo.value.totalSigninDays >= days.value && !rewardInfo.value.claimed
 })
 
 const loadRewardInfo = async () => {
@@ -136,7 +136,7 @@ onMounted(() => {
           <a class="link" @click="claimReward">点击领取</a>
         </template>
         <template v-else>
-          <span>需要累计签到{{ days }}天（当前{{ rewardInfo.consecutiveDays }}天）</span>
+          <span>需要本月累积签到{{ days }}天（当前{{ rewardInfo.totalSigninDays }}天）</span>
         </template>
       </div>
     </template>
