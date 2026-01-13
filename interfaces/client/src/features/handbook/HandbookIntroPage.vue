@@ -1,21 +1,49 @@
 <script setup>
+import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { fetchHandbookDoc } from '@/services/handbookService'
 
 const router = useRouter()
 
-// 仅展示文案的“图鉴简介”页：用于模仿原站交互，不依赖任何外站 URL/数据。
+const loading = ref(false)
+const errorMsg = ref('')
+const title = ref('【图鉴说明】')
+const docText = ref('')
+
+const load = async () => {
+  loading.value = true
+  errorMsg.value = ''
+  try {
+    const res = await fetchHandbookDoc()
+    if (res.data?.ok) {
+      title.value = res.data?.title || title.value
+      const lines = res.data?.lines || []
+      docText.value = Array.isArray(lines) ? lines.join('\n') : String(lines || '')
+    } else {
+      errorMsg.value = res.data?.error || '加载失败'
+    }
+  } catch (e) {
+    console.error('加载图鉴说明失败', e)
+    errorMsg.value = '加载失败'
+  } finally {
+    loading.value = false
+  }
+}
+
+// 图鉴说明页：展示 doc 原文（1:1 同步），不依赖任何外站 URL/数据。
 const goBack = () => router.back()
 const goHome = () => router.push('/')
+
+onMounted(() => load())
 </script>
 
 <template>
   <div class="handbook-intro">
-    <div class="section title">【图鉴】简介</div>
+    <div class="section title">{{ title }}</div>
 
-    <div class="section">亲爱的召唤师:</div>
-    <div class="section">皇家召唤协会发布图鉴系统.</div>
-    <div class="section">[幻兽图鉴]是召唤师旅行必备工具,记录召唤师遇到并成功召唤的所有幻兽.</div>
-    <div class="section">幻兽被召唤后,即可自动点亮对应图鉴,还能看到幻兽终极属性.</div>
+    <div class="section" v-if="loading">加载中...</div>
+    <div class="section red" v-else-if="errorMsg">{{ errorMsg }}</div>
+    <div class="section doc" v-else>{{ docText }}</div>
 
     <div class="section spacer">
       <a class="link" @click="goBack">返回前页</a>
@@ -28,7 +56,7 @@ const goHome = () => router.push('/')
 
 <style scoped>
 .handbook-intro {
-  background: #FFF8DC;
+  background: #ffffff;
   min-height: 100vh;
   padding: 14px 14px;
   font-size: 18px;
@@ -56,6 +84,16 @@ const goHome = () => router.push('/')
 
 .link:hover {
   text-decoration: underline;
+}
+
+.doc {
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: #000;
+}
+
+.red {
+  color: #CC3300;
 }
 </style>
 

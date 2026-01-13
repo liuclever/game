@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { computed, ref, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import http from '@/services/http'
 
@@ -12,10 +12,6 @@ const types = [
   { key: 'level', name: '等级' },
   { key: 'power', name: '战力' },
   { key: 'arena', name: '擂台' },
-  { key: 'tower', name: '通天塔' },
-  { key: 'dragon', name: '龙纹塔' },
-  { key: 'achieve', name: '成就' },
-  { key: 'charm', name: '魅力' },
   { key: 'vip', name: 'VIP' },
 ]
 
@@ -25,8 +21,23 @@ const rankings = ref([])
 const loading = ref(false)
 
 // 擂台筛选（阶段/全部）
-const arenaRankName = ref('') // 服务器返回的当前阶段名，例如“天龙”
-const arenaFilter = ref('stage') // 'stage' 当前阶段 | 'all' 全部
+const arenaRankName = ref('') // 当前赛区名，例如“天龙”
+const arenaZones = ref([]) // 服务器返回可用赛区
+const arenaTime = ref('week') // week|total
+const arenaScope = ref('zone') // zone|all
+
+const powerRank = ref('total') // total | rankName | arena
+
+// 兼容：老后端不返回 arenaZones，这里给一个前端默认值，保证 UI 可用
+const DEFAULT_ARENA_ZONES = [
+  { name: '黄阶', min_level: 20, max_level: 29 },
+  { name: '玄阶', min_level: 30, max_level: 39 },
+  { name: '地阶', min_level: 40, max_level: 49 },
+  { name: '天阶', min_level: 50, max_level: 59 },
+  { name: '飞马', min_level: 60, max_level: 69 },
+  { name: '天龙', min_level: 70, max_level: 79 },
+  { name: '战神', min_level: 80, max_level: 100 },
+]
 
 // 分页
 const currentPage = ref(1)
@@ -38,22 +49,42 @@ const loadRankings = async () => {
   loading.value = true
   try {
     let url = `/ranking/list?type=${currentType.value}&page=${currentPage.value}&size=${pageSize}`
+    if (currentType.value === 'power') {
+      if (powerRank.value === 'arena') {
+        url += `&power_scope=arena`
+      } else if (powerRank.value && powerRank.value !== 'total') {
+        url += `&rank=${encodeURIComponent(powerRank.value)}`
+      }
+    }
     if (currentType.value === 'arena') {
-      // arena筛选：stage=按当前阶段；all=全部
-      if (arenaFilter.value === 'all') {
-        // 不带rank参数 = 全部擂台
-      } else if (arenaRankName.value) {
+      // 擂台：只显示赛区排行（按 rank_name）
+      if (arenaRankName.value) {
         url += `&rank=${encodeURIComponent(arenaRankName.value)}`
       }
+      url += `&time=${encodeURIComponent(arenaTime.value)}`
+      url += `&scope=${encodeURIComponent(arenaScope.value)}`
     }
     const res = await http.get(url)
     if (res.data.ok) {
+      // 兼容新/老后端：
+      // - 新：rankings / totalPages / arenaZones
+      // - 老：list / total / page / size
       myRank.value = res.data.myRank || 0
-      rankings.value = res.data.rankings || []
-      totalPages.value = res.data.totalPages || 1
-      if (currentType.value === 'arena') {
-        arenaRankName.value = res.data.arenaRankName || arenaRankName.value
-      }
+
+      const rawList = res.data.rankings || res.data.list || []
+      const list = Array.isArray(rawList) ? rawList : []
+      // 老后端 list 没有 rank 字段，这里补齐，避免模板渲染报错/卡住
+      rankings.value = list.map((it, idx) => ({
+        ...it,
+        rank: Number(it?.rank || (currentPage.value - 1) * pageSize + idx + 1),
+      }))
+
+      const total = Number(res.data.total || 0)
+      totalPages.value = Number(res.data.totalPages || (total ? Math.ceil(total / pageSize) : 1)) || 1
+
+      // 老后端不返回 arenaZones / arenaRankName：用前端默认值兜底
+      arenaZones.value = res.data.arenaZones || arenaZones.value || DEFAULT_ARENA_ZONES
+      arenaRankName.value = res.data.arenaRankName || arenaRankName.value || ''
     }
   } catch (e) {
     console.error('加载排行失败', e)
@@ -66,10 +97,6 @@ const loadRankings = async () => {
 const switchType = (type) => {
   currentType.value = type
   currentPage.value = 1
-  // 重置擂台筛选
-  if (type === 'arena') {
-    arenaFilter.value = 'stage'
-  }
   loadRankings()
 }
 
@@ -91,167 +118,228 @@ const jumpToPage = () => {
 
 // 查看玩家信息
 const viewPlayer = (player) => {
-  router.push(`/player?id=${player.userId}`)
+  router.push({ path: '/player/detail', query: { id: player.userId } })
 }
 
 onMounted(() => {
   // 从路由读取初始类型与rank
   const t = route.query.type
-  if (t && ['level','power','arena','tower','dragon','achieve','charm','vip'].includes(t)) {
+  if (t && ['level','power','arena','vip'].includes(t)) {
     currentType.value = t
   }
   const r = route.query.rank
   if (r) {
-    arenaFilter.value = r === 'all' ? 'all' : 'stage'
-    if (r !== 'all') arenaRankName.value = String(r)
+    arenaRankName.value = String(r)
   }
   loadRankings()
 })
-
-// 点击链接
-const handleLink = (name) => {
-  const routes = {
-    '背包': '/inventory',
-    '幻兽': '/beast',
-    '地图': '/map',
-    '擂台': '/arena',
-    '闯塔': '/tower',
-    '排行': '/ranking',
-    '商城': '/shop',
-    'VIP': '/vip',
-    '提升': '/vip',
-    '活力': '/vip',
-    '兑换': '/exchange',
-  }
-  if (routes[name]) {
-    router.push(routes[name])
-  } else {
-    alert(`点击了: ${name}`)
-  }
-}
 
 // 返回首页
 const goHome = () => {
   router.push('/')
 }
 
-// 获取排名显示值
-const getRankValue = (player) => {
-  switch (currentType.value) {
-    case 'level':
-      return player.prestige || 0
-    case 'power':
-      return player.power || 0
-    case 'arena':
-      return player.successCount || 0
-    case 'tower':
-      return player.towerFloor || 0
-    default:
-      return player.value || 0
-  }
-}
+const headerText = computed(() => {
+  if (currentType.value === 'level') return '排名.用户名.等级.声望'
+  if (currentType.value === 'power') return '排名.主角.战力'
+  if (currentType.value === 'arena') return '排名.名称.擂台.守擂成功次数'
+  return '排名.主角.VIP等级'
+})
 
-// 获取排名显示标签
-const getRankLabel = () => {
-  switch (currentType.value) {
-    case 'level':
-      return '声望'
-    case 'power':
-      return '战力'
-    case 'arena':
-      return '守擂成功数'
-    case 'tower':
-      return '层数'
-    default:
-      return '数值'
-  }
-}
-
-// 切换擂台范围（阶段/全部）
-const switchArenaScope = (scope) => {
-  arenaFilter.value = scope // 'stage' | 'all'
+const selectArenaZone = (name) => {
+  arenaRankName.value = String(name || '').trim()
   currentPage.value = 1
   loadRankings()
 }
+
+const selectArenaTime = (time) => {
+  arenaTime.value = time // week|total
+  currentPage.value = 1
+  loadRankings()
+}
+
+const selectArenaScope = (scope) => {
+  arenaScope.value = scope // zone|all
+  currentPage.value = 1
+  loadRankings()
+}
+
+const selectPowerRank = (rankName) => {
+  powerRank.value = rankName
+  currentPage.value = 1
+  loadRankings()
+}
+
+const displayZoneName = (z) => {
+  if (!z) return ''
+  // 参考页：北斗(80-100级)；本项目段位为“战神”，这里仅做展示名称对齐
+  if (z.name === '战神') return '北斗'
+  return z.name
+}
+
+// 擂台分级显示（按你的指定格式）
+const formatZoneText = (z) => {
+  if (!z) return ''
+  if (z.name === '战神') return '战神: Lv.80以上'
+  return `${z.name}: Lv.${z.min_level}-${z.max_level}`
+}
+
+// 进入擂台时，如果没有默认赛区（未登录时后端不会推断赛区），自动选择黄阶（而非见习）
+const autoInitArenaZoneDone = ref(false)
+watch(
+  () => currentType.value,
+  (t) => {
+    if (t !== 'arena') return
+    autoInitArenaZoneDone.value = false
+  },
+)
+watch(
+  () => [currentType.value, arenaRankName.value, arenaZones.value.length, loading.value],
+  () => {
+    if (currentType.value !== 'arena') return
+    if (loading.value) return
+    if (autoInitArenaZoneDone.value) return
+    if (!arenaRankName.value && arenaZones.value.length) {
+      // 优先选择"黄阶"，如果没有则选第一个
+      const huangJie = arenaZones.value.find((z) => z.name === '黄阶')
+      const target = huangJie || arenaZones.value[0]
+      if (target?.name) {
+        autoInitArenaZoneDone.value = true
+        selectArenaZone(target.name)
+      }
+    }
+  },
+)
+
 </script>
 
 <template>
   <div class="ranking-page">
-    <!-- 类型切换 -->
+    <!-- 顶部导航（严格模仿参考页：选中项为纯文本，其他为链接，分隔符为“｜”） -->
     <div class="section type-row">
-      <template v-for="(t, index) in types.slice(0, 4)" :key="t.key">
-        <a 
-          class="link" 
-          :class="{ active: currentType === t.key }"
-          @click="switchType(t.key)"
-        >{{ t.name }}</a>
-        <span v-if="index < 3"> | </span>
-      </template>
-    </div>
-    <div class="section type-row">
-      <template v-for="(t, index) in types.slice(4)" :key="t.key">
-        <a 
-          class="link" 
-          :class="{ active: currentType === t.key }"
-          @click="switchType(t.key)"
-        >{{ t.name }}</a>
-        <span v-if="index < types.slice(4).length - 1"> | </span>
+      <span v-for="(t, index) in types" :key="t.key">
+        <template v-if="currentType === t.key">
+          <span>{{ t.name }}</span>
+        </template>
+        <template v-else>
+          <a class="link" @click="switchType(t.key)">{{ t.name }}</a>
+        </template>
+        <span v-if="index < types.length - 1">｜</span>
+      </span>
+
+      <template v-if="currentType === 'arena' && arenaRankName">
+        <span style="margin-left: 6px;">｜ {{ arenaRankName }}擂台</span>
       </template>
     </div>
 
-    <!-- 擂台专用头部（阶段/全部切换） -->
-    <template v-if="currentType === 'arena'">
-      <div class="section header">
-        （<a class="link" :class="{active: arenaFilter==='stage'}" @click="switchArenaScope('stage')">{{ arenaRankName || '本阶段' }}擂台</a>
-        | <a class="link" :class="{active: arenaFilter==='all'}" @click="switchArenaScope('all')">全部擂台</a>）
+    <!-- 战力：二级段位导航（严格模仿参考页：黄阶...北斗｜竞技擂台｜ 总排行） -->
+    <template v-if="currentType === 'power' && arenaZones.length">
+      <div class="section zone-row">
+        <span v-for="z in arenaZones" :key="z.name">
+          <template v-if="powerRank === z.name">
+            <span>{{ displayZoneName(z) }}({{ z.min_level }}-{{ z.max_level }}级)</span>
+          </template>
+          <template v-else>
+            <a class="link" @click="selectPowerRank(z.name)">{{ displayZoneName(z) }}({{ z.min_level }}-{{ z.max_level }}级)</a>
+          </template>
+          <span>｜</span>
+        </span>
+
+        <template v-if="powerRank === 'arena'">
+          <span>竞技擂台</span>
+        </template>
+        <template v-else>
+          <a class="link" @click="selectPowerRank('arena')">竞技擂台</a>
+        </template>
+        <span>｜</span>
+
+        <template v-if="powerRank === 'total'">
+          <span>总排行</span>
+        </template>
+        <template v-else>
+          <a class="link" @click="selectPowerRank('total')">总排行</a>
+        </template>
       </div>
     </template>
 
-    <!-- 我的排名提示 -->
-    <div class="section" v-if="currentType !== 'arena'">
-      我的排名: <span class="orange">{{ myRank > 0 ? myRank : '未上榜' }}</span>
-    </div>
-    <div class="section" v-else>
-      您的排名为第<span class="orange">{{ myRank > 0 ? myRank : '未上榜' }}</span>名
-    </div>
+    <!-- 擂台：英豪榜结构（周英豪榜|总英豪榜）（赛区擂台|全部擂台） -->
+    <template v-if="currentType === 'arena'">
+      <div class="section zone-row">
+        <template v-if="arenaTime === 'week'">
+          <span>周英豪榜</span>
+        </template>
+        <template v-else>
+          <a class="link" @click="selectArenaTime('week')">周英豪榜</a>
+        </template>
+        <span>|</span>
+        <template v-if="arenaTime === 'total'">
+          <span>总英豪榜</span>
+        </template>
+        <template v-else>
+          <a class="link" @click="selectArenaTime('total')">总英豪榜</a>
+        </template>
+      </div>
 
-    <!-- 表头 -->
-    <div class="section header">
-      <template v-if="currentType === 'arena'">
-        排名.名称.擂台.守擂成功次数
+      <!-- 分级擂台排行：黄阶/玄阶/.../战神: Lv.80以上 -->
+      <template v-if="arenaZones.length">
+        <div class="section zone-row">
+          <span v-for="(z, idx) in arenaZones" :key="z.name">
+            <template v-if="arenaRankName === z.name">
+              <span>{{ formatZoneText(z) }}</span>
+            </template>
+            <template v-else>
+              <a class="link" @click="selectArenaZone(z.name)">{{ formatZoneText(z) }}</a>
+            </template>
+            <span v-if="idx < arenaZones.length - 1">｜</span>
+          </span>
+        </div>
       </template>
-      <template v-else>
-        排名.用户名.等级.{{ getRankLabel() }}
-      </template>
-    </div>
+
+      <!-- 按需求：不再展示“（xx擂台 | 全部擂台）”，只展示“xx擂台” -->
+      <div class="section header">{{ (arenaRankName || '本阶段') }}擂台</div>
+
+      <div class="section" v-if="!myRank">您当前暂无排名</div>
+    </template>
+
+    <!-- 我的排名提示 -->
+    <template v-if="currentType !== 'vip'">
+      <div class="section">我的排名: {{ myRank > 0 ? myRank : '未上榜' }}</div>
+    </template>
+
+    <!-- 表头（参考页：等级在“我的排名”之后；VIP在“表头”之后显示“我的排名”） -->
+    <div class="section header">{{ headerText }}</div>
+    <template v-if="currentType === 'vip'">
+      <div class="section">我的排名: {{ myRank > 0 ? myRank : '未上榜' }}</div>
+    </template>
 
     <!-- 排名列表 -->
     <div v-if="loading" class="section">加载中...</div>
     <template v-else>
-      <template v-if="currentType === 'arena'">
-        <div v-for="player in rankings" :key="player.rank" class="section rank-item">
-          <span class="rank">{{ player.rank }}.</span>
-          <a class="link username" @click="viewPlayer(player)">{{ player.nickname }}</a>
-          <span class="icon">🦋</span>.
-          {{ (arenaFilter==='stage' ? (arenaRankName + '擂台') : '全部擂台') }}.
-          {{ player.successCount }}
-        </div>
-      </template>
-      <template v-else>
-        <div v-for="player in rankings" :key="player.rank" class="section rank-item">
-          <span class="rank">{{ player.rank }}.</span>
-          <a class="link username" @click="viewPlayer(player)">{{ player.nickname }}</a>
-          <span class="icon">🐦</span>.
-          ({{ player.level }}级).
-          {{ getRankValue(player) }}
-        </div>
-      </template>
+      <div v-if="!rankings.length" class="section">无</div>
+      <div v-for="player in rankings" :key="player.rank" class="section rank-item">
+        <span class="rank">{{ player.rank }}.</span>
+        <a class="link username" @click="viewPlayer(player)">{{ player.nickname }}</a>
+        <span v-if="player.vipLevel > 0" class="vip-icon">👑</span>
+
+        <template v-if="currentType === 'level'">
+          . ({{ player.level }}级). {{ player.prestige ?? player.exp ?? 0 }}
+        </template>
+        <template v-else-if="currentType === 'power'">
+          . {{ player.power || 0 }}
+        </template>
+        <template v-else-if="currentType === 'arena'">
+          . {{ (player.rankName || arenaRankName || '') }}擂台. {{ player.successCount || 0 }}
+        </template>
+        <template v-else>
+          . VIP{{ player.vipLevel || 0 }}
+        </template>
+      </div>
     </template>
 
     <!-- 分页 -->
     <div class="section pager">
       <a class="link" @click="goToPage(currentPage + 1)" v-if="currentPage < totalPages">下页</a>
-      <a class="link" @click="goToPage(totalPages)" v-if="currentPage < totalPages"> 末页</a>
+      <a class="link" @click="goToPage(totalPages)" v-if="currentPage < totalPages">末页</a>
     </div>
     <div class="section pager">
       {{ currentPage }}/{{ totalPages }}页
@@ -263,6 +351,12 @@ const switchArenaScope = (scope) => {
     <div class="section">
       <a class="link" @click="goHome">返回游戏首页</a>
     </div>
+
+    <template v-if="currentType === 'arena'">
+      <div class="section">
+        <a class="link" @click="router.push('/arena')">返回擂台首页</a>
+      </div>
+    </template>
   </div>
 </template>
 
@@ -270,7 +364,7 @@ const switchArenaScope = (scope) => {
 .ranking-page {
   padding: 10px;
   font-size: 14px;
-  background: #f5f5dc;
+  background: #ffffff;
   min-height: 100vh;
 }
 
@@ -281,6 +375,10 @@ const switchArenaScope = (scope) => {
 
 .type-row {
   margin-bottom: 5px;
+}
+
+.zone-row {
+  margin-bottom: 6px;
 }
 
 .link {
@@ -302,10 +400,6 @@ const switchArenaScope = (scope) => {
   color: #cc0000;
 }
 
-.orange {
-  color: #ff6600;
-}
-
 .header {
   color: #666;
 }
@@ -319,8 +413,9 @@ const switchArenaScope = (scope) => {
   min-width: 25px;
 }
 
-.icon {
-  color: #ffcc00;
+.vip-icon {
+  margin: 0 2px;
+  font-size: 12px;
 }
 
 .pager {

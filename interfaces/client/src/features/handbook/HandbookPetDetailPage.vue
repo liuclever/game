@@ -55,14 +55,22 @@ const selectedRealm = computed(() => {
   return realms.value[idx] || realms.value[0] || '地界'
 })
 
+// 资质展示：后端已按“境界”返回一比一的精确值；这里仅做字段兼容（displayValue）即可。
 const displayAptitudes = computed(() => {
   const p = pet.value
   const list = (p && p.max_initial_aptitudes) || []
-  const mp = realmMultipliers.value || {}
-  const mul = Number(mp[selectedRealm.value] || 1.0)
   return list.map((a) => ({
     ...a,
-    displayValue: Math.round(Number(a.value || 0) * mul),
+    displayValue: Number(a.value || 0),
+  }))
+})
+
+const displayMinAptitudes = computed(() => {
+  const p = pet.value
+  const list = (p && p.min_initial_aptitudes) || []
+  return list.map((a) => ({
+    ...a,
+    displayValue: Number(a.value || 0),
   }))
 })
 
@@ -111,7 +119,7 @@ onMounted(() => load())
 
 <template>
   <div class="handbook-detail">
-    <div class="section title">灵武世界</div>
+
 
     <div class="section" v-if="loading">加载中...</div>
     <div class="section red" v-else-if="errorMsg">{{ errorMsg }}</div>
@@ -130,11 +138,13 @@ onMounted(() => load())
       <div class="section">
         进化:
         <span v-for="(r, idx) in realms" :key="r">
-          <span v-if="idx === 0">{{ r }}</span>
-          <span v-else>
-            <span> - </span>
-            <a class="link" :class="{ active: selectedRealm === r }" @click="selectRealm(r, idx)">{{ r }}</a>
-          </span>
+          <span v-if="idx > 0"> - </span>
+          <template v-if="selectedRealm === r">
+            <span>{{ r }}</span>
+          </template>
+          <template v-else>
+            <a class="link" @click="selectRealm(r, idx)">{{ r }}</a>
+          </template>
         </span>
       </div>
       <div class="section">特性:{{ pet.nature || '' }}</div>
@@ -145,6 +155,13 @@ onMounted(() => load())
       <div class="section indent" v-for="a in displayAptitudes" :key="a.key">
         {{ a.label }}:{{ a.displayValue }}({{ starText(a.stars) }})
       </div>
+
+      <template v-if="displayMinAptitudes.length">
+        <div class="section subtitle">最低初始资质（地界）：</div>
+        <div class="section indent" v-for="a in displayMinAptitudes" :key="`min-${a.key}`">
+          {{ a.label }}:{{ a.displayValue }}<span v-if="starText(a.stars)">({{ starText(a.stars) }})</span>
+        </div>
+      </template>
 
       <div class="section">
         全技能:
@@ -166,7 +183,7 @@ onMounted(() => load())
 
 <style scoped>
 .handbook-detail {
-  background: #FFF8DC;
+  background: #ffffff;
   min-height: 100vh;
   padding: 14px 14px;
   font-size: 18px;

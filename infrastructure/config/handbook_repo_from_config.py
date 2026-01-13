@@ -239,4 +239,15 @@ class ConfigHandbookRepo(IHandbookRepo):
             return None
         return self._skills_by_key.get(key)
 
+    def get_doc_text(self) -> List[str]:
+        self._ensure_latest()
+        raw = self._raw or {}
+        lines = raw.get("doc_text") or []
+        if isinstance(lines, list):
+            return [str(x) for x in lines]
+        if isinstance(lines, str):
+            # 兼容：若为单段文本，按行拆分
+            return str(lines).splitlines()
+        return []
+
 

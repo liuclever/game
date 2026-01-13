@@ -39,7 +39,7 @@ onMounted(() => load())
 
 <template>
   <div class="handbook-skill">
-    <div class="section title">灵武世界</div>
+
 
     <div class="section" v-if="loading">加载中...</div>
     <div class="section red" v-else-if="errorMsg">{{ errorMsg }}</div>
@@ -60,7 +60,7 @@ onMounted(() => load())
 
 <style scoped>
 .handbook-skill {
-  background: #FFF8DC;
+  background: #ffffff;
   min-height: 100vh;
   padding: 14px 14px;
   font-size: 18px;

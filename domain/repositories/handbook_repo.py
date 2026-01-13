@@ -39,4 +39,9 @@ class IHandbookRepo(ABC):
         """返回技能详情（用于技能说明页）。"""
         pass
 
+    @abstractmethod
+    def get_doc_text(self) -> List[str]:
+        """返回图鉴说明 doc 的原文（逐行），用于 1:1 同步展示。"""
+        pass
+
 

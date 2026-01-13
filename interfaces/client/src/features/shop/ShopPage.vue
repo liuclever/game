@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import http from '@/services/http'
 
@@ -14,6 +14,9 @@ const gold = ref(0)
 const yuanbao = ref(0)
 const currency = ref('gold')
 const loading = ref(false)
+
+// 道具名称检索（本地过滤，避免增加接口入侵）
+const searchName = ref('')
 
 // 分页
 const currentPage = ref(1)
@@ -52,14 +55,20 @@ const loadItems = async () => {
   }
 }
 
-// 分页计算
+const filteredItems = computed(() => {
+  const key = String(searchName.value || '').trim().toLowerCase()
+  if (!key) return items.value
+  return (items.value || []).filter((it) => String(it?.name || '').toLowerCase().includes(key))
+})
+
+// 分页计算（基于检索后的列表）
 const pagedItems = computed(() => {
   const start = (currentPage.value - 1) * pageSize
-  return items.value.slice(start, start + pageSize)
+  return filteredItems.value.slice(start, start + pageSize)
 })
 
 const totalPages = computed(() => {
-  return Math.max(1, Math.ceil(items.value.length / pageSize))
+  return Math.max(1, Math.ceil(filteredItems.value.length / pageSize))
 })
 
 // 切换分类
@@ -68,6 +77,13 @@ const switchCategory = (key) => {
   currentPage.value = 1
   loadItems()
 }
+
+watch(
+  () => searchName.value,
+  () => {
+    currentPage.value = 1
+  },
+)
 
 // 分页操作
 const nextPage = () => {
@@ -142,6 +158,12 @@ onMounted(() => {
       <div>元宝:{{ yuanbao }}</div>
     </div>
 
+    <!-- 道具检索 -->
+    <div class="search-row">
+      <span>检索:</span>
+      <input class="search-input" v-model="searchName" placeholder="输入道具名称" />
+    </div>
+
     <!-- 商品列表 -->
     <div class="item-list" v-if="!loading">
       <div v-for="item in pagedItems" :key="item.id" class="item-row">
@@ -149,14 +171,14 @@ onMounted(() => {
         <span class="item-price">.{{ item.price }}{{ currency === 'gold' ? '铜钱' : '元宝' }}.</span>
         <a class="link buy-btn" @click="buyItem(item)">购买</a>
       </div>
-      <div v-if="items.length === 0" class="empty">
-        暂无商品
+      <div v-if="filteredItems.length === 0" class="empty">
+        {{ searchName ? '未找到匹配道具' : '暂无商品' }}
       </div>
     </div>
     <div v-else class="loading">加载中...</div>
 
     <!-- 分页 -->
-    <div class="pagination" v-if="items.length > 0">
+    <div class="pagination" v-if="filteredItems.length > 0">
       <a class="link" @click="nextPage">下页</a> 
       <a class="link" @click="prevPage">上页</a> 
       <a class="link" @click="firstPage">首页</a> 
@@ -178,7 +200,7 @@ onMounted(() => {
 
 <style scoped>
 .shop-page {
-  background: #FFF8DC;
+  background: #ffffff;
   min-height: 100vh;
   padding: 8px 12px;
   font-size: 13px;
@@ -212,6 +234,18 @@ onMounted(() => {
 
 .currency-info {
   margin-bottom: 8px;
+}
+
+.search-row {
+  margin-bottom: 8px;
+}
+
+.search-input {
+  width: 140px;
+  margin-left: 6px;
+  font-size: 12px;
+  border: 1px solid #CCCCCC;
+  padding: 1px 6px;
 }
 
 .item-list {

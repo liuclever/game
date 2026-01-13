@@ -16,4 +16,8 @@ export function fetchHandbookSkillDetail(skillKey) {
   return http.get(`/handbook/skills/${skillKey}`)
 }
 
+export function fetchHandbookDoc() {
+  return http.get('/handbook/doc')
+}
+
 

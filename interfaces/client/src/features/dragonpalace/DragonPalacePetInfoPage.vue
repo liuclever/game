@@ -48,7 +48,7 @@ const formatAtkLabel = (enemy) => {
 
 <template>
   <div class="petinfo-page">
-    <div class="section">灵武世界</div>
+    <div class="section">梦炽云召唤之星</div>
 
     <div v-if="loading" class="section">加载中...</div>
     <div v-else-if="errorMsg" class="section red">{{ errorMsg }}</div>
@@ -83,7 +83,7 @@ const formatAtkLabel = (enemy) => {
 
 <style scoped>
 .petinfo-page {
-  background: #FFF8DC;
+  background: #ffffff;
   min-height: 100vh;
   padding: 8px 12px;
   font-size: 13px;

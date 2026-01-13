@@ -3,14 +3,31 @@ from __future__ import annotations
 from typing import Dict, List, Optional
 
 from domain.entities.handbook import HandbookCategory, HandbookPet, HandbookSkill, HandbookSkillInfo
+from domain.repositories.beast_repo import IBeastTemplateRepo
 from domain.repositories.handbook_repo import IHandbookRepo
 
 
 class HandbookService:
     """图鉴用例服务（独立模块，不依赖玩家/背包/数据库）。"""
 
-    def __init__(self, repo: IHandbookRepo):
+    def __init__(self, repo: IHandbookRepo, beast_template_repo: Optional[IBeastTemplateRepo] = None):
         self.repo = repo
+        self.beast_template_repo = beast_template_repo
+
+    def _resolve_image_payload(self, pet: HandbookPet):
+        if not pet.image:
+            return None
+
+        type_ = pet.image.type
+        local_key = pet.image.local_key
+        url = pet.image.url
+
+        if type_ == "local" and self.beast_template_repo:
+            tpl = self.beast_template_repo.get_by_name(pet.name)
+            if tpl:
+                local_key = f"image{tpl.id}"
+
+        return {"type": type_, "local_key": local_key, "url": url}
 
     def get_index(self, pacename: int, page: int = 1, page_size: int = 10) -> Dict:
         """图鉴列表（分页）。
@@ -58,7 +75,7 @@ class HandbookService:
         # 分页由配置决定，允许某些页为空
         return {
             "ok": True,
-            "world_name": "灵武世界",
+            "world_name": "梦炽云召唤之星",
             "title": "【图鉴】",
             "categories": [{"id": c.id, "name": c.name} for c in categories],
             "category_id": category_id,
@@ -69,15 +86,7 @@ class HandbookService:
                 {
                     "id": p.id,
                     "name": p.name,
-                    "image": (
-                        {
-                            "type": p.image.type,
-                            "local_key": p.image.local_key,
-                            "url": p.image.url,
-                        }
-                        if p.image
-                        else None
-                    ),
+                    "image": self._resolve_image_payload(p),
                 }
                 for p in pets
             ],
@@ -117,22 +126,43 @@ class HandbookService:
         evo_i = max(0, min(len(pet_realms) - 1, evo_i)) if pet_realms else 0
         selected_realm = pet_realms[evo_i] if pet_realms else "地界"
 
-        aptitudes = []
-        for k, a in (pet.max_initial_aptitudes or {}).items():
-            aptitudes.append({
-                "key": k,
-                "label": a.label or k,
-                "value": int(a.value or 0),
-                "stars": int(a.stars or 0),
-            })
+        # 资质展示：优先使用 doc 一比一导入的“按境界存储”的精确值（存放在 pet.source 内，避免侵入领域模型）。
+        # 若没有该数据，则回退为旧逻辑（返回地界基础值 + 前端倍率展示）。
+        source = getattr(pet, "source", None) or {}
+        raw_by_realm = {}
+        if isinstance(source, dict):
+            raw_by_realm = source.get("max_initial_aptitudes_by_realm") or {}
 
-        image = None
-        if pet.image:
-            image = {
-                "type": pet.image.type,
-                "local_key": pet.image.local_key,
-                "url": pet.image.url,
-            }
+        selected_raw_apts = None
+        if isinstance(raw_by_realm, dict) and raw_by_realm:
+            selected_raw_apts = raw_by_realm.get(selected_realm)
+            if not selected_raw_apts and pet_realms:
+                selected_raw_apts = raw_by_realm.get(pet_realms[0])
+
+        aptitudes = []
+        if isinstance(selected_raw_apts, dict) and selected_raw_apts:
+            for k, a in selected_raw_apts.items():
+                if not isinstance(a, dict):
+                    continue
+                try:
+                    aptitudes.append({
+                        "key": k,
+                        "label": str(a.get("label") or k),
+                        "value": int(a.get("value") or 0),
+                        "stars": int(a.get("stars") or 0),
+                    })
+                except Exception:
+                    continue
+        else:
+            for k, a in (pet.max_initial_aptitudes or {}).items():
+                aptitudes.append({
+                    "key": k,
+                    "label": a.label or k,
+                    "value": int(a.value or 0),
+                    "stars": int(a.stars or 0),
+                })
+
+        image = self._resolve_image_payload(pet)
 
         skills = []
         for s in (pet.skills or []):
@@ -144,6 +174,24 @@ class HandbookService:
                     skills.append({"name": str(s), "key": ""})
                 except Exception:
                     continue
+
+        # 最低资质（地界）：来自 doc（二）章节，若配置存在则一并返回
+        min_list = []
+        if isinstance(source, dict):
+            raw_min = source.get("min_initial_aptitudes") or {}
+            if isinstance(raw_min, dict):
+                for k, a in raw_min.items():
+                    if not isinstance(a, dict):
+                        continue
+                    try:
+                        min_list.append({
+                            "key": k,
+                            "label": str(a.get("label") or k),
+                            "value": int(a.get("value") or 0),
+                            "stars": int(a.get("stars") or 0),
+                        })
+                    except Exception:
+                        continue
 
         return {
             "ok": True,
@@ -163,6 +211,7 @@ class HandbookService:
                 "rarity": pet.rarity,
                 "location": pet.location,
                 "max_initial_aptitudes": aptitudes,
+                "min_initial_aptitudes": min_list,
                 "skills": skills,
                 "image": image,
             },
@@ -183,6 +232,15 @@ class HandbookService:
                 "name": info.name,
                 "desc": info.desc,
             },
+        }
+
+    def get_doc(self) -> Dict:
+        """图鉴说明（doc 原文逐行返回，用于 1:1 同步展示）。"""
+        lines = self.repo.get_doc_text() or []
+        return {
+            "ok": True,
+            "title": "【图鉴说明】",
+            "lines": list(lines),
         }
 
 

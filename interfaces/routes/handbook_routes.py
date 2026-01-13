@@ -33,3 +33,10 @@ def handbook_skill_detail(skill_key: str):
     return jsonify(result), status
 
 
+@handbook_bp.get("/doc")
+def handbook_doc():
+    """图鉴说明（doc 原文，用于 1:1 同步展示）。"""
+    result = services.handbook_service.get_doc()
+    return jsonify(result)
+
+

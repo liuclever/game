@@ -88,7 +88,7 @@ const goDetail = (petId) => {
   router.push({ path: `/handbook/pet/${petId}`, query: { evolution: 0 } })
 }
 
-// 图鉴简介入口（仅模仿文案，不依赖外站）
+// 图鉴说明入口：展示 doc 原文（1:1 同步）
 const goIntro = () => router.push('/handbook/intro')
 
 const goHome = () => router.push('/')
@@ -105,7 +105,7 @@ onMounted(() => load())
   <div class="handbook-page">
     <div class="section title title-row">
       <span>{{ worldTitle }}</span>
-      <a class="link intro-link" @click="goIntro">简介</a>
+      <a class="link intro-link" @click="goIntro">说明</a>
     </div>
 
     <div class="section" v-if="loading">加载中...</div>
@@ -148,7 +148,7 @@ onMounted(() => load())
 
 <style scoped>
 .handbook-page {
-  background: #FFF8DC;
+  background: #ffffff;
   min-height: 100vh;
   padding: 14px 14px;
   font-size: 18px;

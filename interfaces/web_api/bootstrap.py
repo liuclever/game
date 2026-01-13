@@ -1,4 +1,4 @@
-﻿# interfaces/web_api/bootstrap.py
+# interfaces/web_api/bootstrap.py
 """
 服务依赖初始化（依赖注入容器）
 所有服务实例在此创建，供路由模块使用
@@ -269,7 +269,7 @@ class ServiceContainer:
         )
 
         # 图鉴（独立模块）
-        self.handbook_service = HandbookService(repo=self.handbook_repo)
+        self.handbook_service = HandbookService(repo=self.handbook_repo, beast_template_repo=self.beast_template_repo)
         
         # 世界聊天服务
         self.world_chat_service = WorldChatService(
