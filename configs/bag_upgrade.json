@@ -1,0 +1,93 @@
+{
+  "description": "背包升级配置",
+  "base_capacity": 100,
+  "capacity_per_level": 40,
+  "max_level": 10,
+  "max_stack_per_slot": 99,
+  "bag_names": {
+    "1": "初始小包",
+    "2": "初始背包",
+    "3": "魔纹小包",
+    "4": "魔纹背包",
+    "5": "飞龙小包",
+    "6": "飞龙背包",
+    "7": "巨龙小包",
+    "8": "巨龙背包",
+    "9": "圣龙小包",
+    "10": "圣龙背包"
+  },
+  "upgrade_costs": [
+    {
+      "level": 2,
+      "required_player_level": 10,
+      "materials": [
+        { "item_id": 6022, "name": "魔纹布", "quantity": 4 },
+        { "item_id": 6023, "name": "丝线", "quantity": 4 }
+      ]
+    },
+    {
+      "level": 3,
+      "required_player_level": 20,
+      "materials": [
+        { "item_id": 6022, "name": "魔纹布", "quantity": 8 },
+        { "item_id": 6023, "name": "丝线", "quantity": 8 }
+      ]
+    },
+    {
+      "level": 4,
+      "required_player_level": 30,
+      "materials": [
+        { "item_id": 6022, "name": "魔纹布", "quantity": 12 },
+        { "item_id": 6023, "name": "丝线", "quantity": 16 }
+      ]
+    },
+    {
+      "level": 5,
+      "required_player_level": 40,
+      "materials": [
+        { "item_id": 6022, "name": "魔纹布", "quantity": 16 },
+        { "item_id": 6023, "name": "丝线", "quantity": 28 }
+      ]
+    },
+    {
+      "level": 6,
+      "required_player_level": 50,
+      "materials": [
+        { "item_id": 6022, "name": "魔纹布", "quantity": 20 },
+        { "item_id": 6023, "name": "丝线", "quantity": 44 }
+      ]
+    },
+    {
+      "level": 7,
+      "required_player_level": 60,
+      "materials": [
+        { "item_id": 6022, "name": "魔纹布", "quantity": 24 },
+        { "item_id": 6023, "name": "丝线", "quantity": 64 }
+      ]
+    },
+    {
+      "level": 8,
+      "required_player_level": 70,
+      "materials": [
+        { "item_id": 6022, "name": "魔纹布", "quantity": 30 },
+        { "item_id": 6023, "name": "丝线", "quantity": 88 }
+      ]
+    },
+    {
+      "level": 9,
+      "required_player_level": 80,
+      "materials": [
+        { "item_id": 6022, "name": "魔纹布", "quantity": 36 },
+        { "item_id": 6023, "name": "丝线", "quantity": 116 }
+      ]
+    },
+    {
+      "level": 10,
+      "required_player_level": 90,
+      "materials": [
+        { "item_id": 6022, "name": "魔纹布", "quantity": 42 },
+        { "item_id": 6023, "name": "丝线", "quantity": 146 }
+      ]
+    }
+  ]
+}

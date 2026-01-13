@@ -1,0 +1,81 @@
+{
+  "title": "龙宫之谜",
+  "open_time": {
+    "start": "10:00",
+    "end": "24:00"
+  },
+  "reset_cost_yuanbao": 200,
+  "max_resets_per_day": 2,
+  "stages": [
+    {
+      "stage": 1,
+      "recommend_level": 30,
+      "name": "海龙门",
+      "enemies": [
+        {
+          "name": "龙虾化石",
+          "level": 30,
+          "attack_type": "magic",
+          "power": 943,
+          "stats": { "hp": 2612, "atk": 1919, "def": 816, "mdef": 1065, "speed": 198 },
+          "skills": ["高级反震", "高级防御", "抗性增强", "弱点敏捷"]
+        },
+        {
+          "name": "螃蟹化石",
+          "level": 30,
+          "attack_type": "magic",
+          "power": 943,
+          "stats": { "hp": 2612, "atk": 1919, "def": 816, "mdef": 1065, "speed": 198 },
+          "skills": ["雷击", "闪避", "敏捷", "抗性增强"]
+        }
+      ]
+    },
+    {
+      "stage": 2,
+      "recommend_level": 50,
+      "name": "龙宫城",
+      "enemies": [
+        {
+          "name": "小龙女",
+          "level": 50,
+          "attack_type": "magic",
+          "power": 3372,
+          "stats": { "hp": 7295, "atk": 5690, "def": 2663, "mdef": 3495, "speed": 826 },
+          "skills": ["高级雷击", "高级反击", "连击", "弱点魔抗"]
+        },
+        {
+          "name": "龙太子",
+          "level": 50,
+          "attack_type": "physical",
+          "power": 3372,
+          "stats": { "hp": 7295, "atk": 5690, "def": 3495, "mdef": 2663, "speed": 826 },
+          "skills": ["高级连击", "高级撕咬", "高级闪避", "偷袭"]
+        }
+      ]
+    },
+    {
+      "stage": 3,
+      "recommend_level": 70,
+      "name": "龙殿",
+      "enemies": [
+        {
+          "name": "海龙王",
+          "level": 70,
+          "attack_type": "magic",
+          "power": 9284,
+          "stats": { "hp": 25516, "atk": 18962, "def": 7939, "mdef": 10436, "speed": 1980 },
+          "skills": ["高级水攻", "幸运", "致盲", "智慧"]
+        }
+      ]
+    }
+  ],
+  "reward_box": {
+    "items": [
+      { "item_id": 3012, "name": "进化神草", "weight": 20 },
+      { "item_id": 3014, "name": "进化圣水晶", "weight": 10 },
+      { "item_id": 3013, "name": "进化碎片", "weight": 70 }
+    ]
+  }
+}
+
+

@@ -1,0 +1,314 @@
+{
+  "description": "地图副本配置 - 定义每个副本可捕捉的幻兽",
+  "beast_types": {
+    "normal": "普通幻兽",
+    "elite": "精英幻兽",
+    "boss": "首领幻兽"
+  },
+  "dungeons": [
+    {
+      "id": 1,
+      "name": "森林入口",
+      "map_id": 1,
+      "map_name": "林中空地",
+      "min_level": 1,
+      "max_level": 3,
+      "description": "森林的入口，适合新手冒险者",
+      "beasts": [
+        {
+          "template_id": 1,
+          "name": "小黑鼠",
+          "type": "normal",
+          "capture_rate": 0.15,
+          "available_realms": ["地界", "灵界"],
+          "realm_weights": {"地界": 70, "灵界": 30}
+        },
+        {
+          "template_id": 2,
+          "name": "大黄蜂",
+          "type": "normal",
+          "capture_rate": 0.15,
+          "available_realms": ["地界", "灵界"],
+          "realm_weights": {"地界": 70, "灵界": 30}
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "宁静之森",
+      "map_id": 1,
+      "map_name": "林中空地",
+      "min_level": 4,
+      "max_level": 6,
+      "description": "宁静的森林深处，偶尔能遇到精英幻兽",
+      "beasts": [
+        {
+          "template_id": 1,
+          "name": "小黑鼠",
+          "type": "normal",
+          "capture_rate": 0.12,
+          "available_realms": ["地界", "灵界"],
+          "realm_weights": {"地界": 60, "灵界": 40}
+        },
+        {
+          "template_id": 2,
+          "name": "大黄蜂",
+          "type": "normal",
+          "capture_rate": 0.12,
+          "available_realms": ["地界", "灵界"],
+          "realm_weights": {"地界": 60, "灵界": 40}
+        },
+        {
+          "template_id": 3,
+          "name": "血螳螂",
+          "type": "elite",
+          "capture_rate": 0.08,
+          "available_realms": ["地界", "灵界"],
+          "realm_weights": {"地界": 70, "灵界": 30}
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "name": "森林秘境",
+      "map_id": 1,
+      "map_name": "林中空地",
+      "min_level": 5,
+      "max_level": 9,
+      "beasts": [
+        {"template_id": 1, "name": "小黑鼠", "type": "normal", "available_realms": ["地界", "灵界"]},
+        {"template_id": 2, "name": "大黄蜂", "type": "normal", "available_realms": ["地界", "灵界"]},
+        {"template_id": 3, "name": "血螳螂", "type": "elite", "available_realms": ["地界", "灵界"]}
+      ]
+    },
+    {
+      "id": 4,
+      "name": "呼啸平原",
+      "map_id": 2,
+      "map_name": "幻灵镇",
+      "min_level": 10,
+      "max_level": 14,
+      "beasts": [
+        {"template_id": 4, "name": "獠牙猪", "type": "normal", "available_realms": ["地界", "灵界"]},
+        {"template_id": 5, "name": "毒毛虫", "type": "normal", "available_realms": ["地界", "灵界"]},
+        {"template_id": 6, "name": "追风狼", "type": "elite", "available_realms": ["地界", "灵界"]}
+      ]
+    },
+    {
+      "id": 5,
+      "name": "天罚山",
+      "map_id": 2,
+      "map_name": "幻灵镇",
+      "min_level": 15,
+      "max_level": 19,
+      "beasts": [
+        {"template_id": 7, "name": "怒冠鸟", "type": "normal", "available_realms": ["地界", "灵界"]},
+        {"template_id": 8, "name": "黑灵鸟", "type": "normal", "available_realms": ["地界", "灵界"]},
+        {"template_id": 9, "name": "羽精灵", "type": "elite", "available_realms": ["地界", "灵界"]}
+      ]
+    },
+    {
+      "id": 6,
+      "name": "石工矿场",
+      "map_id": 3,
+      "map_name": "定老城",
+      "min_level": 20,
+      "max_level": 24,
+      "beasts": [
+        {"template_id": 10, "name": "吞岩兽", "type": "normal", "available_realms": ["地界", "灵界"]},
+        {"template_id": 11, "name": "大嘴蛇", "type": "normal", "available_realms": ["地界", "灵界"]},
+        {"template_id": 12, "name": "弑魂蚁", "type": "normal", "available_realms": ["地界", "灵界"]},
+        {"template_id": 13, "name": "采矿猴", "type": "elite", "available_realms": ["地界", "灵界", "神界"]}
+      ]
+    },
+    {
+      "id": 7,
+      "name": "幻灵湖畔",
+      "map_id": 3,
+      "map_name": "定老城",
+      "min_level": 24,
+      "max_level": 29,
+      "beasts": [
+        {"template_id": 14, "name": "水草兽", "type": "normal", "available_realms": ["地界", "灵界"]},
+        {"template_id": 15, "name": "巨齿鳄", "type": "normal", "available_realms": ["地界", "灵界"]},
+        {"template_id": 16, "name": "蓝灵鱼", "type": "normal", "available_realms": ["地界", "灵界"]},
+        {"template_id": 17, "name": "厚甲龟", "type": "elite", "available_realms": ["地界", "灵界", "神界"]}
+      ]
+    },
+    {
+      "id": 8,
+      "name": "回音之谷",
+      "map_id": 4,
+      "map_name": "迷雾城",
+      "min_level": 30,
+      "max_level": 34,
+      "beasts": [
+        {"template_id": 18, "name": "荒原豹", "type": "normal", "available_realms": ["地界", "灵界"]},
+        {"template_id": 19, "name": "苍山鹫", "type": "normal", "available_realms": ["地界", "灵界"]},
+        {"template_id": 20, "name": "血蝙蝠", "type": "normal", "available_realms": ["地界", "灵界"]},
+        {"template_id": 21, "name": "雷翼雕", "type": "elite", "available_realms": ["地界", "灵界", "神界"]}
+      ]
+    },
+    {
+      "id": 9,
+      "name": "死亡沼泽",
+      "map_id": 4,
+      "map_name": "迷雾城",
+      "min_level": 35,
+      "max_level": 39,
+      "beasts": [
+        {"template_id": 22, "name": "巨甲虫", "type": "normal", "available_realms": ["地界", "灵界"]},
+        {"template_id": 23, "name": "沼泽蛙", "type": "normal", "available_realms": ["地界", "灵界"]},
+        {"template_id": 24, "name": "水蜥蜴", "type": "normal", "available_realms": ["地界", "灵界"]},
+        {"template_id": 25, "name": "紫雾虫", "type": "elite", "available_realms": ["地界", "灵界", "神界"]}
+      ]
+    },
+    {
+      "id": 10,
+      "name": "日落海峡",
+      "map_id": 5,
+      "map_name": "飞龙港",
+      "min_level": 40,
+      "max_level": 44,
+      "beasts": [
+        {"template_id": 26, "name": "落日豚", "type": "normal", "available_realms": ["地界", "灵界"]},
+        {"template_id": 27, "name": "双吻鱼", "type": "normal", "available_realms": ["地界", "灵界"]},
+        {"template_id": 28, "name": "大钳蟹", "type": "normal", "available_realms": ["地界", "灵界"]},
+        {"template_id": 29, "name": "海龙鱼", "type": "elite", "available_realms": ["地界", "灵界", "神界"]}
+      ]
+    },
+    {
+      "id": 11,
+      "name": "聚灵孤岛",
+      "map_id": 5,
+      "map_name": "飞龙港",
+      "min_level": 45,
+      "max_level": 49,
+      "beasts": [
+        {"template_id": 30, "name": "飞泪蝶", "type": "normal", "available_realms": ["地界", "灵界"]},
+        {"template_id": 31, "name": "风雷蛛", "type": "normal", "available_realms": ["地界", "灵界"]},
+        {"template_id": 32, "name": "幻灵狐", "type": "normal", "available_realms": ["地界", "灵界"]},
+        {"template_id": 33, "name": "落魂兽", "type": "elite", "available_realms": ["地界", "灵界", "神界"]}
+      ]
+    },
+    {
+      "id": 12,
+      "name": "龙骨墓地",
+      "map_id": 6,
+      "map_name": "落龙镇",
+      "min_level": 50,
+      "max_level": 54,
+      "beasts": [
+        {"template_id": 34, "name": "蚀骨狼", "type": "normal", "available_realms": ["地界", "灵界"]},
+        {"template_id": 35, "name": "巡游使", "type": "normal", "available_realms": ["地界", "灵界"]},
+        {"template_id": 36, "name": "半龙羽", "type": "normal", "available_realms": ["地界", "灵界"]},
+        {"template_id": 37, "name": "龙翼兽", "type": "elite", "available_realms": ["地界", "灵界", "神界"]}
+      ]
+    },
+    {
+      "id": 13,
+      "name": "巨龙冰原",
+      "map_id": 6,
+      "map_name": "落龙镇",
+      "min_level": 55,
+      "max_level": 59,
+      "beasts": [
+        {"template_id": 38, "name": "雪人怪", "type": "normal", "available_realms": ["地界", "灵界"]},
+        {"template_id": 39, "name": "冰晶猶", "type": "normal", "available_realms": ["地界", "灵界"]},
+        {"template_id": 40, "name": "噬天虎", "type": "normal", "available_realms": ["地界", "灵界"]},
+        {"template_id": 41, "name": "龙魂龟", "type": "elite", "available_realms": ["地界", "灵界", "神界"]}
+      ]
+    },
+    {
+      "id": 14,
+      "name": "圣龙城郊",
+      "map_id": 7,
+      "map_name": "圣龙城",
+      "min_level": 60,
+      "max_level": 64,
+      "beasts": [
+        {"template_id": 42, "name": "双头雕", "type": "normal", "available_realms": ["地界", "灵界"]},
+        {"template_id": 43, "name": "黑灵虎", "type": "normal", "available_realms": ["地界", "灵界"]},
+        {"template_id": 44, "name": "金甲虫", "type": "normal", "available_realms": ["地界", "灵界"]},
+        {"template_id": 45, "name": "巨盾兽", "type": "elite", "available_realms": ["地界", "灵界", "神界"]}
+      ]
+    },
+    {
+      "id": 15,
+      "name": "皇城迷宫",
+      "map_id": 7,
+      "map_name": "圣龙城",
+      "min_level": 65,
+      "max_level": 69,
+      "beasts": [
+        {"template_id": 46, "name": "幽冥蚁", "type": "normal", "available_realms": ["地界", "灵界"]},
+        {"template_id": 47, "name": "半人鱼", "type": "normal", "available_realms": ["地界", "灵界"]},
+        {"template_id": 48, "name": "龙吼鸟", "type": "normal", "available_realms": ["地界", "灵界"]},
+        {"template_id": 49, "name": "圣晶怪", "type": "elite", "available_realms": ["地界", "灵界", "神界"]}
+      ]
+    },
+    {
+      "id": 16,
+      "name": "梦幻海湾",
+      "map_id": 8,
+      "map_name": "乌托邦",
+      "min_level": 70,
+      "max_level": 74,
+      "beasts": [
+        {"template_id": 50, "name": "逐浪鲨", "type": "normal", "available_realms": ["地界", "灵界"]},
+        {"template_id": 51, "name": "啸海螺", "type": "normal", "available_realms": ["地界", "灵界"]},
+        {"template_id": 52, "name": "软泥虫", "type": "normal", "available_realms": ["地界", "灵界"]},
+        {"template_id": 53, "name": "浴火龟", "type": "elite", "available_realms": ["地界", "灵界", "神界"]}
+      ]
+    },
+    {
+      "id": 17,
+      "name": "幻光公园",
+      "map_id": 8,
+      "map_name": "乌托邦",
+      "min_level": 75,
+      "max_level": 79,
+      "beasts": [
+        {"template_id": 54, "name": "幻光兔", "type": "normal", "available_realms": ["地界", "灵界"]},
+        {"template_id": 55, "name": "飞翼蛇", "type": "normal", "available_realms": ["地界", "灵界"]},
+        {"template_id": 56, "name": "九霄鹰", "type": "normal", "available_realms": ["地界", "灵界"]},
+        {"template_id": 57, "name": "圣灵蚁", "type": "elite", "available_realms": ["地界", "灵界", "神界"]}
+      ]
+    }
+  ],
+  "capture_rules": {
+    "description": "捕捉规则说明",
+    "notes": [
+      "普通幻兽在所有副本出现",
+      "精英幻兽仅在特定副本出现",
+      "神兽只能通过神·逆鳞兑换获得"
+    ]
+  },
+  "divine_beast_exchange": {
+    "description": "神兽兑换配置 - 通过神·逆鳞兑换神兽召唤球",
+    "currency": "神·逆鳞",
+    "notes": [
+      "神兽境界最高到天界",
+      "打开召唤球后获得地界神兽"
+    ],
+    "beasts": [
+      {"template_id": 58, "name": "神·罗刹", "summon_ball": "神·罗刹召唤球", "cost": 6, "min_player_level": 30},
+      {"template_id": 59, "name": "神·不死鸟", "summon_ball": "神·不死鸟召唤球", "cost": 4, "min_player_level": 40},
+      {"template_id": 60, "name": "神·白虎", "summon_ball": "神·白虎召唤球", "cost": 6, "min_player_level": 40},
+      {"template_id": 61, "name": "神·绝影", "summon_ball": "神·绝影召唤球", "cost": 8, "min_player_level": 50},
+      {"template_id": 62, "name": "神·朱雀", "summon_ball": "神·朱雀召唤球", "cost": 10, "min_player_level": 60},
+      {"template_id": 63, "name": "神·玄武", "summon_ball": "神·玄武召唤球", "cost": 10, "min_player_level": 70},
+      {"template_id": 64, "name": "神·青龙", "summon_ball": "神·青龙召唤球", "cost": 12, "min_player_level": 70}
+    ]
+  },
+  "maps": [
+    {"id": 1, "name": "林中空地", "level_range": "1-9级"},
+    {"id": 2, "name": "幻灵镇", "level_range": "10-19级"},
+    {"id": 3, "name": "定老城", "level_range": "20-29级"},
+    {"id": 4, "name": "迷雾城", "level_range": "30-39级"},
+    {"id": 5, "name": "飞龙港", "level_range": "40-49级"},
+    {"id": 6, "name": "落龙镇", "level_range": "50-59级"},
+    {"id": 7, "name": "圣龙城", "level_range": "60-69级"},
+    {"id": 8, "name": "乌托邦", "level_range": "70-79级"}
+  ]
+}
