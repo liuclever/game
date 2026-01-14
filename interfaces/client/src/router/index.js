@@ -156,6 +156,7 @@ import DragonPalaceRewardPage from '@/features/dragonpalace/DragonPalaceRewardPa
 import DragonPalaceGiftOpenPage from '@/features/dragonpalace/DragonPalaceGiftOpenPage.vue'
 import DragonPalacePetInfoPage from '@/features/dragonpalace/DragonPalacePetInfoPage.vue'
 import AnnouncementDetailPage from '@/features/announcement/AnnouncementDetailPage.vue'
+import LotteryResultPage from '@/features/announcement/LotteryResultPage.vue'
 
 const routes = [
   {
@@ -167,6 +168,11 @@ const routes = [
     path: '/announcement/:id',
     name: 'AnnouncementDetail',
     component: AnnouncementDetailPage,
+  },
+  {
+    path: '/announcement/lottery-result',
+    name: 'LotteryResult',
+    component: LotteryResultPage,
   },
   {
     path: '/handbook',

@@ -185,9 +185,12 @@ const doLottery = async (drawType) => {
       lotteryData.value.drawCount = res.data.draw_count || 0
       lotteryData.value.yuanbao = res.data.yuanbao || 0
       
-      // 显示抽奖结果
-      const rewardNames = lotteryData.value.rewards.map(r => r.name).join('、')
-      alert(`抽奖成功！获得：${rewardNames}`)
+      // 保存结果到sessionStorage，跳转到结果页面
+      sessionStorage.setItem('lottery_result', JSON.stringify({
+        rewards: lotteryData.value.rewards,
+        drawType: drawType
+      }))
+      router.push('/announcement/lottery-result')
     } else {
       console.log('抽奖失败:', res?.data)
       alert(res?.data?.error || '抽奖失败')
@@ -524,9 +527,6 @@ watch(() => route.params.id, () => {
         <div class="section">
           累计抽奖：<span class="bold">{{ lotteryData.drawCount }}</span>次，碎片数量：<span class="purple bold">{{ lotteryData.fragmentCount }}</span>
         </div>
-        <div class="section">
-          本轮进度：<span>{{ lotteryData.roundCount }}/10</span>（每10抽必出碎片）
-        </div>
         
         <!-- 抽奖操作 -->
         <div class="section">
@@ -536,20 +536,6 @@ watch(() => route.params.id, () => {
           ｜
           <a class="link" @click="doLottery('ten')" v-if="!lotteryData.drawing">十连（5000元宝）</a>
           <span class="gray" v-else>十连（5000元宝）</span>
-        </div>
-        
-        <!-- 抽奖结果 -->
-        <div v-if="lotteryData.rewards.length" class="section">
-          <span class="bold">抽奖结果：</span>
-          <span v-for="(reward, idx) in lotteryData.rewards" :key="idx">
-            {{ reward.name }}<span v-if="idx < lotteryData.rewards.length - 1">、</span>
-          </span>
-        </div>
-        
-        <!-- 规则说明 -->
-        <div class="section subtitle">抽奖规则：</div>
-        <div v-for="(rule, idx) in announcement.rules" :key="idx" class="section indent">
-          {{ idx + 1 }}. {{ rule }}
         </div>
         
         <!-- 碎片兑换 -->
@@ -683,9 +669,9 @@ watch(() => route.params.id, () => {
 .announcement-detail-page {
   background: #ffffff;
   min-height: 100vh;
-  padding: 8px 12px;
-  font-size: 13px;
-  line-height: 1.6;
+  padding: 12px 16px;
+  font-size: 16px;
+  line-height: 1.8;
   font-family: SimSun, "宋体", serif;
 }
 

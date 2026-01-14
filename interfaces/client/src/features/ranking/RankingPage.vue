@@ -362,10 +362,12 @@ watch(
 
 <style scoped>
 .ranking-page {
-  padding: 10px;
-  font-size: 14px;
   background: #ffffff;
   min-height: 100vh;
+  padding: 12px 16px;
+  font-size: 16px;
+  line-height: 1.8;
+  font-family: SimSun, "宋体", serif;
 }
 
 .section {

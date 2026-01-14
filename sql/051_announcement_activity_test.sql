@@ -88,7 +88,7 @@ WHERE user_id = @test_user_id;
 -- 为战力榜测试创建不同等级段的玩家数据
 -- 29级段玩家（20-29级）
 INSERT IGNORE INTO player (user_id, nickname, level, exp, gold, yuanbao, silver_diamond) VALUES
-(20051, '测试玩家A', 25, 0, 100000, 10000, 100),
+(20052, '测试玩家A', 25, 0, 100000, 10000, 100),
 (1002, '测试玩家B', 28, 0, 100000, 10000, 100),
 (4057, '测试玩家C', 29, 0, 100000, 10000, 100);
 
@@ -110,8 +110,8 @@ INSERT IGNORE INTO player (user_id, nickname, level, exp, gold, yuanbao, silver_
 -- 为测试玩家添加幻兽（用于战力计算）
 -- 幻兽战力 = combat_power 字段
 INSERT IGNORE INTO player_beast (user_id, name, realm, level, nature, hp, physical_attack, magic_attack, physical_defense, magic_defense, speed, combat_power, is_in_team, team_position) VALUES
--- 20051的幻兽
-(20051, '火焰龙', '天界', 25, '物系', 1000, 200, 100, 150, 100, 120, 50000, 1, 1),
+-- 20052的幻兽
+(20052, '火焰龙', '天界', 25, '物系', 1000, 200, 100, 150, 100, 120, 50000, 1, 1),
 -- 1002的幻兽
 (1002, '冰霜凤凰', '天界', 28, '法系', 900, 100, 250, 100, 150, 150, 60000, 1, 1),
 -- 4057的幻兽
@@ -156,5 +156,5 @@ DEALLOCATE PREPARE stmt;
 
 SELECT '开服活动数据表创建完成！' AS message;
 SELECT CONCAT('已为用户ID=', @test_user_id, ' 添加测试资源：10万元宝、500宝石') AS message;
-SELECT '已创建9个测试玩家(ID: 20051-1009)用于战力榜测试' AS message;
+SELECT '已创建9个测试玩家(ID: 20052-1009)用于战力榜测试' AS message;
 

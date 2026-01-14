@@ -191,11 +191,11 @@ const submit = () => {
 
 <style scoped>
 .login-page {
-  background: #FFF8DC;
+  background: #ffffff;
   min-height: 100vh;
-  padding: 8px 12px;
-  font-size: 13px;
-  line-height: 1.6;
+  padding: 12px 16px;
+  font-size: 16px;
+  line-height: 1.8;
   font-family: SimSun, "宋体", serif;
 }
 
@@ -248,15 +248,15 @@ const submit = () => {
 }
 
 .form-input {
-  width: 150px;
-  padding: 4px 8px;
-  font-size: 13px;
+  width: 180px;
+  padding: 6px 10px;
+  font-size: 16px;
   border: 1px solid #CCCCCC;
 }
 
 .submit-btn {
-  padding: 6px 24px;
-  font-size: 13px;
+  padding: 8px 28px;
+  font-size: 16px;
   background: #0066CC;
   color: white;
   border: none;

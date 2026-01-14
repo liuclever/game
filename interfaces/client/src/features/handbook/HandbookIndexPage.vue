@@ -150,8 +150,8 @@ onMounted(() => load())
 .handbook-page {
   background: #ffffff;
   min-height: 100vh;
-  padding: 14px 14px;
-  font-size: 18px;
+  padding: 12px 16px;
+  font-size: 16px;
   line-height: 1.8;
   font-family: SimSun, "宋体", serif;
 }
@@ -199,7 +199,7 @@ onMounted(() => load())
 }
 
 .pet-name {
-  font-size: 18px;
+  font-size: 16px;
 }
 
 .link {
@@ -222,14 +222,14 @@ onMounted(() => load())
 }
 
 .page-input {
-  width: 56px;
+  width: 50px;
   margin: 0 8px;
-  font-size: 16px;
+  font-size: 14px;
 }
 
 .btn {
   padding: 4px 10px;
-  font-size: 16px;
+  font-size: 14px;
 }
 
 .red {
