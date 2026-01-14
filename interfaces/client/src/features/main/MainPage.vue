@@ -6,6 +6,37 @@ import ChatPanel from '@/features/lobby/components/ChatPanel.vue'
 
 const router = useRouter()
 
+// 公告列表
+const announcements = ref([])
+const loadingAnnouncements = ref(true)
+
+// 加载公告
+const loadAnnouncements = async () => {
+  loadingAnnouncements.value = true
+  try {
+    const response = await fetch('/configs/announcements.json')
+    if (response.ok) {
+      const data = await response.json()
+      // 过滤当前有效的公告（在活动时间内）
+      const now = new Date()
+      announcements.value = (data.announcements || []).filter(a => {
+        const start = new Date(a.start_time)
+        const end = new Date(a.end_time)
+        return now >= start && now <= end
+      })
+    }
+  } catch (e) {
+    console.error('加载公告失败', e)
+  } finally {
+    loadingAnnouncements.value = false
+  }
+}
+
+// 跳转到公告详情
+const goAnnouncementDetail = (id) => {
+  router.push(`/announcement/${id}`)
+}
+
 // 登录状态
 const isLoggedIn = ref(false)
 const currentUser = ref(null)
@@ -378,6 +409,7 @@ const doLevelup = async () => {
 
 onMounted(() => {
   checkAuth()
+  loadAnnouncements()
 })
 
 onUnmounted(() => {
@@ -560,6 +592,19 @@ const handleLink = (name) => {
 
 <template>
   <div class="main-page">
+    <!-- 公告列表 -->
+    <div class="announcement-list" v-if="announcements.length > 0">
+      <div 
+        v-for="ann in announcements" 
+        :key="ann.id" 
+        class="announcement-item"
+        @click="goAnnouncementDetail(ann.id)"
+      >
+        <span class="ann-new">[新]</span>
+        <span class="ann-title">{{ ann.title }}</span>
+      </div>
+    </div>
+    
     <!-- 欢迎区 -->
     <div class="section" v-if="isLoggedIn && currentUser">
       欢迎您，<a class="link username" @click="goPlayerHome(currentUser.id)">{{ currentUser.nickname }}</a>
@@ -727,6 +772,36 @@ const handleLink = (name) => {
   font-size: 13px;
   line-height: 1.6;
   font-family: SimSun, "宋体", serif;
+}
+
+.announcement-list {
+  margin-bottom: 8px;
+  border-bottom: 1px dashed #CCCCCC;
+  padding-bottom: 6px;
+}
+
+.announcement-item {
+  margin: 2px 0;
+  cursor: pointer;
+}
+
+.announcement-item:hover {
+  background: #F5F5F5;
+}
+
+.ann-new {
+  color: #CC0000;
+  font-weight: bold;
+  margin-right: 4px;
+}
+
+.ann-title {
+  color: #0066CC;
+  cursor: pointer;
+}
+
+.ann-title:hover {
+  text-decoration: underline;
 }
 
 .section {

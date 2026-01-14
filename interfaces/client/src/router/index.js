@@ -155,12 +155,18 @@ import DragonPalaceDetailReportPage from '@/features/dragonpalace/DragonPalaceDe
 import DragonPalaceRewardPage from '@/features/dragonpalace/DragonPalaceRewardPage.vue'
 import DragonPalaceGiftOpenPage from '@/features/dragonpalace/DragonPalaceGiftOpenPage.vue'
 import DragonPalacePetInfoPage from '@/features/dragonpalace/DragonPalacePetInfoPage.vue'
+import AnnouncementDetailPage from '@/features/announcement/AnnouncementDetailPage.vue'
 
 const routes = [
   {
     path: '/',
     name: 'Home',
     component: MainPage,
+  },
+  {
+    path: '/announcement/:id',
+    name: 'AnnouncementDetail',
+    component: AnnouncementDetailPage,
   },
   {
     path: '/handbook',

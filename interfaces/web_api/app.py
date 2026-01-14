@@ -62,6 +62,7 @@ from interfaces.routes.arena_streak_routes import arena_streak_bp
 from interfaces.routes.world_chat_routes import world_chat_bp
 from interfaces.routes.dynamics_routes import dynamics_bp
 from interfaces.routes.mail_routes import mail_bp
+from interfaces.routes.announcement_routes import announcement_bp
 
 app.register_blueprint(auth_bp)
 app.register_blueprint(player_bp)
@@ -98,6 +99,7 @@ app.register_blueprint(arena_streak_bp)
 app.register_blueprint(world_chat_bp)
 app.register_blueprint(dynamics_bp)
 app.register_blueprint(mail_bp)
+app.register_blueprint(announcement_bp)
 
 
 # ===== 以下为旧接口，暂时保留兼容 =====

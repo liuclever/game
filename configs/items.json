@@ -488,8 +488,14 @@
   {"id": 92001, "name": "试炼宝箱", "type": "consumable", "description": "镇妖试炼层到期奖励宝箱", "stackable": true, "max_stack": 99, "use_effect": "zhenyao_trial_chest"},
   {"id": 92002, "name": "炼狱宝箱", "type": "consumable", "description": "镇妖炼狱层到期奖励宝箱", "stackable": true, "max_stack": 99, "use_effect": "zhenyao_hell_chest"},
   {"id": 93001, "name": "龙宫之谜探索礼包", "type": "consumable", "description": "龙宫之谜通关奖励礼包（打开可获得幻兽进化材料与铜钱）", "stackable": true, "max_stack": 99, "use_effect": "dragonpalace_explore_gift"},
-  {"id": 12001, "name": "声望石", "type": "material", "description": "用于将1级角色直接提升至19级的特殊道具", "stackable": true, "max_stack": 99},
+  {"id": 12001, "name": "声望石", "type": "consumable", "description": "使用后增加2000声望", "stackable": true, "max_stack": 99},
       {"id": 11001, "name": "盟主证明", "type": "material", "description": "创建联盟所需的特殊道具", "stackable": true, "max_stack": 99},
-      {"id": 6029, "name": "庄园建造手册", "type": "consumable", "description": "庄园扩建土地消耗", "stackable": true, "max_stack": 999}
+      {"id": 6029, "name": "庄园建造手册", "type": "consumable", "description": "庄园扩建土地消耗", "stackable": true, "max_stack": 999},
+      {"id": 95001, "name": "霸王龙Ⅰ(绝版)召唤球", "type": "special", "description": "该物品不可直接使用，请等待正式登场后开放", "stackable": true, "max_stack": 99, "usable": false},
+      {"id": 95002, "name": "霸王龙Ⅱ(绝版)召唤球", "type": "special", "description": "该物品不可直接使用，请等待正式登场后开放", "stackable": true, "max_stack": 99, "usable": false},
+      {"id": 95003, "name": "霸王龙Ⅲ(绝版)召唤球", "type": "special", "description": "该物品不可直接使用，请等待正式登场后开放", "stackable": true, "max_stack": 99, "usable": false},
+      {"id": 95004, "name": "霸王龙Ⅳ(绝版)召唤球", "type": "special", "description": "该物品不可直接使用，请等待正式登场后开放", "stackable": true, "max_stack": 99, "usable": false},
+      {"id": 95005, "name": "霸王龙Ⅴ(绝版)召唤球", "type": "special", "description": "该物品不可直接使用，请等待正式登场后开放", "stackable": true, "max_stack": 99, "usable": false},
+      {"id": 95006, "name": "霸王龙Ⅵ(绝版)召唤球", "type": "special", "description": "该物品不可直接使用，请等待正式登场后开放", "stackable": true, "max_stack": 99, "usable": false}
   ]
 

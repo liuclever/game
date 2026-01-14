@@ -544,6 +544,10 @@ class InventoryService:
         if not item_template:
             raise InventoryError("物品模板不存在")
 
+        # 检查物品是否可使用
+        if item_template.type == "special":
+            raise InventoryError("该物品不可直接使用")
+        
         if item_template.type not in ("consumable", "material"):
             raise InventoryError("该物品不可使用")
 
