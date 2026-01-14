@@ -112,11 +112,11 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-.world-chat-page { background: #FFF8DC; min-height: 100vh; padding: 8px 12px; font-size: 13px; line-height: 1.6; font-family: SimSun, "宋体", serif; }
+.world-chat-page { background: #FFFFFF; min-height: 100vh; padding: 8px 12px; font-size: 18px; line-height: 1.6; font-family: SimSun, "宋体", serif; }
 .section { margin: 4px 0; }
 .input-section { display: flex; gap: 4px; align-items: center; }
-.message-input { flex: 1; padding: 4px 8px; border: 1px solid #ccc; font-size: 13px; }
-.btn { padding: 4px 12px; background: #0066CC; color: white; border: 1px solid #0066CC; cursor: pointer; font-size: 13px; }
+.message-input { flex: 1; padding: 4px 8px; border: 1px solid #ccc; font-size: 18px; }
+.btn { padding: 4px 12px; background: #0066CC; color: white; border: 1px solid #0066CC; cursor: pointer; font-size: 18px; }
 .btn:hover { background: #0052A3; }
 .btn:disabled { background: #ccc; cursor: not-allowed; }
 .messages-section { border: 1px solid #ddd; padding: 8px; min-height: 200px; max-height: 400px; overflow-y: auto; }

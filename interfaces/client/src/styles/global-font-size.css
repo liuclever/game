@@ -1,0 +1,70 @@
+/* 全局字体大小增强 */
+
+/* 基础字体大小 - 使用 !important 确保优先级 */
+body, html {
+  font-size: 18px !important;
+}
+
+/* 所有文本元素 */
+p, span, div, a, label, input, textarea, select, button {
+  font-size: 18px !important;
+}
+
+/* 标题 */
+h1 { font-size: 32px !important; }
+h2 { font-size: 28px !important; }
+h3 { font-size: 24px !important; }
+h4 { font-size: 20px !important; }
+h5 { font-size: 18px !important; }
+h6 { font-size: 16px !important; }
+
+/* 按钮 */
+button, .btn {
+  font-size: 18px !important;
+  padding: 10px 20px;
+}
+
+/* 输入框 */
+input, textarea, select {
+  font-size: 18px !important;
+  padding: 8px 12px;
+}
+
+/* 列表 */
+li {
+  font-size: 18px !important;
+}
+
+/* 表格 */
+table, th, td {
+  font-size: 18px !important;
+}
+
+/* 小字体也要相应增大 */
+small, .small {
+  font-size: 16px !important;
+}
+
+/* 覆盖所有页面容器的字体大小 */
+[class*="page"], 
+[class*="Page"],
+.container, 
+.wrapper,
+.section,
+.content {
+  font-size: 18px !important;
+  background-color: #FFFFFF !important;
+}
+
+/* 特定元素的字体增大 */
+.message-input,
+.page-input,
+.buy-btn,
+.page-btn,
+.note,
+.reward-desc,
+.dynamic-item,
+.round {
+  font-size: 18px !important;
+}
+

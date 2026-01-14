@@ -17,5 +17,7 @@
 
 body {
   font-family: SimSun, "宋体", serif;
+  font-size: 18px;
+  background-color: #FFFFFF;
 }
 </style>

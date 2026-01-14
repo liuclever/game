@@ -7,17 +7,22 @@
 
 :root {
   font-family: SimSun, "宋体", serif;
-  line-height: 1.5;
+  line-height: 1.6;
+  font-size: 18px;
   color: #333333;
-  background-color: #FFF8DC;
+  background-color: #FFFFFF;
 }
 
 body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  background-color: #FFFFFF;
+  font-size: 18px;
 }
 
 #app {
   width: 100%;
+  background-color: #FFFFFF;
+  min-height: 100vh;
 }
