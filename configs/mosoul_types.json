@@ -1,0 +1,422 @@
+{
+  "description": "魔魂种类配置表",
+  "soul_grades": {
+    "god_soul": {"name": "神魂", "exp_provide": 1000, "rarity": 6},
+    "dragon_soul": {"name": "龙魂", "exp_provide": 800, "rarity": 5},
+    "heaven_soul": {"name": "天魂", "exp_provide": 400, "rarity": 4},
+    "earth_soul": {"name": "地魂", "exp_provide": 200, "rarity": 3},
+    "dark_soul": {"name": "玄魂", "exp_provide": 100, "rarity": 2},
+    "yellow_soul": {"name": "黄魂", "exp_provide": 50, "rarity": 1},
+    "waste_soul": {"name": "废魂", "exp_provide": 0, "rarity": 0, "sell_price": 5000}
+  },
+  "souls": [
+    {
+      "id": 1,
+      "name": "万物之始",
+      "grade": "god_soul",
+      "effects": [],
+      "description": "提供1000点魔魂经验值，无属性加成"
+    },
+    {
+      "id": 101,
+      "name": "斗战不息",
+      "grade": "dragon_soul",
+      "effects": [
+        {"attr": "physical_attack", "percent": 12.0, "flat": 0},
+        {"attr": "physical_defense", "percent": 0, "flat": 90}
+      ],
+      "description": "每级增加幻兽物理攻击12%、物理防御90"
+    },
+    {
+      "id": 102,
+      "name": "光流暮霭",
+      "grade": "dragon_soul",
+      "effects": [
+        {"attr": "magic_attack", "percent": 12.0, "flat": 0},
+        {"attr": "magic_defense", "percent": 0, "flat": 90}
+      ],
+      "description": "每级增加幻兽法术攻击12%、法术防御90"
+    },
+    {
+      "id": 103,
+      "name": "谁与争锋",
+      "grade": "dragon_soul",
+      "effects": [
+        {"attr": "speed", "percent": 9.6, "flat": 0},
+        {"attr": "hp", "percent": 0, "flat": 225}
+      ],
+      "description": "每级增加幻兽速度9.6%、气血225"
+    },
+    {
+      "id": 201,
+      "name": "极寿无疆",
+      "grade": "heaven_soul",
+      "effects": [{"attr": "hp", "percent": 6.4, "flat": 0}],
+      "description": "每级增加幻兽气血6.4%"
+    },
+    {
+      "id": 202,
+      "name": "守护之魂",
+      "grade": "heaven_soul",
+      "effects": [{"attr": "hp", "percent": 0, "flat": 150}],
+      "description": "每级增加幻兽气血150"
+    },
+    {
+      "id": 203,
+      "name": "天绝地灭",
+      "grade": "heaven_soul",
+      "effects": [{"attr": "magic_attack", "percent": 8.0, "flat": 0}],
+      "description": "每级增加幻兽法攻8%"
+    },
+    {
+      "id": 204,
+      "name": "万龙朝圣",
+      "grade": "heaven_soul",
+      "effects": [{"attr": "magic_attack", "percent": 0, "flat": 120}],
+      "description": "每级增加幻兽法攻120"
+    },
+    {
+      "id": 205,
+      "name": "无人能挡",
+      "grade": "heaven_soul",
+      "effects": [{"attr": "physical_attack", "percent": 8.0, "flat": 0}],
+      "description": "每级增加幻兽物攻8%"
+    },
+    {
+      "id": 206,
+      "name": "天魔降伏",
+      "grade": "heaven_soul",
+      "effects": [{"attr": "physical_attack", "percent": 0, "flat": 120}],
+      "description": "每级增加幻兽物攻120"
+    },
+    {
+      "id": 207,
+      "name": "逢凶化吉",
+      "grade": "heaven_soul",
+      "effects": [{"attr": "physical_defense", "percent": 6.4, "flat": 0}],
+      "description": "每级增加幻兽物防6.4%"
+    },
+    {
+      "id": 208,
+      "name": "日月乾坤",
+      "grade": "heaven_soul",
+      "effects": [{"attr": "physical_defense", "percent": 0, "flat": 60}],
+      "description": "每级增加幻兽物防60"
+    },
+    {
+      "id": 209,
+      "name": "冰霜之心",
+      "grade": "heaven_soul",
+      "effects": [{"attr": "magic_defense", "percent": 6.4, "flat": 0}],
+      "description": "每级增加幻兽法防6.4%"
+    },
+    {
+      "id": 210,
+      "name": "绝对零度",
+      "grade": "heaven_soul",
+      "effects": [{"attr": "magic_defense", "percent": 0, "flat": 60}],
+      "description": "每级增加幻兽法防60"
+    },
+    {
+      "id": 211,
+      "name": "摄影逐日",
+      "grade": "heaven_soul",
+      "effects": [{"attr": "speed", "percent": 0, "flat": 8}],
+      "description": "每级增加幻兽速度8"
+    },
+    {
+      "id": 212,
+      "name": "流星赶月",
+      "grade": "heaven_soul",
+      "effects": [{"attr": "speed", "percent": 6.4, "flat": 0}],
+      "description": "每级增加幻兽速度6.4%"
+    },
+    {
+      "id": 301,
+      "name": "光芒殿",
+      "grade": "earth_soul",
+      "effects": [{"attr": "physical_attack", "percent": 4.0, "flat": 0}],
+      "description": "每级增加幻兽物攻4%"
+    },
+    {
+      "id": 302,
+      "name": "金钟罩",
+      "grade": "earth_soul",
+      "effects": [{"attr": "physical_defense", "percent": 0, "flat": 30}],
+      "description": "每级增加幻兽物防30"
+    },
+    {
+      "id": 303,
+      "name": "死亡吻",
+      "grade": "earth_soul",
+      "effects": [{"attr": "magic_attack", "percent": 4.0, "flat": 0}],
+      "description": "每级增加幻兽法攻4%"
+    },
+    {
+      "id": 304,
+      "name": "真言术",
+      "grade": "earth_soul",
+      "effects": [{"attr": "magic_attack", "percent": 0, "flat": 60}],
+      "description": "每级增加幻兽法攻60"
+    },
+    {
+      "id": 305,
+      "name": "御火术",
+      "grade": "earth_soul",
+      "effects": [{"attr": "magic_defense", "percent": 3.2, "flat": 0}],
+      "description": "每级增加幻兽法防3.2%"
+    },
+    {
+      "id": 306,
+      "name": "天翱翔",
+      "grade": "earth_soul",
+      "effects": [{"attr": "speed", "percent": 3.2, "flat": 0}],
+      "description": "每级增加幻兽速度3.2%"
+    },
+    {
+      "id": 307,
+      "name": "神圣印",
+      "grade": "earth_soul",
+      "effects": [{"attr": "physical_defense", "percent": 3.2, "flat": 0}],
+      "description": "每级增加幻兽物防3.2%"
+    },
+    {
+      "id": 308,
+      "name": "归元术",
+      "grade": "earth_soul",
+      "effects": [{"attr": "hp", "percent": 3.2, "flat": 0}],
+      "description": "每级增加幻兽气血3.2%"
+    },
+    {
+      "id": 309,
+      "name": "光明术",
+      "grade": "earth_soul",
+      "effects": [{"attr": "hp", "percent": 0, "flat": 75}],
+      "description": "每级增加幻兽气血75"
+    },
+    {
+      "id": 310,
+      "name": "百龙霸",
+      "grade": "earth_soul",
+      "effects": [{"attr": "physical_attack", "percent": 0, "flat": 60}],
+      "description": "每级增加幻兽物攻60"
+    },
+    {
+      "id": 311,
+      "name": "天宫壁",
+      "grade": "earth_soul",
+      "effects": [{"attr": "magic_defense", "percent": 0, "flat": 30}],
+      "description": "每级增加幻兽法防30"
+    },
+    {
+      "id": 312,
+      "name": "地缚绳",
+      "grade": "earth_soul",
+      "effects": [{"attr": "speed", "percent": 0, "flat": 4}],
+      "description": "每级增加幻兽速度4"
+    },
+    {
+      "id": 401,
+      "name": "唤月",
+      "grade": "dark_soul",
+      "effects": [{"attr": "magic_attack", "percent": 0, "flat": 30}],
+      "description": "每级增加幻兽法攻30"
+    },
+    {
+      "id": 402,
+      "name": "神闲",
+      "grade": "dark_soul",
+      "effects": [{"attr": "speed", "percent": 1.6, "flat": 0}],
+      "description": "每级增加幻兽速度1.6%"
+    },
+    {
+      "id": 403,
+      "name": "狂斩",
+      "grade": "dark_soul",
+      "effects": [{"attr": "physical_attack", "percent": 0, "flat": 30}],
+      "description": "每级增加幻兽物攻30"
+    },
+    {
+      "id": 404,
+      "name": "护臂",
+      "grade": "dark_soul",
+      "effects": [{"attr": "magic_defense", "percent": 1.6, "flat": 0}],
+      "description": "每级增加幻兽法防1.6%"
+    },
+    {
+      "id": 405,
+      "name": "圣光",
+      "grade": "dark_soul",
+      "effects": [{"attr": "hp", "percent": 0, "flat": 35}],
+      "description": "每级增加幻兽气血35"
+    },
+    {
+      "id": 406,
+      "name": "倍道",
+      "grade": "dark_soul",
+      "effects": [{"attr": "speed", "percent": 0, "flat": 2}],
+      "description": "每级增加幻兽速度2"
+    },
+    {
+      "id": 407,
+      "name": "捍卫",
+      "grade": "dark_soul",
+      "effects": [{"attr": "physical_defense", "percent": 1.6, "flat": 0}],
+      "description": "每级增加幻兽物防1.6%"
+    },
+    {
+      "id": 408,
+      "name": "裁决",
+      "grade": "dark_soul",
+      "effects": [{"attr": "physical_attack", "percent": 2.0, "flat": 0}],
+      "description": "每级增加幻兽物攻2%"
+    },
+    {
+      "id": 409,
+      "name": "定身",
+      "grade": "dark_soul",
+      "effects": [{"attr": "physical_defense", "percent": 0, "flat": 15}],
+      "description": "每级增加幻兽物防15"
+    },
+    {
+      "id": 410,
+      "name": "献祭",
+      "grade": "dark_soul",
+      "effects": [{"attr": "magic_attack", "percent": 2.0, "flat": 0}],
+      "description": "每级增加幻兽法攻2%"
+    },
+    {
+      "id": 411,
+      "name": "旋涡",
+      "grade": "dark_soul",
+      "effects": [{"attr": "magic_defense", "percent": 0, "flat": 15}],
+      "description": "每级增加幻兽法防15"
+    },
+    {
+      "id": 412,
+      "name": "审判",
+      "grade": "dark_soul",
+      "effects": [{"attr": "hp", "percent": 1.6, "flat": 0}],
+      "description": "每级增加幻兽气血1.6%"
+    },
+    {
+      "id": 501,
+      "name": "祈福",
+      "grade": "yellow_soul",
+      "effects": [{"attr": "hp", "percent": 0, "flat": 18}],
+      "description": "每级增加幻兽气血18"
+    },
+    {
+      "id": 502,
+      "name": "灵风",
+      "grade": "yellow_soul",
+      "effects": [{"attr": "speed", "percent": 0.8, "flat": 0}],
+      "description": "每级增加幻兽速度0.8%"
+    },
+    {
+      "id": 503,
+      "name": "水幕",
+      "grade": "yellow_soul",
+      "effects": [{"attr": "magic_defense", "percent": 0.8, "flat": 0}],
+      "description": "每级增加幻兽法防0.8%"
+    },
+    {
+      "id": 504,
+      "name": "强身",
+      "grade": "yellow_soul",
+      "effects": [{"attr": "hp", "percent": 0.8, "flat": 0}],
+      "description": "每级增加幻兽气血0.8%"
+    },
+    {
+      "id": 505,
+      "name": "邪焰",
+      "grade": "yellow_soul",
+      "effects": [{"attr": "magic_attack", "percent": 0, "flat": 15}],
+      "description": "每级增加幻兽法攻15"
+    },
+    {
+      "id": 506,
+      "name": "风驰",
+      "grade": "yellow_soul",
+      "effects": [{"attr": "speed", "percent": 0, "flat": 1}],
+      "description": "每级增加幻兽速度1"
+    },
+    {
+      "id": 507,
+      "name": "结盾",
+      "grade": "yellow_soul",
+      "effects": [{"attr": "magic_defense", "percent": 0, "flat": 8}],
+      "description": "每级增加幻兽法防8"
+    },
+    {
+      "id": 508,
+      "name": "坚韧",
+      "grade": "yellow_soul",
+      "effects": [{"attr": "physical_defense", "percent": 1.0, "flat": 0}],
+      "description": "每级增加幻兽物防1%"
+    },
+    {
+      "id": 509,
+      "name": "追魂",
+      "grade": "yellow_soul",
+      "effects": [{"attr": "physical_defense", "percent": 0, "flat": 8}],
+      "description": "每级增加幻兽物防8"
+    },
+    {
+      "id": 510,
+      "name": "猛击",
+      "grade": "yellow_soul",
+      "effects": [{"attr": "physical_attack", "percent": 0, "flat": 15}],
+      "description": "每级增加幻兽物攻15"
+    },
+    {
+      "id": 511,
+      "name": "狂热",
+      "grade": "yellow_soul",
+      "effects": [{"attr": "physical_attack", "percent": 1.0, "flat": 0}],
+      "description": "每级增加幻兽物攻1%"
+    },
+    {
+      "id": 512,
+      "name": "诅咒",
+      "grade": "yellow_soul",
+      "effects": [{"attr": "magic_attack", "percent": 1.0, "flat": 0}],
+      "description": "每级增加幻兽法攻1%"
+    },
+    {
+      "id": 901,
+      "name": "落魄",
+      "grade": "waste_soul",
+      "effects": [],
+      "description": "废魂，无任何效果"
+    },
+    {
+      "id": 902,
+      "name": "必输",
+      "grade": "waste_soul",
+      "effects": [],
+      "description": "废魂，无任何效果"
+    },
+    {
+      "id": 903,
+      "name": "平庸",
+      "grade": "waste_soul",
+      "effects": [],
+      "description": "废魂，无任何效果"
+    },
+    {
+      "id": 904,
+      "name": "无力",
+      "grade": "waste_soul",
+      "effects": [],
+      "description": "废魂，无任何效果"
+    },
+    {
+      "id": 905,
+      "name": "软弱",
+      "grade": "waste_soul",
+      "effects": [],
+      "description": "废魂，无任何效果"
+    }
+  ]
+}

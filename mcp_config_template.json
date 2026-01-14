@@ -1,0 +1,31 @@
+{
+  "mcpServers": {
+    "mysql": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcpp-mysql@latest"
+      ],
+      "env": {
+        "MCP_ACCESS_KEY": "mcp_a1e3c7a560ec4f83a6fa77bd3e025876",
+        "MYSQL_HOST": "8.146.206.229",
+        "MYSQL_DATABASE": "game_tower",
+        "MYSQL_USER": "root",
+        "MYSQL_PASSWORD": "Wxs1230.0"
+      },
+      "autoApprove": [
+        "read_query"
+      ]
+    },
+    "prompt": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcpp-prompt@latest"
+      ],
+      "env": {
+        "MCP_ACCESS_KEY": "mcp_a1e3c7a560ec4f83a6fa77bd3e025876"
+      }
+    }
+  }
+}

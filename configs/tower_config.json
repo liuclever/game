@@ -1,0 +1,58 @@
+{
+  "towers": {
+    "tongtian": {
+      "name": "通天塔",
+      "max_floor": 120,
+      "energy_cost": 20,
+      "daily_limit": 999,
+      "buff": {
+        "enabled": true,
+        "attack_bonus": 0.1,
+        "defense_bonus": 0.1,
+        "hp_bonus": 0.1,
+        "speed_bonus": 0.1
+      },
+      "guardian_count_by_floor": [
+        { "floor_range": [1, 20], "count": 1 },
+        { "floor_range": [21, 60], "count": 2 },
+        { "floor_range": [61, 120], "count": 3 }
+      ]
+    },
+    "longwen": {
+      "name": "龙纹塔",
+      "max_floor": 100,
+      "energy_cost": 20,
+      "daily_limit": 999,
+      "buff": {
+        "enabled": true,
+        "attack_bonus": 0.1,
+        "defense_bonus": 0.1,
+        "hp_bonus": 0.1,
+        "speed_bonus": 0.1
+      },
+      "guardian_count_by_floor": [
+        { "floor_range": [1, 20], "count": 1 },
+        { "floor_range": [21, 60], "count": 2 },
+        { "floor_range": [61, 100], "count": 3 }
+      ]
+    },
+    "zhanling": {
+      "name": "战灵塔",
+      "max_floor": 100,
+      "energy_cost": 20,
+      "daily_limit": 999,
+      "buff": {
+        "enabled": true,
+        "attack_bonus": 0.1,
+        "defense_bonus": 0.1,
+        "hp_bonus": 0.1,
+        "speed_bonus": 0.1
+      },
+      "guardian_count_by_floor": [
+        { "floor_range": [1, 20], "count": 1 },
+        { "floor_range": [21, 60], "count": 2 },
+        { "floor_range": [61, 100], "count": 3 }
+      ]
+    }
+  }
+}
