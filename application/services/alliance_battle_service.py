@@ -51,9 +51,16 @@ class AllianceBattleService:
         self.beast_pvp_service = beast_pvp_service
 
     def lock_and_pair_land(self, land_id: int, seed: Optional[int] = None) -> dict:
-        """Lock confirmed registrations on a land and pair them into battles."""
-
-        registrations = self.alliance_repo.list_land_registrations_by_land(land_id, statuses=[STATUS_CONFIRMED])
+        """Lock confirmed registrations on a land and pair them into battles.
+        
+        注意：会同时接受 STATUS_CONFIRMED (3) 和 STATUS_REGISTERED (1) 状态的报名，
+        因为报名后可能直接是已报名状态，需要兼容处理。
+        """
+        from domain.entities.alliance_registration import STATUS_REGISTERED
+        # 同时接受已确认和已报名的状态（兼容不同流程）
+        registrations = self.alliance_repo.list_land_registrations_by_land(
+            land_id, statuses=[STATUS_CONFIRMED, STATUS_REGISTERED]
+        )
         waiting_regs = [r for r in registrations if r.bye_waiting_round is not None]
         ready_regs = [r for r in registrations if r.bye_waiting_round is None]
 
@@ -225,16 +232,17 @@ class AllianceBattleService:
             battle.finished_at = now
             self.alliance_repo.update_land_battle(battle)
 
+            battle_id = battle.id or 0
             if current_round.left_alive > current_round.right_alive:
-                self._finalize_registration(left_registration, STATUS_VICTOR)
-                self._finalize_registration(right_registration, STATUS_ELIMINATED)
+                self._finalize_registration(left_registration, STATUS_VICTOR, battle_id, right_registration.alliance_id)
+                self._finalize_registration(right_registration, STATUS_ELIMINATED, battle_id, left_registration.alliance_id)
             elif current_round.right_alive > current_round.left_alive:
-                self._finalize_registration(left_registration, STATUS_ELIMINATED)
-                self._finalize_registration(right_registration, STATUS_VICTOR)
+                self._finalize_registration(left_registration, STATUS_ELIMINATED, battle_id, right_registration.alliance_id)
+                self._finalize_registration(right_registration, STATUS_VICTOR, battle_id, left_registration.alliance_id)
             else:
                 # 双方同时战败
-                self._finalize_registration(left_registration, STATUS_ELIMINATED)
-                self._finalize_registration(right_registration, STATUS_ELIMINATED)
+                self._finalize_registration(left_registration, STATUS_ELIMINATED, battle_id, right_registration.alliance_id)
+                self._finalize_registration(right_registration, STATUS_ELIMINATED, battle_id, left_registration.alliance_id)
 
             return {"ok": True, "battle_finished": True, "round": round_result}
 

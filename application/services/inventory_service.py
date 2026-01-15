@@ -86,10 +86,51 @@ class InventoryService:
         inv_items = self.inventory_repo.get_by_user_id(user_id, include_temp)
         result = []
         for inv in inv_items:
+            # 过滤掉数量为0的物品
+            if inv.quantity <= 0:
+                # 如果发现数量为0的物品，尝试删除它
+                try:
+                    self.inventory_repo.delete(inv.id)
+                except:
+                    pass  # 忽略删除失败的情况
+                continue
             item_info = self.item_repo.get_by_id(inv.item_id)
             if item_info:
                 result.append(InventoryItemWithInfo(inv_item=inv, item_info=item_info))
         return result
+    
+    def can_use_or_open_item(self, item_template) -> tuple[bool, str]:
+        """
+        判断道具是否可以打开或使用
+        返回: (是否可用, 动作名称: "打开" 或 "使用" 或 "")
+        """
+        if not item_template:
+            return (False, "")
+        
+        # special类型不可使用
+        if item_template.type == "special":
+            return (False, "")
+        
+        # 检查是否有usable字段且为false
+        if hasattr(item_template, 'usable') and item_template.usable is False:
+            return (False, "")
+        
+        # consumable类型可以打开或使用
+        if item_template.type == "consumable":
+            # 判断是"打开"还是"使用"
+            name = item_template.name or ""
+            # 包含"召唤球"、"礼包"、"宝箱"、"箱"的显示"打开"
+            if any(keyword in name for keyword in ["召唤球", "礼包", "宝箱", "箱", "盒"]):
+                return (True, "打开")
+            else:
+                return (True, "使用")
+        
+        # material类型中，声望石可以使用
+        if item_template.type == "material":
+            if item_template.id == 12001:  # 声望石
+                return (True, "使用")
+        
+        return (False, "")
 
     def get_bag_info(self, user_id: int) -> dict:
         """获取背包信息"""
@@ -523,13 +564,13 @@ class InventoryService:
                 result.append(InventoryItemWithInfo(inv_item=inv, item_info=item_info))
         return result
 
-    def use_item(self, user_id: int, inv_item_id: int, quantity: int = 1) -> str:
+    def use_item(self, user_id: int, inv_item_id: int, quantity: int = 1) -> dict:
         """
         使用背包中的物品
         :param user_id: 玩家ID
         :param inv_item_id: 背包格子ID
         :param quantity: 使用数量
-        :return: 使用结果消息
+        :return: 使用结果字典，包含message和rewards
         """
         # 1. 获取背包项
         inv_item = self.inventory_repo.get_by_id(inv_item_id)
@@ -553,6 +594,7 @@ class InventoryService:
 
         # 3. 处理不同物品的使用效果
         message = ""
+        rewards = {}  # 奖励字典，格式：{物品名: 数量}
         if item_template.id == 6010:  # 骰子包
             dice_to_add = 10 * quantity
             if self.player_repo:
@@ -561,6 +603,7 @@ class InventoryService:
                     player.dice += dice_to_add
                     self.player_repo.save(player)
                     message = f"成功使用{item_template.name}×{quantity}，获得{dice_to_add}个骰子"
+                    rewards["骰子"] = dice_to_add
                 else:
                     raise InventoryError("玩家不存在")
             else:
@@ -603,6 +646,7 @@ class InventoryService:
                         break
 
             message = f"成功使用{item_template.name}×{quantity}，获得了幻兽【{beast_template.name}】"
+            rewards[f"幻兽【{beast_template.name}】"] = quantity
         elif item_template.id == PRESTIGE_STONE_ITEM_ID:
             if not self.player_repo:
                 raise InventoryError("系统错误：PlayerRepo 未配置")
@@ -613,6 +657,7 @@ class InventoryService:
             player.prestige += prestige_gain
             self.player_repo.save(player)
             message = f"成功使用{item_template.name}×{quantity}，获得{prestige_gain}声望"
+            rewards["声望"] = prestige_gain
         elif item_template.id in VITALITY_GRASS_ITEM_IDS:  # 活力草
             if not self.player_repo:
                 raise InventoryError("系统错误：PlayerRepo 未配置")
@@ -627,6 +672,7 @@ class InventoryService:
             player.energy = after
             self.player_repo.save(player)
             message = f"成功使用{item_template.name}×{quantity}，活力+{gained}"
+            rewards["活力"] = gained
         elif item_template.id == FORTUNE_TALISMAN_ITEM_ID:  # 招财神符
             if not self.player_repo:
                 raise InventoryError("系统错误：PlayerRepo 未配置")
@@ -687,6 +733,7 @@ class InventoryService:
             )
 
             message = f"成功使用{item_template.name}×{quantity}，获得铜钱×{total_gold}"
+            rewards["铜钱"] = total_gold
         elif item_template.id == 6005:  # 金袋
             if not self.player_repo:
                 raise InventoryError("系统错误：PlayerRepo 未配置")
@@ -700,6 +747,7 @@ class InventoryService:
             player.gold = int(getattr(player, "gold", 0) or 0) + total_gold
             self.player_repo.save(player)
             message = f"成功使用{item_template.name}×{quantity}，获得铜钱×{total_gold}"
+            rewards["铜钱"] = total_gold
         elif item_template.id == 6015:  # 化仙丹
             raise InventoryError("化仙丹请在化仙池界面使用")
         elif item_template.id == LUCKY_CHEST_ITEM_ID:
@@ -715,6 +763,7 @@ class InventoryService:
             player.gold += total_gold
             self.player_repo.save(player)
             message = f"成功开启{item_template.name}×{quantity}，获得铜钱×{total_gold}"
+            rewards["铜钱"] = total_gold
         elif item_template.id in (
         ANCIENT_SILVER_CHEST_ITEM_ID, ANCIENT_TITANIUM_CHEST_ITEM_ID, ANCIENT_EVOLVE_CHEST_ITEM_ID,
         SKILL_BOOK_POUCH_ITEM_ID):
@@ -909,6 +958,10 @@ class InventoryService:
                 parts.append(f"铜钱×{gold_total}")
             rewards_text = "、".join(parts) if parts else "无"
             message = f"成功开启{item_template.name}×{quantity}，获得：{rewards_text}"
+            # 合并奖励到rewards字典
+            rewards.update(rewards_summary)
+            if gold_total > 0:
+                rewards["铜钱"] = rewards.get("铜钱", 0) + gold_total
         elif item_template.id in (ZHENYAO_TRIAL_CHEST_ITEM_ID, ZHENYAO_HELL_CHEST_ITEM_ID):
             if not self.player_repo:
                 raise InventoryError("系统错误：PlayerRepo 未配置")
@@ -951,6 +1004,10 @@ class InventoryService:
                 parts.append(f"铜钱×{total_gold}")
             rewards_text = "、".join(parts) if parts else "无"
             message = f"成功开启{item_template.name}×{quantity}，获得：{rewards_text}"
+            # 合并奖励到rewards字典
+            rewards.update(item_summary)
+            if total_gold > 0:
+                rewards["铜钱"] = rewards.get("铜钱", 0) + total_gold
         elif getattr(item_template, "use_effect", None) and item_template.use_effect.startswith("activity_gift_"):
             if not self.activity_gift_service:
                 raise InventoryError("系统错误：礼包逻辑未初始化")
@@ -960,6 +1017,20 @@ class InventoryService:
                 reward_payload = self.activity_gift_service.open_gift(user_id, gift_key)
                 all_rewards.append(reward_payload)
             message = self._format_activity_gift_message(item_template.name, quantity, all_rewards)
+            # 提取奖励信息
+            item_summary = {}
+            gold_total = 0
+            for payload in all_rewards:
+                for reward in payload.get("rewards", []):
+                    r_type = reward.get("type")
+                    if r_type == "gold":
+                        gold_total += reward.get("amount", 0)
+                    elif r_type == "item":
+                        name = reward.get("name") or f"物品{reward.get('item_id')}"
+                        item_summary[name] = item_summary.get(name, 0) + reward.get("quantity", 0)
+            rewards.update(item_summary)
+            if gold_total > 0:
+                rewards["铜钱"] = rewards.get("铜钱", 0) + gold_total
         elif item_template.id == DRAGONPALACE_EXPLORE_GIFT_ITEM_ID:
             # 龙宫之谜探索礼包：打开后获得（随机进化材料×N）+ 铜钱20000*N
             # 这里不要在 helper 里重复扣除物品，最终统一由 use_item() 的第4步扣除。
@@ -971,6 +1042,11 @@ class InventoryService:
                 consume=False,
             )
             message = payload.get("message", "") or f"成功开启{item_template.name}×{quantity}"
+            # 提取奖励信息
+            if "rewards" in payload:
+                rewards.update(payload["rewards"])
+            if "gold" in payload and payload["gold"] > 0:
+                rewards["铜钱"] = rewards.get("铜钱", 0) + payload["gold"]
         elif item_template.id == NINGSHEN_INCENSE_ITEM_ID:
             if not self.player_effect_repo:
                 raise InventoryError("系统错误：PlayerEffectRepo 未配置")
@@ -986,13 +1062,17 @@ class InventoryService:
             remaining_seconds = int((new_end - now).total_seconds())
             remaining_hours = max(0, int(remaining_seconds / 3600))
             message = f"成功使用{item_template.name}×{quantity}，24小时内修行声望+20%。剩余有效时间约 {remaining_hours} 小时"
+            rewards["修行声望加成"] = f"{remaining_hours}小时"
         else:
             raise InventoryError(f"物品 {item_template.name} 的使用逻辑尚未实现")
 
         # 4. 扣除物品
         self._remove_item_from_slot(inv_item_id, quantity)
 
-        return message
+        return {
+            "message": message,
+            "rewards": rewards
+        }
 
     def open_dragonpalace_explore_gift(
             self,

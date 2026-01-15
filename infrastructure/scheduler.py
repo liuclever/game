@@ -236,6 +236,83 @@ def _run_alliance_season_rewards():
     logger.info("[Scheduler] 盟战赛季奖励发放任务完成")
 
 
+def _run_alliance_war_battle():
+    """每周三和周六20:00自动执行盟战对战"""
+    logger.info("[Scheduler] 开始执行盟战自动对战任务")
+    try:
+        from infrastructure.db.alliance_repo_mysql import MySQLAllianceRepo
+        from infrastructure.db.player_repo_mysql import MySQLPlayerRepo
+        from infrastructure.db.player_beast_repo_mysql import MySQLPlayerBeastRepo
+        from application.services.alliance_battle_service import AllianceBattleService
+        from application.services.beast_pvp_service import BeastPvpService
+        
+        alliance_repo = MySQLAllianceRepo()
+        player_repo = MySQLPlayerRepo()
+        player_beast_repo = MySQLPlayerBeastRepo()
+        beast_pvp_service = BeastPvpService()
+        
+        battle_service = AllianceBattleService(
+            alliance_repo=alliance_repo,
+            player_repo=player_repo,
+            player_beast_repo=player_beast_repo,
+            beast_pvp_service=beast_pvp_service,
+        )
+        
+        # 所有土地ID（1-4）
+        land_ids = [1, 2, 3, 4]
+        total_battles = 0
+        success_count = 0
+        
+        for land_id in land_ids:
+            try:
+                # 配对联盟
+                pair_result = battle_service.lock_and_pair_land(land_id)
+                if not pair_result.get("ok"):
+                    error = pair_result.get("error", "未知错误")
+                    if "至少需要两个联盟报名" not in error:
+                        logger.warning(f"[Scheduler] 土地 {land_id} 配对失败: {error}")
+                    continue
+                
+                battles = pair_result.get("battles", [])
+                if not battles:
+                    continue
+                
+                total_battles += len(battles)
+                
+                # 执行每场对战的所有回合
+                for battle_info in battles:
+                    battle_id = battle_info["battle_id"]
+                    left_alliance_id = battle_info["left_alliance_id"]
+                    right_alliance_id = battle_info["right_alliance_id"]
+                    
+                    # 循环推进回合直到战斗结束
+                    while True:
+                        advance_result = battle_service.advance_round(battle_id)
+                        if not advance_result.get("ok"):
+                            logger.warning(
+                                f"[Scheduler] 土地 {land_id} 对战 {battle_id} 推进失败: {advance_result.get('error')}"
+                            )
+                            break
+                        
+                        if advance_result.get("battle_finished"):
+                            success_count += 1
+                            logger.info(
+                                f"[Scheduler] 土地 {land_id} 对战 {battle_id} 完成: "
+                                f"联盟 {left_alliance_id} vs 联盟 {right_alliance_id}"
+                            )
+                            break
+                
+            except Exception as e:
+                logger.exception(f"[Scheduler] 土地 {land_id} 对战执行异常: {e}")
+        
+        logger.info(
+            f"[Scheduler] 盟战自动对战任务完成，共执行 {total_battles} 场对战，"
+            f"成功完成 {success_count} 场"
+        )
+    except Exception as e:
+        logger.exception(f"[Scheduler] 盟战自动对战任务异常: {e}")
+
+
 def start_scheduler():
     """启动后台调度器（应在应用启动时调用一次）"""
     global _scheduler
@@ -314,8 +391,30 @@ def start_scheduler():
         replace_existing=True,
     )
     
+    # ===== 盟战自动对战定时任务 =====
+    # 周三 20:00 - 第一次盟战自动对战
+    _scheduler.add_job(
+        _run_alliance_war_battle,
+        trigger="cron",
+        day_of_week="wed",
+        hour=20,
+        minute=0,
+        id="alliance_war_battle_wed",
+        replace_existing=True,
+    )
+    # 周六 20:00 - 第二次盟战自动对战
+    _scheduler.add_job(
+        _run_alliance_war_battle,
+        trigger="cron",
+        day_of_week="sat",
+        hour=20,
+        minute=0,
+        id="alliance_war_battle_sat",
+        replace_existing=True,
+    )
+    
     _scheduler.start()
-    logger.info("[Scheduler] 后台调度器已启动，包含召唤之王定时任务和盟战赛季奖励任务")
+    logger.info("[Scheduler] 后台调度器已启动，包含召唤之王定时任务、盟战赛季奖励任务和盟战自动对战任务")
 
 
 def shutdown_scheduler():

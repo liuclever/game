@@ -107,6 +107,9 @@ onMounted(() => {
 const filteredItems = computed(() => {
   let result = items.value
   
+  // 过滤掉数量为0的物品
+  result = result.filter(item => item.quantity > 0)
+  
   // 按类型筛选
   if (currentCategory.value !== 'all') {
     result = result.filter(item => item.type === currentCategory.value)
@@ -182,34 +185,23 @@ const goToPage = () => {
   }
 }
 
-// 使用物品
-const useItem = async (item) => {
-  const isPrestigeStone = item.item_id === 12001
-  if (item.type !== 'consumable' && !isPrestigeStone) {
-    showMessage('该物品不可直接使用', 'error')
-    return
-  }
+// 跳转到道具详情页
+const viewItemDetail = (item) => {
+  router.push({ path: '/inventory/item/detail', query: { id: item.id } })
+}
 
-  const isSummonBall = item.name.includes('召唤球')
-  const actionName = isSummonBall ? '开启' : '使用'
+import { getItemUseRoute } from '@/utils/itemUseRoutes'
 
-  // 已移除确认提示
-
-  try {
-    const res = await http.post('/inventory/use', {
-      id: item.id,
-      quantity: 1
-    })
-
-    if (res.data.ok) {
-      showMessage(res.data.message || `${actionName}成功！`, 'success')
-      loadInventory() // 刷新背包
-    } else {
-      showMessage(`使用失败: ${res.data.error || '未知错误'}`, 'error')
-    }
-  } catch (e) {
-    console.error('使用物品失败', e)
-    showMessage('请求失败，请稍后再试', 'error')
+// 跳转到使用选择页或特殊使用窗口
+const openUseSelect = (item) => {
+  // 检查是否有特殊的使用路由
+  const useRoute = getItemUseRoute(item.item_id, item.name)
+  if (useRoute) {
+    // 直接跳转到对应的使用窗口
+    router.push(useRoute)
+  } else {
+    // 没有特殊路由的道具，跳转到使用选择页
+    router.push({ path: '/inventory/item/use', query: { id: item.id } })
   }
 }
 
@@ -333,7 +325,12 @@ const handleLink = (name) => {
         背包空空如也...
       </div>
       <div v-for="item in pagedItems" :key="item.id" class="section">
-        <a class="link" @click="useItem(item)">{{ item.name }}</a>×{{ item.quantity }}
+        <a class="link" @click="viewItemDetail(item)">{{ item.name }}</a>×{{ item.quantity }}
+        <a 
+          v-if="item.can_use_or_open && item.action_name" 
+          class="link action-link" 
+          @click.stop="openUseSelect(item)"
+        >{{ item.action_name }}</a>
       </div>
     </div>
 
@@ -344,11 +341,16 @@ const handleLink = (name) => {
         临时背包为空
       </div>
       <div v-for="item in tempItems" :key="item.id" class="section">
-        <a class="link">{{ item.name }}</a>×{{ item.quantity }}
+        <a class="link" @click="viewItemDetail(item)">{{ item.name }}</a>×{{ item.quantity }}
         <a
-          v-if="item.item_id === DRAGONPALACE_EXPLORE_GIFT_ITEM_ID"
-          class="link"
-          @click="openTempGift(item)"
+          v-if="item.can_use_or_open && item.action_name"
+          class="link action-link"
+          @click.stop="openUseSelect(item)"
+        >{{ item.action_name }}</a>
+        <a
+          v-else-if="item.item_id === DRAGONPALACE_EXPLORE_GIFT_ITEM_ID"
+          class="link action-link"
+          @click.stop="openTempGift(item)"
         >打开</a>
         <span class="gray small"> ({{ item.created_at }})</span>
       </div>
@@ -542,6 +544,12 @@ const handleLink = (name) => {
   background: #d1ecf1;
   color: #0c5460;
   border: 1px solid #bee5eb;
+}
+
+.action-link {
+  margin-left: 8px;
+  color: #CC3300;
+  font-weight: bold;
 }
 
 </style>

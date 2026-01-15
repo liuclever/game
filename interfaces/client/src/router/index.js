@@ -23,6 +23,9 @@ import ExchangeBusiniaoPage from '@/features/exchange/ExchangeBusiniaoPage.vue'
 import ExchangeLuoshaPage from '@/features/exchange/ExchangeLuoshaPage.vue'
 import InventoryPage from '@/features/inventory/InventoryPage.vue'
 import BagUpgradePage from '@/features/inventory/BagUpgradePage.vue'
+import ItemUseSelectPage from '@/features/inventory/ItemUseSelectPage.vue'
+import ItemUseResultPage from '@/features/inventory/ItemUseResultPage.vue'
+import ItemDetailPage from '@/features/inventory/ItemDetailPage.vue'
 import TowerPage from '@/features/tower/TowerPage.vue'
 import TowerChallengePage from '@/features/tower/TowerChallengePage.vue'
 import BattleReportPage from '@/features/tower/BattleReportPage.vue'
@@ -383,6 +386,21 @@ const routes = [
     path: '/inventory/upgrade',
     name: 'BagUpgrade',
     component: BagUpgradePage,
+  },
+  {
+    path: '/inventory/item/use',
+    name: 'ItemUseSelect',
+    component: ItemUseSelectPage,
+  },
+  {
+    path: '/inventory/item/result',
+    name: 'ItemUseResult',
+    component: ItemUseResultPage,
+  },
+  {
+    path: '/inventory/item/detail',
+    name: 'ItemDetail',
+    component: ItemDetailPage,
   },
   {
     path: '/tower',

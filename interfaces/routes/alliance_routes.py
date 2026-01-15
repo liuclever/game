@@ -1,4 +1,5 @@
 from flask import Blueprint, request, jsonify, session
+from datetime import datetime
 from interfaces.web_api.bootstrap import services
 
 alliance_bp = Blueprint('alliance', __name__, url_prefix='/api/alliance')
@@ -729,6 +730,136 @@ def get_round_duels():
     )
     status = 200 if result.get("ok") else 400
     return jsonify(result), status
+
+
+@alliance_bp.post('/war/lock-and-pair/<int:land_id>')
+def lock_and_pair_land(land_id: int):
+    """配对联盟并创建对战（管理接口）
+    
+    将已确认报名的联盟进行配对，创建对战记录。
+    需要至少2个联盟报名才能配对。
+    
+    时间检查：只在对战时间内（周三/周六 20:00-22:00）才能配对。
+    """
+    user_id = get_current_user_id()
+    if not user_id:
+        return jsonify({"ok": False, "error": "请先登录"}), 401
+    
+    # 检查是否在对战时间内
+    now = datetime.utcnow()
+    is_war, phase, status = services.alliance_service._is_war_time(now)
+    if not is_war or status != "battle":
+        return jsonify({
+            "ok": False,
+            "error": f"当前不在对战时间内（对战时间：周三/周六 20:00-22:00），当前状态：{status}"
+        }), 400
+    
+    result = services.alliance_battle_service.lock_and_pair_land(land_id)
+    status = 200 if result.get("ok") else 400
+    return jsonify(result), status
+
+
+@alliance_bp.post('/war/advance-round/<int:battle_id>')
+def advance_battle_round(battle_id: int):
+    """推进对战回合（管理接口）
+    
+    执行当前回合的所有决斗，并推进到下一回合或结束战斗。
+    """
+    user_id = get_current_user_id()
+    if not user_id:
+        return jsonify({"ok": False, "error": "请先登录"}), 401
+    
+    result = services.alliance_battle_service.advance_round(battle_id)
+    status = 200 if result.get("ok") else 400
+    return jsonify(result), status
+
+
+@alliance_bp.post('/war/run-battle/<int:land_id>')
+def run_land_battle(land_id: int):
+    """执行土地对战完整流程（管理接口）
+    
+    自动执行：
+    1. 配对联盟
+    2. 执行所有对战的所有回合直到结束
+    3. 最终胜利者自动占领土地
+    
+    时间检查：只在对战时间内（周三/周六 20:00-22:00）才能执行。
+    允许通过环境变量 ALLIANCE_WAR_ALLOW_TIME_BYPASS=true 跳过时间检查（测试用）。
+    """
+    user_id = get_current_user_id()
+    if not user_id:
+        return jsonify({"ok": False, "error": "请先登录"}), 401
+    
+    # 检查是否在对战时间内（允许通过环境变量跳过）
+    import os
+    allow_bypass = os.getenv("ALLIANCE_WAR_ALLOW_TIME_BYPASS", "").lower() in ("1", "true", "yes")
+    if not allow_bypass:
+        now = datetime.utcnow()
+        is_war, phase, status = services.alliance_service._is_war_time(now)
+        if not is_war or status != "battle":
+            return jsonify({
+                "ok": False,
+                "error": f"当前不在对战时间内（对战时间：周三/周六 20:00-22:00），当前状态：{status}。测试时可设置环境变量 ALLIANCE_WAR_ALLOW_TIME_BYPASS=true 跳过"
+            }), 400
+    
+    # 1. 配对联盟
+    pair_result = services.alliance_battle_service.lock_and_pair_land(land_id)
+    if not pair_result.get("ok"):
+        return jsonify(pair_result), 400
+    
+    battles = pair_result.get("battles", [])
+    if not battles:
+        return jsonify({
+            "ok": True,
+            "message": "没有可配对的对战",
+            "battles": []
+        }), 200
+    
+    # 2. 执行每场对战的所有回合
+    battle_results = []
+    for battle_info in battles:
+        battle_id = battle_info["battle_id"]
+        left_alliance_id = battle_info["left_alliance_id"]
+        right_alliance_id = battle_info["right_alliance_id"]
+        
+        rounds_executed = 0
+        battle_finished = False
+        
+        # 循环推进回合直到战斗结束
+        while not battle_finished:
+            advance_result = services.alliance_battle_service.advance_round(battle_id)
+            if not advance_result.get("ok"):
+                battle_results.append({
+                    "battle_id": battle_id,
+                    "left_alliance_id": left_alliance_id,
+                    "right_alliance_id": right_alliance_id,
+                    "status": "error",
+                    "error": advance_result.get("error"),
+                    "rounds_executed": rounds_executed
+                })
+                break
+            
+            rounds_executed += 1
+            round_info = advance_result.get("round", {})
+            
+            if advance_result.get("battle_finished"):
+                battle_finished = True
+                battle_results.append({
+                    "battle_id": battle_id,
+                    "left_alliance_id": left_alliance_id,
+                    "right_alliance_id": right_alliance_id,
+                    "status": "finished",
+                    "rounds_executed": rounds_executed,
+                    "final_round": round_info
+                })
+    
+    return jsonify({
+        "ok": True,
+        "message": f"成功执行 {len(battles)} 场对战",
+        "pair_result": pair_result,
+        "battle_results": battle_results
+    }), 200
+
 
 @alliance_bp.get('/chat/messages')
 def get_chat_messages():
