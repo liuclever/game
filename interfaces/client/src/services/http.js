@@ -3,7 +3,7 @@ import axios from 'axios'
 
 const http = axios.create({
   baseURL: '/api',
-  timeout: 10000, // 增加到10秒，避免因计算战力等耗时操作导致超时
+  timeout: 30000, // 增加到30秒，避免因计算战力等耗时操作导致超时
   withCredentials: true, // 支持session cookie
 })
 
