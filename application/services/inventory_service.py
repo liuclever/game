@@ -81,8 +81,95 @@ class InventoryService:
     def set_immortalize_pool_service(self, service: "ImmortalizePoolService"):
         self.immortalize_pool_service = service
 
+    def _ensure_no_unique_constraint(self):
+        """
+        确保数据库中没有唯一约束 uk_user_item_temp（允许同一物品占用多个格子）
+        如果约束存在，尝试删除它
+        """
+        try:
+            from infrastructure.db.connection import execute_query, execute_update
+            # 检查约束是否存在
+            rows = execute_query(
+                """
+                SELECT COUNT(*) as cnt FROM information_schema.TABLE_CONSTRAINTS 
+                WHERE CONSTRAINT_SCHEMA = DATABASE()
+                AND TABLE_NAME = 'player_inventory' 
+                AND CONSTRAINT_NAME = 'uk_user_item_temp'
+                """
+            )
+            if rows and rows[0].get('cnt', 0) > 0:
+                # 约束存在，尝试删除
+                try:
+                    execute_update("ALTER TABLE player_inventory DROP INDEX uk_user_item_temp")
+                except Exception as e:
+                    # 如果删除失败（可能已经被删除或不存在），忽略
+                    pass
+        except Exception:
+            # 如果检查失败，忽略（可能是权限问题或表不存在）
+            pass
+
+    def _split_oversized_items(self, user_id: int, include_temp: bool = True):
+        """
+        检查并拆分超过99的物品（确保每个格子最多99个）
+        """
+        # 先确保没有唯一约束
+        self._ensure_no_unique_constraint()
+        
+        MAX_STACK = PlayerBag.MAX_STACK_SIZE  # 99
+        inv_items = self.inventory_repo.get_by_user_id(user_id, include_temp)
+        
+        # 需要拆分的物品列表（避免在遍历时修改）
+        items_to_split = [inv for inv in inv_items if inv.quantity > MAX_STACK]
+        
+        for inv in items_to_split:
+            # 获取物品模板
+            item_template = self.item_repo.get_by_id(inv.item_id)
+            if not item_template or not item_template.stackable:
+                # 不可堆叠物品不应该超过99，但为了安全起见也拆分
+                pass
+            
+            # 需要拆分：将原物品数量改为99
+            remaining = inv.quantity - MAX_STACK
+            inv.quantity = MAX_STACK
+            self.inventory_repo.save(inv)
+            
+            # 创建新的格子（每个最多99）
+            # 先检查是否已存在其他格子可以堆叠
+            existing_items = self.inventory_repo.find_all_items(
+                user_id, inv.item_id, is_temporary=inv.is_temporary
+            )
+            
+            # 先尝试填充已有的未满99的格子
+            for existing in existing_items:
+                if remaining <= 0:
+                    break
+                if existing.id == inv.id:
+                    continue  # 跳过当前正在拆分的格子
+                if existing.quantity < MAX_STACK:
+                    space = MAX_STACK - existing.quantity
+                    add_amount = min(space, remaining)
+                    existing.quantity += add_amount
+                    remaining -= add_amount
+                    self.inventory_repo.save(existing)
+            
+            # 如果还有剩余，创建新的格子
+            while remaining > 0:
+                split_qty = min(MAX_STACK, remaining)
+                new_item = InventoryItem(
+                    user_id=user_id,
+                    item_id=inv.item_id,
+                    quantity=split_qty,
+                    is_temporary=inv.is_temporary,
+                    created_at=inv.created_at,
+                )
+                self.inventory_repo.save(new_item)
+                remaining -= split_qty
+
     def get_inventory(self, user_id: int, include_temp: bool = True) -> List[InventoryItemWithInfo]:
         """获取玩家背包（带物品详情）"""
+        # 先检查并拆分超过99的物品
+        self._split_oversized_items(user_id, include_temp)
+        
         inv_items = self.inventory_repo.get_by_user_id(user_id, include_temp)
         result = []
         for inv in inv_items:
@@ -132,14 +219,48 @@ class InventoryService:
         
         return (False, "")
 
+    def _calculate_actual_slot_count(self, user_id: int, is_temporary: bool = False) -> int:
+        """计算实际占用的容量（根据物品数量，1容量最多容纳99个同类道具）"""
+        import math
+        # 容量计算规则：1容量最多容纳99个同类道具
+        CAPACITY_STACK_LIMIT = 99
+        
+        inv_items = self.inventory_repo.get_by_user_id(user_id, include_temp=is_temporary)
+        total_slots = 0
+        
+        for inv_item in inv_items:
+            if inv_item.is_temporary != is_temporary:
+                continue
+            
+            if inv_item.quantity <= 0:
+                continue
+            
+            # 获取物品模板
+            item_template = self.item_repo.get_by_id(inv_item.item_id)
+            if not item_template:
+                # 如果找不到模板，按不可堆叠处理（每个占用1容量）
+                total_slots += 1
+                continue
+            
+            # 如果不可堆叠，每个占用1容量
+            if not item_template.stackable:
+                total_slots += inv_item.quantity
+            else:
+                # 可堆叠物品：根据容量上限（99）计算占用容量
+                # 例如：quantity=99 -> 1容量，quantity=100 -> 2容量（99+1）
+                slots_needed = math.ceil(inv_item.quantity / CAPACITY_STACK_LIMIT)
+                total_slots += slots_needed
+        
+        return total_slots
+
     def get_bag_info(self, user_id: int) -> dict:
         """获取背包信息"""
         config = load_bag_upgrade_config()
         bag_names = config.get('bag_names', {})
 
         bag = self.inventory_repo.get_bag_info(user_id)
-        slot_count = self.inventory_repo.get_slot_count(user_id, is_temporary=False)
-        temp_count = self.inventory_repo.get_slot_count(user_id, is_temporary=True)
+        slot_count = self._calculate_actual_slot_count(user_id, is_temporary=False)
+        temp_count = self._calculate_actual_slot_count(user_id, is_temporary=True)
         bag_name = bag_names.get(str(bag.bag_level), f"{bag.bag_level}级背包")
 
         return {
@@ -152,9 +273,9 @@ class InventoryService:
         }
 
     def _is_bag_full(self, user_id: int) -> bool:
-        """检查背包是否已满"""
+        """检查背包是否已满（根据实际占用的容量）"""
         bag = self.inventory_repo.get_bag_info(user_id)
-        slot_count = self.inventory_repo.get_slot_count(user_id, is_temporary=False)
+        slot_count = self._calculate_actual_slot_count(user_id, is_temporary=False)
         return slot_count >= bag.capacity
 
     def add_item(self, user_id: int, item_id: int, quantity: int = 1) -> Tuple[InventoryItem, bool]:
@@ -447,7 +568,7 @@ class InventoryService:
         return bag
 
     def _remove_item_quantity(self, user_id: int, item_id: int, quantity: int):
-        """从背包移除指定数量的物品（可能跨多个格子）"""
+        """从背包移除指定数量的物品（可能跨多个格子），数量为0时自动删除"""
         remaining = quantity
         items = self.inventory_repo.find_all_items(user_id, item_id, is_temporary=False)
 
@@ -455,11 +576,17 @@ class InventoryService:
             if remaining <= 0:
                 break
             if item.quantity <= remaining:
+                # 数量不足或刚好用完，删除整个物品记录
                 remaining -= item.quantity
                 self.inventory_repo.delete(item.id)
             else:
+                # 减少数量
                 item.quantity -= remaining
-                self.inventory_repo.save(item)
+                # 如果减少后数量为0，删除记录；否则保存
+                if item.quantity <= 0:
+                    self.inventory_repo.delete(item.id)
+                else:
+                    self.inventory_repo.save(item)
                 remaining = 0
 
     def clean_expired_temp_items(self) -> int:
@@ -474,12 +601,13 @@ class InventoryService:
         每次转移一件，直到背包满为止
         返回: 转移的物品列表 [{"item_id": x, "name": "xx", "quantity": n}, ...]
         """
+        MAX_STACK = PlayerBag.MAX_STACK_SIZE  # 99
         transferred = []
 
         while True:
             # 检查背包是否还有空间
             bag = self.inventory_repo.get_bag_info(user_id)
-            slot_count = self.inventory_repo.get_slot_count(user_id, is_temporary=False)
+            slot_count = self._calculate_actual_slot_count(user_id, is_temporary=False)
 
             if slot_count >= bag.capacity:
                 # 背包已满，停止转移
@@ -493,34 +621,65 @@ class InventoryService:
 
             # 尝试转移到正式背包
             item_template = self.item_repo.get_by_id(oldest_temp.item_id)
+            remaining_quantity = oldest_temp.quantity
 
             # 检查正式背包是否有同类物品可堆叠
-            existing = self.inventory_repo.find_item(user_id, oldest_temp.item_id, is_temporary=False)
+            if item_template and item_template.stackable:
+                # 先尝试填充已有的未满99的格子
+                existing_items = self.inventory_repo.find_all_items(user_id, oldest_temp.item_id, is_temporary=False)
+                for existing in existing_items:
+                    if remaining_quantity <= 0:
+                        break
+                    if existing.quantity < MAX_STACK:
+                        space = MAX_STACK - existing.quantity
+                        add_amount = min(space, remaining_quantity)
+                        existing.quantity += add_amount
+                        remaining_quantity -= add_amount
+                        self.inventory_repo.save(existing)
+                        transferred.append({
+                            "item_id": oldest_temp.item_id,
+                            "name": item_template.name if item_template else f"物品{oldest_temp.item_id}",
+                            "quantity": add_amount,
+                        })
 
-            if existing and item_template and item_template.stackable:
-                # 堆叠到现有格子
-                existing.quantity += oldest_temp.quantity
-                self.inventory_repo.save(existing)
-                self.inventory_repo.delete(oldest_temp.id)
+            # 如果还有剩余，需要创建新格子
+            while remaining_quantity > 0:
+                # 检查背包是否还有空间
+                slot_count = self._calculate_actual_slot_count(user_id, is_temporary=False)
+                if slot_count >= bag.capacity:
+                    # 背包已满，将剩余数量放回临时背包
+                    if remaining_quantity < oldest_temp.quantity:
+                        # 部分转移成功，更新临时物品数量
+                        oldest_temp.quantity = remaining_quantity
+                        self.inventory_repo.save(oldest_temp)
+                    # 否则保持原样，下次再转移
+                    break
+
+                # 创建新格子（最多99个）
+                add_amount = min(MAX_STACK, remaining_quantity)
+                new_item = InventoryItem(
+                    user_id=user_id,
+                    item_id=oldest_temp.item_id,
+                    quantity=add_amount,
+                    is_temporary=False,
+                    created_at=None,
+                )
+                self.inventory_repo.save(new_item)
+                remaining_quantity -= add_amount
                 transferred.append({
                     "item_id": oldest_temp.item_id,
                     "name": item_template.name if item_template else f"物品{oldest_temp.item_id}",
-                    "quantity": oldest_temp.quantity,
+                    "quantity": add_amount,
                 })
-            else:
-                # 需要占用新格子
-                if slot_count < bag.capacity:
-                    # 有空间，直接将临时物品改为正式
-                    oldest_temp.is_temporary = False
-                    self.inventory_repo.save(oldest_temp)
-                    transferred.append({
-                        "item_id": oldest_temp.item_id,
-                        "name": item_template.name if item_template else f"物品{oldest_temp.item_id}",
-                        "quantity": oldest_temp.quantity,
-                    })
-                else:
-                    # 无空间，停止
-                    break
+
+            # 如果全部转移完成，删除临时物品
+            if remaining_quantity == 0:
+                self.inventory_repo.delete(oldest_temp.id)
+            elif remaining_quantity < oldest_temp.quantity:
+                # 部分转移，更新临时物品数量
+                oldest_temp.quantity = remaining_quantity
+                self.inventory_repo.save(oldest_temp)
+                break  # 背包已满，停止转移
 
         return transferred
 
@@ -556,9 +715,19 @@ class InventoryService:
 
     def get_temp_items(self, user_id: int) -> List[InventoryItemWithInfo]:
         """获取临时背包物品（按时间排序）"""
+        # 先检查并拆分超过99的物品
+        self._split_oversized_items(user_id, include_temp=True)
+        
         inv_items = self.inventory_repo.get_temp_items_sorted(user_id)
         result = []
         for inv in inv_items:
+            # 过滤掉数量为0的物品
+            if inv.quantity <= 0:
+                try:
+                    self.inventory_repo.delete(inv.id)
+                except:
+                    pass
+                continue
             item_info = self.item_repo.get_by_id(inv.item_id)
             if item_info:
                 result.append(InventoryItemWithInfo(inv_item=inv, item_info=item_info))
@@ -1195,13 +1364,19 @@ class InventoryService:
         return f"成功开启{gift_name}×{quantity}，获得：{rewards_text}"
 
     def _remove_item_from_slot(self, inv_item_id: int, quantity: int):
-        """从特定格子扣除物品"""
+        """从特定格子扣除物品，如果数量变为0则删除记录"""
         inv_item = self.inventory_repo.get_by_id(inv_item_id)
         if not inv_item:
             return
 
         if inv_item.quantity <= quantity:
+            # 数量不足或刚好用完，删除整个物品记录
             self.inventory_repo.delete(inv_item_id)
         else:
+            # 减少数量
             inv_item.quantity -= quantity
-            self.inventory_repo.save(inv_item)
+            # 如果减少后数量为0，删除记录；否则保存
+            if inv_item.quantity <= 0:
+                self.inventory_repo.delete(inv_item_id)
+            else:
+                self.inventory_repo.save(inv_item)

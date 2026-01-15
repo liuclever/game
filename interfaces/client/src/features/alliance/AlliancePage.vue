@@ -11,6 +11,8 @@ const creationMode = ref(false)
 const allianceName = ref('')
 const activities = ref([])
 const activityLoading = ref(false)
+const errorMsg = ref('')
+const successMsg = ref('')
 
 const ROLE_LABELS = {
   1: '盟主',
@@ -44,6 +46,7 @@ const fetchActivities = async () => {
 
 const fetchAllianceInfo = async () => {
   loading.value = true
+  errorMsg.value = ''
   try {
     const res = await http.get('/alliance/my')
     if (res.data.ok) {
@@ -52,11 +55,25 @@ const fetchAllianceInfo = async () => {
     } else {
       allianceData.value = null
       activities.value = []
+      // 如果错误是"未加入联盟"，不显示为错误，而是显示创建/加入选项
+      const error = res.data.error || '获取联盟信息失败'
+      if (error === '未加入联盟') {
+        errorMsg.value = ''  // 清空错误信息，让页面显示创建/加入选项
+      } else {
+        errorMsg.value = error
+      }
     }
   } catch (e) {
     console.error('获取联盟信息失败', e)
     allianceData.value = null
     activities.value = []
+    const error = e.response?.data?.error || '网络错误，请稍后重试'
+    // 如果错误是"未加入联盟"，不显示为错误
+    if (error === '未加入联盟') {
+      errorMsg.value = ''
+    } else {
+      errorMsg.value = error
+    }
   } finally {
     loading.value = false
   }
@@ -64,20 +81,28 @@ const fetchAllianceInfo = async () => {
 
 const createAlliance = async () => {
     if (!allianceName.value.trim()) {
-        alert('请输入联盟名称')
+        errorMsg.value = '请输入联盟名称'
+        setTimeout(() => { errorMsg.value = '' }, 3000)
         return
     }
     try {
         const res = await http.post('/alliance/create', { name: allianceName.value })
         if (res.data.ok) {
-            alert('联盟创建成功！')
+            successMsg.value = '联盟创建成功！'
             creationMode.value = false
-            fetchAllianceInfo()
+            allianceName.value = ''
+            // 3秒后清除成功消息并刷新数据
+            setTimeout(() => {
+                successMsg.value = ''
+                fetchAllianceInfo()
+            }, 2000)
         } else {
-            alert(res.data.error || '创建失败')
+            errorMsg.value = res.data.error || '创建失败'
+            setTimeout(() => { errorMsg.value = '' }, 3000)
         }
     } catch (e) {
-        alert(e.response?.data?.error || '创建失败')
+        errorMsg.value = e.response?.data?.error || '创建失败'
+        setTimeout(() => { errorMsg.value = '' }, 3000)
     }
 }
 
@@ -148,7 +173,8 @@ const goToBarracks = () => {
 }
 
 const goToTeam = () => {
-  router.push('/alliance/team')
+  // 功能已禁用，仅保留文字显示
+  // router.push('/alliance/team')
 }
 
 const goToSacredBeast = () => {
@@ -157,7 +183,8 @@ const goToSacredBeast = () => {
 }
 
 const goToCompetition = () => {
-  router.push('/alliance/competition')
+  // 功能已禁用，仅保留文字显示
+  // router.push('/alliance/competition')
 }
 
 const claimFireOre = async () => {
@@ -169,7 +196,7 @@ const claimFireOre = async () => {
   try {
     const res = await http.post('/alliance/fire-ore/claim')
     if (res.data.ok) {
-      // 跳转到成功页面
+      // 跳转到成功页面，返回时会自动刷新数据
       router.push({
         path: '/alliance/fire-ore/success',
         query: {
@@ -200,6 +227,8 @@ const activityText = (activity) => {
   const actor = activity.actorName || (activity.actorUserId ? `玩家${activity.actorUserId}` : '')
   const target = activity.targetName || (activity.targetUserId ? `玩家${activity.targetUserId}` : '')
   switch (activity.type) {
+    case 'create':
+      return `${actor} 创建联盟`
     case 'join':
       return `${actor} 加入联盟`
     case 'kick':
@@ -234,17 +263,33 @@ onMounted(() => {
 watch(() => route.query.refresh, (newVal, oldVal) => {
   if (newVal === '1' && oldVal !== '1') {
     // 当刷新参数变为 '1' 时，刷新数据
-    setTimeout(() => {
-      fetchAllianceInfo()
-      router.replace({ path: '/alliance' })
-    }, 200)
+    fetchAllianceInfo()
+    // 清除refresh参数，避免重复刷新
+    router.replace({ path: '/alliance' })
   }
 })
 
-// 当从其他页面返回时，如果有刷新参数，则刷新数据（用于 keep-alive 的情况）
+// 监听路由路径变化，确保从其他页面返回时刷新数据
+watch(() => route.path, (newPath, oldPath) => {
+  // 当路由路径变为 /alliance 时，检查是否需要刷新
+  if (newPath === '/alliance' && oldPath !== '/alliance') {
+    // 如果是从成功页面返回（有refresh参数），刷新数据
+    if (route.query.refresh === '1') {
+      fetchAllianceInfo()
+      router.replace({ path: '/alliance' })
+    } else {
+      // 即使没有refresh参数，也刷新一次，确保数据是最新的
+      fetchAllianceInfo()
+    }
+  }
+})
+
+// 当从其他页面返回时，刷新数据（用于 keep-alive 的情况）
 onActivated(() => {
+  // 每次激活页面时都刷新数据，确保状态是最新的
+  fetchAllianceInfo()
+  // 如果有refresh参数，清除它
   if (route.query.refresh === '1') {
-    fetchAllianceInfo()
     router.replace({ path: '/alliance' })
   }
 })
@@ -253,8 +298,11 @@ onActivated(() => {
 <template>
   <div class="alliance-page">
     <div v-if="loading" class="section">加载中...</div>
-    
-    <template v-else-if="allianceData">
+    <template v-else>
+      <div v-if="successMsg" class="section success-message">{{ successMsg }}</div>
+      <div v-if="errorMsg" class="section error">{{ errorMsg }}</div>
+      
+      <template v-if="allianceData">
       <!-- 联盟主界面 -->
       <div class="section nav">
         <span class="active">我的联盟</span> | <span class="link" @click="goToHall">联盟大厅</span> | <span class="link" @click="goToWar">盟战</span>
@@ -279,7 +327,7 @@ onActivated(() => {
       </div>
 
         <div class="section quick-links">
-          <a class="link" @click="goToCompetition">联盟争霸赛: 签到激活阶段</a><br>
+          <span class="disabled-text">联盟争霸赛: 签到激活阶段</span><br>
           <a class="link" @click="goToWarHonor">战功兑换</a>. <a class="link" @click="goToChat">进入聊天室</a>
         </div>
 
@@ -298,9 +346,9 @@ onActivated(() => {
       <div class="section-group">
         <div class="group-title">【联盟建筑】</div>
         <div class="group-content building-links">
-          <a class="link" @click="goToCouncil">议事厅</a>. <a class="link" @click="goToBeastStorage">幻兽室</a>. <span class="disabled-text">天赋池</span><br>
-          <a class="link" @click="goToWarehouse">物资库</a>. <a class="link" @click="goToBarracks">兵营</a>. <span class="disabled-text">圣兽山</span><br>
-          <a class="link" @click="goToTeam">精英战队</a>. <a class="link" @click="goToItemStorage">寄存仓库</a>
+          <div><a class="link" @click="goToCouncil">议事厅</a>. <a class="link" @click="goToBeastStorage">幻兽室</a>. <span class="disabled-text">天赋池</span></div>
+          <div><a class="link" @click="goToWarehouse">物资库</a>. <a class="link" @click="goToBarracks">兵营</a>. <span class="disabled-text">圣兽山</span></div>
+          <div><span class="disabled-text">精英战队</span>. <a class="link" @click="goToItemStorage">寄存仓库</a></div>
         </div>
       </div>
 
@@ -325,37 +373,38 @@ onActivated(() => {
       <div class="section bottom-nav">
         <a class="link" @click="goBack">返回游戏首页</a>
       </div>
-    </template>
+      </template>
 
-    <template v-else>
-      <div v-if="!creationMode">
-        <div class="section">你还没有加入任何联盟</div>
-        <div class="section">
-          <button class="btn" @click="creationMode = true">创建联盟</button>
-          <button class="btn" @click="goToHall">寻找联盟</button>
+      <template v-else-if="!errorMsg">
+        <div v-if="!creationMode">
+          <div class="section">你还没有加入任何联盟</div>
+          <div class="section">
+            <button class="btn" @click="creationMode = true">创建联盟</button>
+            <button class="btn" @click="goToHall">寻找联盟</button>
+          </div>
+          <div class="section requirement">
+              创建条件：玩家拥有1个盟主证明，玩家等级达到30级或以上
+          </div>
+          <div class="section">
+              <a class="link" @click="goBack">返回首页</a>
+          </div>
         </div>
-        <div class="section requirement">
-            创建条件：玩家拥有1个盟主证明，玩家等级达到30级或以上
-        </div>
-        <div class="section">
-            <a class="link" @click="goBack">返回首页</a>
-        </div>
-      </div>
 
-      <div v-else>
-        <div class="section title">【创建联盟】</div>
-        <div class="section">
-          请输入联盟名称：
-          <input v-model="allianceName" type="text" class="input" placeholder="最多6个汉字" maxlength="12" />
+        <div v-else>
+          <div class="section title">【创建联盟】</div>
+          <div class="section">
+            请输入联盟名称：
+            <input v-model="allianceName" type="text" class="input" placeholder="最多6个汉字" maxlength="12" />
+          </div>
+          <div class="section">
+            <button class="btn confirm" @click="createAlliance">确认创建</button>
+            <button class="btn cancel" @click="creationMode = false">取消</button>
+          </div>
+          <div class="section cost">
+            创建将消耗 1x 盟主证明
+          </div>
         </div>
-        <div class="section">
-          <button class="btn confirm" @click="createAlliance">确认创建</button>
-          <button class="btn cancel" @click="creationMode = false">取消</button>
-        </div>
-        <div class="section cost">
-          创建将消耗 1x 盟主证明
-        </div>
-      </div>
+      </template>
     </template>
   </div>
 </template>
@@ -461,6 +510,25 @@ onActivated(() => {
 .requirement, .cost {
     font-size: 18px;
     color: #CC3300;
+}
+
+.error {
+    color: #CC0000;
+    font-weight: bold;
+    padding: 12px;
+    background: #FFEEEE;
+    border: 1px solid #CC0000;
+    border-radius: 4px;
+}
+
+.success-message {
+    color: #155724;
+    font-weight: bold;
+    padding: 12px;
+    background: #D4EDDA;
+    border: 1px solid #28A745;
+    border-radius: 4px;
+    margin-bottom: 12px;
 }
 
 .footer-nav {

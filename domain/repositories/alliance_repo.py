@@ -539,6 +539,6 @@ class IAllianceRepo(ABC):
         pass
 
     @abstractmethod
-    def record_fire_ore_claim(self, user_id: int) -> None:
-        """记录火能原石领取"""
+    def record_fire_ore_claim(self, user_id: int) -> bool:
+        """记录火能原石领取，返回是否更新成功（如果今日已领取则返回False）"""
         pass

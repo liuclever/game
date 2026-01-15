@@ -30,7 +30,7 @@ const goHome = () => {
     </div>
     <template v-else>
       <div class="section message">
-        获得{{ itemName }}×1
+        成功领取了一个{{ itemName }}
       </div>
     </template>
 

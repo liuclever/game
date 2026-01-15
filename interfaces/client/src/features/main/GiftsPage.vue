@@ -2,8 +2,10 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import http from '@/services/http'
+import { useMessage } from '@/composables/useMessage'
 
 const router = useRouter()
+const { message, messageType, showMessage } = useMessage()
 
 const loading = ref(true)
 const error = ref('')
@@ -31,10 +33,13 @@ const fetchGifts = async () => {
 const claimGift = async (gift) => {
   if (!gift || !gift.key) return
   if (gift.claimed) {
-    alert('该礼包已领取')
+    showMessage('该礼包已领取', 'info')
     return
   }
-  if (claimingKey.value) return
+  if (claimingKey.value) {
+    showMessage('正在领取中，请稍候...', 'info')
+    return
+  }
 
   claimingKey.value = gift.key
   try {
@@ -42,19 +47,36 @@ const claimGift = async (gift) => {
     if (res.data?.ok) {
       const rewards = res.data.rewards || {}
       let msg = `领取成功：${gift.name}`
-      if (rewards.gold) msg += `\n铜钱：+${rewards.gold}`
-      if (rewards.yuanbao) msg += `\n元宝：+${rewards.yuanbao}`
+      const rewardParts = []
+      if (rewards.gold) rewardParts.push(`铜钱：+${rewards.gold}`)
+      if (rewards.yuanbao) rewardParts.push(`元宝：+${rewards.yuanbao}`)
       if (rewards.items && rewards.items.length) {
-        msg += `\n物品：` + rewards.items.map(i => `${i.name}×${i.quantity}`).join('、')
+        rewardParts.push(`物品：${rewards.items.map(i => `${i.name}×${i.quantity}`).join('、')}`)
       }
-      alert(msg)
+      if (rewardParts.length > 0) {
+        msg += `（${rewardParts.join('，')}）`
+      }
+      showMessage(msg, 'success')
+      // 立即更新本地状态，防止重复点击
+      const giftIndex = gifts.value.findIndex(g => g.key === gift.key)
+      if (giftIndex >= 0) {
+        gifts.value[giftIndex].claimed = true
+      }
       await fetchGifts()
     } else {
       throw new Error(res.data?.error || '领取失败')
     }
   } catch (e) {
     console.error('领取礼包失败', e)
-    alert(e?.response?.data?.error || e?.message || '领取礼包失败')
+    const errorMsg = e?.response?.data?.error || e?.message || '领取礼包失败'
+    showMessage(errorMsg, 'error')
+    // 如果是因为已领取导致的错误，更新本地状态
+    if (errorMsg.includes('已领取')) {
+      const giftIndex = gifts.value.findIndex(g => g.key === gift.key)
+      if (giftIndex >= 0) {
+        gifts.value[giftIndex].claimed = true
+      }
+    }
   } finally {
     claimingKey.value = ''
   }
@@ -65,6 +87,11 @@ onMounted(fetchGifts)
 
 <template>
   <div class="gifts-page">
+    <!-- 消息提示 -->
+    <div v-if="message" class="message" :class="messageType">
+      {{ message }}
+    </div>
+
     <div class="line">【礼包】</div>
 
     <div v-if="loading" class="line gray">加载中...</div>
@@ -118,5 +145,37 @@ onMounted(fetchGifts)
 
 .link:hover {
   text-decoration: underline;
+}
+
+.link.disabled {
+  color: #999;
+  cursor: not-allowed;
+  text-decoration: none;
+}
+
+.message {
+  padding: 8px 12px;
+  margin: 8px 0;
+  border-radius: 4px;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.message.success {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.message.error {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.message.info {
+  background: #d1ecf1;
+  color: #0c5460;
+  border: 1px solid #bee5eb;
 }
 </style>

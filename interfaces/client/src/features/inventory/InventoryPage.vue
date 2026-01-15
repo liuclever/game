@@ -16,19 +16,18 @@ const loading = ref(true)
 const bagInfo = ref({ capacity: 145, used_slots: 0, temp_slots: 0 })
 const transferred = ref([])  // 本次转移的物品
 
-// 分类
+// 分类：物品、召唤球、战骨、卷轴、技能书
 const categories = {
-  all: '全部',
-  material: '材料',
-  consumable: '道具',
+  item: '物品',
+  summonBall: '召唤球',
+  bone: '战骨',
+  scroll: '卷轴',
+  skillBook: '技能书',
 }
-const currentCategory = ref('all')
+const currentCategory = ref('item')  // 默认显示物品
 
 // 是否显示临时背包
 const showTemp = ref(false)
-
-// 名称筛选关键词（卷轴、战骨、召唤球、技能书）
-const nameFilter = ref('')
 
 // 关键字搜索（仅正式背包）
 const keywordSearch = ref('')
@@ -82,8 +81,7 @@ const loadTempItems = async () => {
 // 切换到临时背包
 const switchToTemp = () => {
   showTemp.value = true
-  currentCategory.value = 'all'
-  nameFilter.value = ''
+  currentCategory.value = 'item'
   keywordSearch.value = ''
   currentPage.value = 1
   loadTempItems()
@@ -103,6 +101,39 @@ onMounted(() => {
   }
 })
 
+// 判断物品属于哪个分类
+const getItemCategory = (item) => {
+  const name = item.name || ''
+  const itemId = item.item_id || 0
+  const type = item.type || ''
+  
+  // 技能书：通过type判断或item_id判断（10001-10699范围）或名称包含"技能书"/"书"（排除卷轴）
+  if (type === 'skill_book' || (itemId >= 10001 && itemId <= 10699)) {
+    return 'skillBook'
+  }
+  if (name.includes('技能书') || (name.includes('书') && !name.includes('卷轴'))) {
+    return 'skillBook'
+  }
+  
+  // 召唤球：名称包含"捕捉球"或"召唤球"（排除宝箱）
+  if ((name.includes('捕捉球') || name.includes('召唤球')) && !name.includes('宝箱')) {
+    return 'summonBall'
+  }
+  
+  // 战骨：名称包含"骨"（排除卷轴）
+  if (name.includes('骨') && !name.includes('卷轴')) {
+    return 'bone'
+  }
+  
+  // 卷轴：名称包含"卷轴"
+  if (name.includes('卷轴')) {
+    return 'scroll'
+  }
+  
+  // 其他都是物品
+  return 'item'
+}
+
 // 过滤后的物品
 const filteredItems = computed(() => {
   let result = items.value
@@ -110,14 +141,9 @@ const filteredItems = computed(() => {
   // 过滤掉数量为0的物品
   result = result.filter(item => item.quantity > 0)
   
-  // 按类型筛选
-  if (currentCategory.value !== 'all') {
-    result = result.filter(item => item.type === currentCategory.value)
-  }
-  
-  // 按名称关键词筛选
-  if (nameFilter.value) {
-    result = result.filter(item => item.name.includes(nameFilter.value))
+  // 按分类筛选
+  if (currentCategory.value) {
+    result = result.filter(item => getItemCategory(item) === currentCategory.value)
   }
 
   // 按关键字搜索（仅正式背包）
@@ -143,16 +169,6 @@ const totalPages = computed(() => {
 const switchCategory = (cat) => {
   showTemp.value = false
   currentCategory.value = cat
-  nameFilter.value = ''  // 清除名称筛选
-  keywordSearch.value = ''
-  currentPage.value = 1
-}
-
-// 按名称筛选
-const filterByName = (keyword) => {
-  showTemp.value = false
-  nameFilter.value = keyword
-  currentCategory.value = 'all'  // 重置类型筛选
   keywordSearch.value = ''
   currentPage.value = 1
 }
@@ -268,35 +284,30 @@ const handleLink = (name) => {
     <div class="section">
       <a 
         class="link" 
-        :class="{ active: !showTemp && currentCategory === 'consumable' && !nameFilter }"
-        @click="switchCategory('consumable')"
-      >道具</a> | 
+        :class="{ active: !showTemp && currentCategory === 'item' }"
+        @click="switchCategory('item')"
+      >物品</a> | 
       <a 
         class="link"
-        :class="{ active: !showTemp && currentCategory === 'material' && !nameFilter }"
-        @click="switchCategory('material')"
-      >材料</a> | 
+        :class="{ active: !showTemp && currentCategory === 'summonBall' }"
+        @click="switchCategory('summonBall')"
+      >召唤球</a> | 
       <a 
         class="link"
-        :class="{ active: !showTemp && nameFilter === '召唤球' }"
-        @click="filterByName('召唤球')"
-      >召唤球</a>
+        :class="{ active: !showTemp && currentCategory === 'bone' }"
+        @click="switchCategory('bone')"
+      >战骨</a>
     </div>
     <div class="section">
       <a 
         class="link"
-        :class="{ active: !showTemp && nameFilter === '战骨' }"
-        @click="filterByName('战骨')"
-      >战骨</a> | 
-      <a 
-        class="link"
-        :class="{ active: !showTemp && nameFilter === '卷轴' }"
-        @click="filterByName('卷轴')"
+        :class="{ active: !showTemp && currentCategory === 'scroll' }"
+        @click="switchCategory('scroll')"
       >卷轴</a> | 
       <a 
         class="link"
-        :class="{ active: !showTemp && nameFilter === '技能书' }"
-        @click="filterByName('技能书')"
+        :class="{ active: !showTemp && currentCategory === 'skillBook' }"
+        @click="switchCategory('skillBook')"
       >技能书</a>
     </div>
     <div class="section">

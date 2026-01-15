@@ -105,6 +105,10 @@ const goToDragonSignup = () => {
   router.push('/alliance/war/dragon-signup')
 }
 
+const goToTigerSignup = () => {
+  router.push('/alliance/war/tiger-signup')
+}
+
 const handleQuickLink = (type) => {
   if (type === 'rule') {
     router.push('/alliance/war/rules')
@@ -237,11 +241,19 @@ const nextWarDisplay = computed(() => {
   if (!scheduleInfo.value?.nextWarTime) {
     return '待定'
   }
+  // 后端返回的是UTC时间（带Z），需要转换为本地时间显示
   const date = new Date(scheduleInfo.value.nextWarTime)
   if (Number.isNaN(date.getTime())) {
     return scheduleInfo.value.nextWarTime
   }
-  return `${weekdayLabels[date.getDay()]} ${pad(date.getHours())}:${pad(date.getMinutes())}`
+  // 使用UTC时间来计算星期几和小时，避免时区转换问题
+  // 因为后端返回的UTC时间已经是正确的开战时间（周三20:00或周六20:00 UTC）
+  const utcWeekday = date.getUTCDay() // 0=周日, 1=周一, ..., 6=周六
+  const utcHour = date.getUTCHours()
+  const utcMinute = date.getUTCMinutes()
+  
+  // 直接使用UTC时间显示，确保显示的是周三20:00或周六20:00
+  return `${weekdayLabels[utcWeekday]} ${pad(utcHour)}:${pad(utcMinute)}`
 })
 
 const scheduleDetailText = computed(() => {
@@ -339,10 +351,10 @@ const formatCountdown = (seconds) => {
           <div>
             飞龙军报名：
             <span class="orange">
-              {{ warInfo.personal?.current_army === 1 ? '已报名' : '未报名' }}
+              {{ warInfo.targets?.dragon_registration ? '已报名' : '未报名' }}
             </span>
             <a
-              v-if="warInfo.personal?.current_army !== 1"
+              v-if="!warInfo.targets?.dragon_registration"
               class="link"
               @click.prevent="goToDragonSignup"
             >报名</a>
@@ -350,8 +362,13 @@ const formatCountdown = (seconds) => {
           <div>
             伏虎军报名：
             <span class="orange">
-              {{ warInfo.personal?.current_army === 2 ? '已报名' : '未报名' }}
+              {{ warInfo.targets?.tiger_registration ? '已报名' : '未报名' }}
             </span>
+            <a
+              v-if="!warInfo.targets?.tiger_registration"
+              class="link"
+              @click.prevent="goToTigerSignup"
+            >报名</a>
           </div>
           <div>
             个人签到：
@@ -381,9 +398,6 @@ const formatCountdown = (seconds) => {
           </div>
           <div>
             伏虎军签到人数：<span class="blue">{{ warInfo.statistics?.tiger_count ?? 0 }}</span>
-          </div>
-          <div>
-            已报名总人数：<span class="blue">{{ warInfo.statistics?.total_signed ?? 0 }}</span>
           </div>
         </div>
       </div>

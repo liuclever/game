@@ -17,7 +17,6 @@ const rewardConfig = {
     items: [
       '化仙丹×1',
       '随机结晶×1',
-      '战灵-土灵×1',
       '骰子包×2',
       '捕捉球×3',
       '迷踪符×3'
@@ -29,7 +28,6 @@ const rewardConfig = {
     items: [
       '招财神符×1',
       '灵力水晶×1',
-      '战灵-土灵×2',
       '炼魂丹×1',
       '强力捕捉球×1',
       '镇妖符×3'
@@ -156,8 +154,8 @@ onMounted(() => {
   background: #ffffff;
   min-height: 100vh;
   padding: 8px 12px;
-  font-size: 13px;
-  line-height: 1.6;
+  font-size: 16px;
+  line-height: 1.8;
   font-family: SimSun, "宋体", serif;
 }
 

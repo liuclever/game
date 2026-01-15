@@ -332,7 +332,12 @@ def create_training_room():
 
     data = request.get_json() or {}
     title = data.get('title')
-    result = services.alliance_service.create_training_room(user_id, title)
+    try:
+        duration_hours = int(data.get("duration_hours", 2) or 2)
+    except (TypeError, ValueError):
+        duration_hours = 2
+    
+    result = services.alliance_service.create_training_room(user_id, title, duration_hours)
     status = 200 if result.get("ok") else 400
     return jsonify(result), status
 

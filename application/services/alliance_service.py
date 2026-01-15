@@ -16,6 +16,8 @@ from domain.entities.alliance import (
 )
 from domain.entities.alliance_registration import (
     AllianceRegistration,
+    STATUS_REGISTERED,
+    STATUS_PENDING,
     STATUS_CONFIRMED,
     STATUS_IN_BATTLE,
     STATUS_VICTOR,
@@ -54,8 +56,7 @@ class AllianceService:
             "land_type": "land",  # 土地
             "daily_reward_copper": 10000,  # 联盟占领后，盟员每天可获得10000铜钱
             "buffs": [
-                "联盟成员修行经验加成9%",
-                "联盟火修焚火晶加成40%"
+                "联盟占领后的奖励：联盟内的盟员每天可获得10000铜钱"
             ],
         },
         2: {
@@ -63,26 +64,23 @@ class AllianceService:
             "land_type": "land",  # 土地
             "daily_reward_copper": 10000,  # 联盟占领后，盟员每天可获得10000铜钱
             "buffs": [
-                "联盟成员修行经验加成9%",
-                "联盟火修焚火晶加成40%"
+                "联盟占领后的奖励：联盟内的盟员每天可获得10000铜钱"
             ],
         },
         3: {
             "land_name": "幻灵镇1号据点",
             "land_type": "stronghold",  # 据点
-            "daily_reward_copper": 5000,  # 联盟占领后，盟员每天可获得5000铜钱
+            "daily_reward_copper": 5000,  # 联盟占领后的奖励：联盟内的盟员每天可获得5000铜钱
             "buffs": [
-                "联盟成员修行经验加成5%",
-                "联盟火修焚火晶加成20%"
+                "联盟占领后的奖励：联盟内的盟员每天可获得5000铜钱"
             ],
         },
         4: {
             "land_name": "定老城1号据点",
             "land_type": "stronghold",  # 据点
-            "daily_reward_copper": 5000,  # 联盟占领后，盟员每天可获得5000铜钱
+            "daily_reward_copper": 5000,  # 联盟占领后的奖励：联盟内的盟员每天可获得5000铜钱
             "buffs": [
-                "联盟成员修行经验加成5%",
-                "联盟火修焚火晶加成20%"
+                "联盟占领后的奖励：联盟内的盟员每天可获得5000铜钱"
             ],
         },
     }
@@ -166,12 +164,8 @@ class AllianceService:
         self.alliance_repo.add_member(leader_member)
         for building_key in AllianceRules.BUILDING_KEYS:
             self.alliance_repo.set_alliance_building_level(alliance_id, building_key, 1)
-        self._record_activity(
-            alliance_id=alliance_id,
-            event_type="join",
-            actor_user_id=user_id,
-            actor_name=self._player_display_name(player),
-        )
+        # 创建联盟时不记录"加入联盟"动态，因为创建者不是"加入"，而是"创建"
+        # 如果需要记录创建动态，可以使用 event_type="create"
 
         return {
             "ok": True, 
@@ -1868,6 +1862,9 @@ class AllianceService:
             else:
                 status_label = "等待中"
             
+            # 获取房间的修行时长（固定2小时）
+            duration_hours = 2
+            
             room_list.append({
                 "roomId": room.id,
                 "index": idx,
@@ -1884,6 +1881,7 @@ class AllianceService:
                 "canEnd": can_end,
                 "isFinished": finished,
                 "selfParticipantId": self_participant.id if self_participant else None,
+                "durationHours": duration_hours,  # 修行时长（小时），固定2小时
             })
 
         # 检查是否有火能原石
@@ -1906,7 +1904,7 @@ class AllianceService:
             "allianceLevel": alliance.level or 1,
             "allianceCrystals": alliance.crystals,
             "hasJoinedToday": has_joined_today,
-            "trainingDurationMinutes": AllianceRules.TRAINING_DURATION_MINUTES,
+            "trainingDurationMinutes": 120,  # 固定2小时=120分钟
             "dailyLimit": AllianceRules.TRAINING_DAILY_LIMIT,
             "rooms": room_list,
             "practiceStatus": "进行中" if any_ongoing else ("等待中" if any_waiting else "已结束"),
@@ -1919,13 +1917,16 @@ class AllianceService:
             "contributionCost": AllianceRules.FIRE_ORE_CONTRIBUTION_COST,
         }
 
-    def create_training_room(self, user_id: int, title: Optional[str] = None) -> dict:
+    def create_training_room(self, user_id: int, title: Optional[str] = None, duration_hours: int = 2) -> dict:
         member, alliance, error = self._get_alliance_context(user_id)
         if error:
             return error
 
         if self._has_joined_training_today(alliance.id, user_id):
             return {"ok": False, "error": "今日已参与修行，无法再次创建"}
+
+        # 固定修行时长为2小时
+        duration_hours = 2
 
         # 检查是否有火能原石
         fire_ore_count = self.inventory_service.get_item_count(user_id, AllianceRules.FIRE_ORE_ITEM_ID)
@@ -1946,6 +1947,7 @@ class AllianceService:
             title=room_title,
             status="waiting",  # 初始状态为等待中，满足2人后自动开始
             max_participants=4,
+            duration_hours=duration_hours,  # 固定为2小时
         )
         room_id = self.alliance_repo.create_training_room(room)
         participant = AllianceTrainingParticipant(
@@ -2058,15 +2060,15 @@ class AllianceService:
         }
 
     def claim_fire_ore(self, user_id: int) -> dict:
-        """领取火能原石（需要消耗5贡献值）"""
+        """领取火能原石（需要消耗5贡献值，一人一天只能领取一次）"""
         # 检查联盟成员身份
         member, alliance, error = self._get_alliance_context(user_id)
         if error:
             return error
 
-        # 检查今日是否已领取
+        # 检查今日是否已领取（使用数据库日期确保时区一致）
         if self.alliance_repo.has_claimed_fire_ore_today(user_id):
-            return {"ok": False, "error": "今日已领取过火能原石"}
+            return {"ok": False, "error": "今日已领取过火能原石，每人每天只能领取一次"}
 
         # 检查贡献值是否足够
         if member.contribution < AllianceRules.FIRE_ORE_CONTRIBUTION_COST:
@@ -2084,8 +2086,21 @@ class AllianceService:
             self.alliance_repo.update_member_contribution(user_id, AllianceRules.FIRE_ORE_CONTRIBUTION_COST)
             return {"ok": False, "error": f"发放火能原石失败：{str(exc)}"}
 
-        # 发放成功后，记录领取日期
-        self.alliance_repo.record_fire_ore_claim(user_id)
+        # 发放成功后，记录领取日期（使用条件更新，确保原子性，防止并发重复领取）
+        record_success = self.alliance_repo.record_fire_ore_claim(user_id)
+        
+        # 如果记录失败（返回False），说明今日已领取过（可能是并发请求）
+        if not record_success:
+            # 回滚：扣除物品，恢复贡献值
+            try:
+                self.inventory_service.remove_item(user_id, AllianceRules.FIRE_ORE_ITEM_ID, 1)
+                self.alliance_repo.update_member_contribution(user_id, AllianceRules.FIRE_ORE_CONTRIBUTION_COST)
+                member.contribution = member.contribution + AllianceRules.FIRE_ORE_CONTRIBUTION_COST
+            except Exception as rollback_error:
+                # 如果回滚失败，记录错误
+                import logging
+                logging.error(f"回滚火能原石领取失败 user_id={user_id}, error={rollback_error}")
+            return {"ok": False, "error": "今日已领取过火能原石，每人每天只能领取一次"}
 
         # 记录动态
         self._record_activity(
@@ -2095,9 +2110,8 @@ class AllianceService:
             actor_name=self._member_display_name(member),
         )
 
-        # 获取物品名称用于提示
-        item = self.inventory_service.item_repo.get_by_id(AllianceRules.FIRE_ORE_ITEM_ID)
-        item_name = item.name if item else "火能原石"
+        # 直接使用"火能原石"作为物品名称（在联盟系统中统一使用此名称）
+        item_name = "火能原石"
 
         return {
             "ok": True,
@@ -2286,6 +2300,7 @@ class AllianceService:
             )
             return {"ok": False, "error": msg}
 
+        # 检查同一军队类型是否已经报名了其他土地/据点
         existing_same_army = self.alliance_repo.get_active_land_registration_by_range(
             alliance.id, list(allowed_land_ids)
         )
@@ -2301,6 +2316,34 @@ class AllianceService:
             else:
                 msg = f"伏虎军只能选择一个据点报名（{land_names[3]}或{land_names[4]}）"
             return {"ok": False, "error": msg}
+        
+        # 检查联盟是否已经报名了2个目标（飞龙军1个 + 伏虎军1个）
+        # 使用更严格的方法：直接查询所有活跃状态的报名记录
+        dragon_registered = False
+        tiger_registered = False
+        
+        # 检查飞龙军是否已报名土地
+        dragon_reg = self.alliance_repo.get_active_land_registration_by_range(
+            alliance.id, list(self.DRAGON_ONLY_LANDS)
+        )
+        if dragon_reg and dragon_reg.land_id != land_id:
+            dragon_registered = True
+        
+        # 检查伏虎军是否已报名据点
+        tiger_reg = self.alliance_repo.get_active_land_registration_by_range(
+            alliance.id, list(self.TIGER_ONLY_LANDS)
+        )
+        if tiger_reg and tiger_reg.land_id != land_id:
+            tiger_registered = True
+        
+        # 如果当前要报名的是飞龙军土地，检查是否已有飞龙军报名
+        if normalized_army == AllianceRules.ARMY_DRAGON:
+            if dragon_registered:
+                return {"ok": False, "error": "飞龙军已经报名了一个土地，不能再报名其他土地"}
+        # 如果当前要报名的是伏虎军据点，检查是否已有伏虎军报名
+        elif normalized_army == AllianceRules.ARMY_TIGER:
+            if tiger_registered:
+                return {"ok": False, "error": "伏虎军已经报名了一个据点，不能再报名其他据点"}
 
         registration = self.alliance_repo.get_land_registration(alliance.id, land_id)
         if registration and registration.is_active():
@@ -2351,7 +2394,8 @@ class AllianceService:
         if not land_meta:
             return {"ok": False, "error": "未找到该土地"}
 
-        statuses = [STATUS_CONFIRMED, STATUS_IN_BATTLE]
+        # 显示所有活跃状态的报名记录（包括已报名、待审核、已确认、战斗中）
+        statuses = [STATUS_REGISTERED, STATUS_PENDING, STATUS_CONFIRMED, STATUS_IN_BATTLE]
         registrations = self.alliance_repo.list_land_registrations_by_land(
             land_id, statuses=statuses
         )
@@ -2796,7 +2840,12 @@ class AllianceService:
         if not room.created_at:
             return datetime.utcnow()
         # 如果房间状态是ongoing，从创建时间计算（因为创建时如果满足2人会自动开始）
-        return room.created_at + timedelta(minutes=AllianceRules.TRAINING_DURATION_MINUTES)
+        # 根据房间的修行时长计算结束时间
+        duration_hours = getattr(room, "duration_hours", 2) or 2  # 兼容旧数据，默认2小时
+        duration_minutes = AllianceRules.get_training_duration_minutes(duration_hours)
+        if room.created_at:
+            return room.created_at + timedelta(minutes=duration_minutes)
+        return None
 
     def _is_room_finished(self, room: AllianceTrainingRoom, now: Optional[datetime] = None) -> bool:
         room_status = getattr(room, 'status', None) or "ongoing"
@@ -2822,22 +2871,33 @@ class AllianceService:
         if not now:
             now = datetime.utcnow()
         # 盟战开始时间：周三20:00和周六20:00
-        war_weekdays = {self.WAR_FIRST_END_WEEKDAY, self.WAR_SECOND_END_WEEKDAY}  # 周三和周六
-        base_today = datetime(
+        war_weekdays = {self.WAR_FIRST_END_WEEKDAY, self.WAR_SECOND_END_WEEKDAY}  # 周三和周六 (2, 5)
+        
+        # 从今天开始，查找下一个符合条件的开战时间
+        # 先检查今天是否已经是开战日且还没过20:00
+        today_at_20 = datetime(
             now.year,
             now.month,
             now.day,
             self.WAR_BATTLE_START_HOUR,
             0,
         )
-        for day_offset in range(0, 8):
-            candidate = base_today + timedelta(days=day_offset)
-            if candidate.weekday() not in war_weekdays:
-                continue
-            if candidate <= now:
-                continue
-            return candidate
-        return base_today + timedelta(days=7)
+        
+        # 如果今天是开战日且还没到20:00，返回今天的20:00
+        if today_at_20.weekday() in war_weekdays and today_at_20 > now:
+            return today_at_20
+        
+        # 否则，从明天开始查找下一个开战日
+        for day_offset in range(1, 8):
+            candidate = today_at_20 + timedelta(days=day_offset)
+            if candidate.weekday() in war_weekdays:
+                return candidate
+        
+        # 如果8天内没找到（理论上不应该发生），返回下周三
+        days_until_wednesday = (self.WAR_FIRST_END_WEEKDAY - now.weekday() + 7) % 7
+        if days_until_wednesday == 0:
+            days_until_wednesday = 7  # 如果今天是周三，返回下周三
+        return today_at_20 + timedelta(days=days_until_wednesday)
 
     def _build_war_schedule_payload(self, now: Optional[datetime] = None) -> Dict[str, Any]:
         if not now:
@@ -3146,7 +3206,7 @@ class AllianceService:
             target_name=target_name,
             item_name=item_name,
             item_quantity=item_quantity,
-            created_at=datetime.utcnow(),
+            created_at=None,  # 不设置时间，让数据库使用NOW()（本地时间），保持一致性
         )
         try:
             self.alliance_repo.add_activity(activity)

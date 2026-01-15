@@ -188,7 +188,6 @@ onMounted(() => {
         <div>修行状态: {{ practiceStatus }}</div>
         <div>焚火炉等级: {{ info.furnaceLevel }}级</div>
         <div>预期奖励: {{ info.expectedReward }}个焚火晶</div>
-        <div>修行时间: {{ info.trainingDurationMinutes }}分钟（2小时）</div>
         <div>开始条件: 至少{{ info.minParticipants }}人</div>
       </div>
       
@@ -208,6 +207,7 @@ onMounted(() => {
             {{ idx + 1 }}. {{ room.title }} 
             <span class="status-badge" :class="room.status">{{ room.statusLabel }}</span>
             ({{ room.participantCount }}/{{ room.maxParticipants }})
+            <span class="duration-info">【2小时，消耗1个火能原石】</span>
           </div>
           
           <!-- 参与者列表 -->
@@ -348,5 +348,12 @@ onMounted(() => {
   margin-top: 4px;
   font-size: 18px;
   color: #666;
+}
+
+.duration-info {
+  margin-left: 8px;
+  font-size: 18px;
+  color: #FF6600;
+  font-weight: bold;
 }
 </style>
