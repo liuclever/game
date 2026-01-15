@@ -436,8 +436,8 @@ const handleLink = (name) => {
   background: #ffffff;
   min-height: 100vh;
   padding: 8px 12px;
-  font-size: 13px;
-  line-height: 1.6;
+  font-size: 17px;
+  line-height: 1.8;
   font-family: SimSun, "宋体", serif;
 }
 

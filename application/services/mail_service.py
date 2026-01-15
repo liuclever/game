@@ -302,6 +302,33 @@ class MailService:
             print(f"拒绝好友请求失败: {e}")
             return {"ok": False, "error": f"处理失败: {str(e)}"}
     
+    def get_friends(self, user_id: int) -> List[Dict]:
+        """获取好友列表"""
+        try:
+            rows = execute_query(
+                """SELECT fr.friend_id, p.nickname, p.level, p.vip_level
+                   FROM friend_relation fr
+                   JOIN player p ON fr.friend_id = p.user_id
+                   WHERE fr.user_id = %s
+                   ORDER BY p.level DESC, p.nickname ASC""",
+                (user_id,)
+            )
+            result = []
+            for row in rows:
+                result.append({
+                    "user_id": row['friend_id'],
+                    "friend_id": row['friend_id'],
+                    "nickname": row['nickname'],
+                    "level": row['level'],
+                    "vip": row.get('vip_level', 0),
+                })
+            return result
+        except Exception as e:
+            print(f"获取好友列表失败: {e}")
+            import traceback
+            traceback.print_exc()
+            return []
+    
     def _format_time(self, dt) -> str:
         """格式化时间为 MM.DD HH:MM"""
         if isinstance(dt, datetime):

@@ -9,6 +9,7 @@ const loading = ref(false)
 const signupLoading = ref(false)
 const checkinLoading = ref(false)
 const errorMessage = ref('')
+const hasAlliance = ref(true)
 const defaultStatistics = {
   dragon_count: 0,
   tiger_count: 0,
@@ -35,6 +36,15 @@ const fetchWarInfo = async () => {
   loading.value = true
   errorMessage.value = ''
   try {
+    // 先检查是否加入联盟
+    const allianceRes = await http.get('/alliance/my')
+    if (!allianceRes.data?.ok) {
+      hasAlliance.value = false
+      loading.value = false
+      return
+    }
+    hasAlliance.value = true
+
     const res = await http.get('/alliance/war/info')
     if (res.data?.ok && res.data.data) {
       const data = res.data.data
@@ -60,7 +70,12 @@ const fetchWarInfo = async () => {
     }
   } catch (err) {
     console.error('加载盟战信息失败', err)
-    errorMessage.value = '加载盟战信息失败'
+    // 如果是因为未加入联盟导致的错误，设置为未加入状态
+    if (err.response?.data?.error?.includes('未加入联盟') || err.response?.data?.error?.includes('请先加入联盟')) {
+      hasAlliance.value = false
+    } else {
+      errorMessage.value = '加载盟战信息失败'
+    }
   } finally {
     loading.value = false
   }
@@ -76,6 +91,14 @@ const goAlliance = () => {
 
 const goHome = () => {
   router.push('/')
+}
+
+const goToHall = () => {
+  router.push('/alliance/hall')
+}
+
+const goToCreateAlliance = () => {
+  router.push('/alliance')
 }
 
 const goToDragonSignup = () => {
@@ -273,9 +296,19 @@ const formatCountdown = (seconds) => {
     </div>
 
     <div v-if="loading" class="section">加载中...</div>
+    <div v-else-if="!hasAlliance" class="section">
+      <div class="section">你还没有加入任何联盟</div>
+      <div class="section">
+        <button class="btn" @click="goToCreateAlliance">创建联盟</button>
+        <button class="btn" @click="goToHall">寻找联盟</button>
+      </div>
+      <div class="section requirement">
+        创建条件：玩家拥有1个盟主证明，玩家等级达到30级或以上
+      </div>
+    </div>
     <div v-else-if="errorMessage" class="section red">{{ errorMessage }}</div>
 
-    <template v-else>
+    <template v-else-if="hasAlliance">
       <div class="section-group">
         <div class="group-title">
           联盟备战
@@ -473,5 +506,22 @@ const formatCountdown = (seconds) => {
 
 .spacer {
   margin-top: 12px;
+}
+
+.btn {
+  padding: 4px 12px;
+  margin-right: 8px;
+  cursor: pointer;
+  border: 1px solid #CCC;
+  background: #f7f7f7;
+}
+
+.btn:hover {
+  background: #eeeeee;
+}
+
+.requirement {
+  font-size: 16px;
+  color: #CC3300;
 }
 </style>

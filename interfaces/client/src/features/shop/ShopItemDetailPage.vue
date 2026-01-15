@@ -57,12 +57,24 @@ const buyItem = async () => {
         }
       })
     } else {
-      // 错误时仍然使用提示
-      alert(res.data.error)
+      // 跳转到错误提示页面
+      router.push({
+        path: '/message',
+        query: {
+          message: res.data.error || '购买失败',
+          type: 'error'
+        }
+      })
     }
   } catch (e) {
     console.error('购买失败', e)
-    alert('购买失败')
+    router.push({
+      path: '/message',
+      query: {
+        message: e.response?.data?.error || '购买失败',
+        type: 'error'
+      }
+    })
   }
 }
 

@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import http from '@/services/http'
 
 const router = useRouter()
 const route = useRoute()
@@ -9,11 +10,34 @@ const TAB_LEVEL = 'level'
 const TAB_SOCIAL = 'social'
 
 const activeTab = ref(TAB_LEVEL)
+const loading = ref(false)
 
-// 当前玩家好友（前端先用示例数据；后续可替换为接口数据）
-const friends = ref([
- 
-])
+// 当前玩家好友
+const friends = ref([])
+
+// 加载好友列表
+const loadFriends = async () => {
+  loading.value = true
+  try {
+    const res = await http.get('/mail/friends')
+    if (res.data.ok) {
+      friends.value = res.data.friends || []
+    } else {
+      console.error('加载好友列表失败:', res.data.error)
+      friends.value = []
+    }
+  } catch (e) {
+    console.error('加载好友列表失败', e)
+    friends.value = []
+  } finally {
+    loading.value = false
+  }
+}
+
+// 查看好友详情
+const viewFriend = (f) => {
+  router.push(`/player/profile?id=${f.user_id}`)
+}
 
 const sortedFriends = computed(() => {
   const list = [...friends.value]
@@ -116,6 +140,7 @@ const handleLink = (name) => {
 
 onMounted(() => {
   syncFromRoute()
+  loadFriends()
 })
 
 watch(
@@ -145,18 +170,17 @@ watch(
     </div>
 
     <template v-if="activeTab === TAB_LEVEL">
-      <div v-for="(f, idx) in pageItems" :key="f.id" class="section item">
-        <span class="rank">{{ (currentPage - 1) * pageSize + idx + 1 }}.</span>
-        <span class="paren">(</span><span class="rank-name">{{ f.rank_name }}</span><span class="paren">)</span>
-        <a class="link name" :class="{ red: f.highlight }" @click="() => {}">{{ f.nickname }}</a>
-        <span class="vip">V{{ f.vip }}</span>
-        <span class="level">({{ f.level }}级)</span>
-        <span class="link readonly">切磋</span>
-        <template v-if="f.can_infuse">
-          <span> . </span>
-          <a class="link" @click="infuse(f)">灌注</a>
-        </template>
-      </div>
+      <div v-if="loading" class="section gray">加载中...</div>
+      <template v-else>
+        <div v-if="pageItems.length === 0" class="section gray">暂无好友</div>
+        <div v-for="(f, idx) in pageItems" :key="f.user_id || f.friend_id" class="section item">
+          <span class="rank">{{ (currentPage - 1) * pageSize + idx + 1 }}.</span>
+          <span class="paren">(</span><span class="rank-name">{{ f.rank_name || '未知' }}</span><span class="paren">)</span>
+          <a class="link name" @click="viewFriend(f)">{{ f.nickname }}</a>
+          <span class="vip">V{{ f.vip || 0 }}</span>
+          <span class="level">({{ f.level || 0 }}级)</span>
+        </div>
+      </template>
 
       <!-- 分页（样式按截图：只显示 下页/末页，其他页显示 首页/上页） -->
       <div class="section pager-links">

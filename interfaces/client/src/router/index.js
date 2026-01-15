@@ -173,6 +173,8 @@ import DragonPalaceGiftOpenPage from '@/features/dragonpalace/DragonPalaceGiftOp
 import DragonPalacePetInfoPage from '@/features/dragonpalace/DragonPalacePetInfoPage.vue'
 import AnnouncementDetailPage from '@/features/announcement/AnnouncementDetailPage.vue'
 import LotteryResultPage from '@/features/announcement/LotteryResultPage.vue'
+import MessagePage from '@/features/common/MessagePage.vue'
+import ConfirmPage from '@/features/common/ConfirmPage.vue'
 
 const routes = [
   {
@@ -590,6 +592,16 @@ const routes = [
     path: '/dynamics/battle-report',
     name: 'DynamicsBattleReport',
     component: DynamicsBattleReportPage,
+  },
+  {
+    path: '/message',
+    name: 'Message',
+    component: MessagePage,
+  },
+  {
+    path: '/confirm',
+    name: 'Confirm',
+    component: ConfirmPage,
   },
   {
     path: '/friend',

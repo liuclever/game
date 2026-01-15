@@ -110,11 +110,23 @@ const challenge = async () => {
         query: { data: JSON.stringify(res.data.battle) }
       })
     } else {
-      alert(res.data.error || '切磋失败')
+      router.push({
+        path: '/message',
+        query: {
+          message: res.data.error || '切磋失败',
+          type: 'error'
+        }
+      })
     }
   } catch (e) {
     console.error('切磋失败', e)
-    alert(e?.response?.data?.error || '切磋失败')
+    router.push({
+      path: '/message',
+      query: {
+        message: e?.response?.data?.error || '切磋失败',
+        type: 'error'
+      }
+    })
   } finally {
     sparring.value = false
   }
@@ -128,6 +140,66 @@ const goBack = () => {
 // 返回首页
 const goHome = () => {
   router.push('/')
+}
+
+// 写信
+const sendMessage = () => {
+  if (!player.value?.user_id) return
+  router.push({ 
+    path: '/mail/chat', 
+    query: { target_id: player.value.user_id, name: player.value.nickname } 
+  })
+}
+
+// 加为好友
+const addingFriend = ref(false)
+const addFriend = async () => {
+  if (!player.value?.user_id) return
+  if (addingFriend.value) return
+  
+  addingFriend.value = true
+  try {
+    const res = await http.post('/mail/friend-request/send', { target_id: player.value.user_id })
+    if (res.data.ok) {
+      router.push({
+        path: '/message',
+        query: {
+          message: res.data.message || '好友请求已发送',
+          type: 'success'
+        }
+      })
+    } else {
+      router.push({
+        path: '/message',
+        query: {
+          message: res.data.error || '发送失败',
+          type: 'error'
+        }
+      })
+    }
+  } catch (e) {
+    console.error('发送好友请求失败', e)
+    router.push({
+      path: '/message',
+      query: {
+        message: e?.response?.data?.error || '发送失败',
+        type: 'error'
+      }
+    })
+  } finally {
+    addingFriend.value = false
+  }
+}
+
+// 拉黑
+const blockPlayer = () => {
+  router.push({
+    path: '/message',
+    query: {
+      message: '拉黑功能暂未实现',
+      type: 'error'
+    }
+  })
 }
 
 // 点击链接
@@ -144,7 +216,13 @@ const handleLink = (name) => {
   if (routes[name]) {
     router.push(routes[name])
   } else {
-    alert(`${name} 功能待实现`)
+    router.push({
+      path: '/message',
+      query: {
+        message: `${name} 功能待实现`,
+        type: 'error'
+      }
+    })
   }
 }
 
@@ -175,9 +253,9 @@ const viewBeast = (beast) => {
         昵称: <span class="username">{{ player.nickname }}</span> 🐦 （{{ player.gender || '男' }}）
       </div>
       <div class="section">
-        <a class="link" @click="handleLink('写信')">写信</a>  
-        <a class="link" @click="handleLink('加为好友')">加为好友</a>  
-        <a class="link" @click="handleLink('拉黑')">拉黑</a>
+        <a class="link" @click="sendMessage">写信</a>  
+        <a class="link" @click="addFriend">{{ addingFriend ? '发送中...' : '加为好友' }}</a>  
+        <a class="link" @click="blockPlayer">拉黑</a>
       </div>
       <div class="section">
         ID : {{ player.user_id }}

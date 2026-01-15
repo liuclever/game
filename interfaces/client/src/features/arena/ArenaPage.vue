@@ -128,61 +128,53 @@ const viewPlayer = (userId) => {
 }
 
 // 占领擂台
-const occupyArena = async () => {
+const occupyArena = () => {
   if (loading.value) return
   if (ballCount.value < 1) {
-    alert(`${ballName.value}不足，请先购买！`)
+    router.push({
+      path: '/message',
+      query: {
+        message: `${ballName.value}不足，请先购买！`,
+        type: 'error'
+      }
+    })
     return
   }
   
-  if (!confirm(`占领擂台将消耗1个${ballName.value}，确定要占领吗？`)) {
-    return
-  }
-  
-  loading.value = true
-  resultMessage.value = ''
-  try {
-    const res = await http.post('/arena/occupy', { type: currentType.value })
-    if (res.data.ok) {
-      resultMessage.value = res.data.message
-      loadArenaInfo()
-    } else {
-      alert(res.data.error || '占领失败')
+  router.push({
+    path: '/confirm',
+    query: {
+      message: `占领擂台将消耗1个${ballName.value}，确定要占领吗？`,
+      action: 'occupy',
+      type: currentType.value,
+      ballName: ballName.value
     }
-  } catch (e) {
-    alert('占领失败：' + e.message)
-  } finally {
-    loading.value = false
-  }
+  })
 }
 
 // 挑战擂主
-const challenge = async () => {
+const challenge = () => {
   if (loading.value) return
   if (ballCount.value < 1) {
-    alert(`${ballName.value}不足，请先购买！`)
+    router.push({
+      path: '/message',
+      query: {
+        message: `${ballName.value}不足，请先购买！`,
+        type: 'error'
+      }
+    })
     return
   }
   
-  if (!confirm(`挑战擂台将消耗1个${ballName.value}，确定要挑战吗？`)) {
-    return
-  }
-  
-  loading.value = true
-  resultMessage.value = ''
-  try {
-    const res = await http.post('/arena/challenge', { type: currentType.value })
-    if (res.data.ok) {
-      resultMessage.value = res.data.message
-      loadArenaInfo()
-    } else {
-      alert(res.data.error || '挑战失败')
+  router.push({
+    path: '/confirm',
+    query: {
+      message: `挑战擂台将消耗1个${ballName.value}，确定要挑战吗？`,
+      action: 'challenge',
+      type: currentType.value,
+      ballName: ballName.value
     }
-  } catch (e) {
-    alert('挑战失败：' + e.message)
-  } finally {
-    loading.value = false
-  }
+  })
 }
 
 onMounted(() => {

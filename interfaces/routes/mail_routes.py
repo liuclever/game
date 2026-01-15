@@ -195,3 +195,29 @@ def reject_friend_request():
     result = mail_service.reject_friend_request(request_id, user_id)
     status = 200 if result.get('ok') else 400
     return jsonify(result), status
+
+
+@mail_bp.get('/friends')
+def get_friends():
+    """获取好友列表"""
+    user_id = get_current_user_id()
+    if not user_id:
+        return jsonify({"ok": False, "error": "请先登录"}), 401
+    
+    mail_service = MailService()
+    friends = mail_service.get_friends(user_id)
+    
+    # 获取玩家信息以获取 rank_name
+    friends_with_info = []
+    for friend in friends:
+        try:
+            player = services.player_repo.get_by_id(friend['friend_id'])
+            if player:
+                friend['rank_name'] = player.get_rank_name()
+            else:
+                friend['rank_name'] = '未知'
+        except Exception:
+            friend['rank_name'] = '未知'
+        friends_with_info.append(friend)
+    
+    return jsonify({"ok": True, "friends": friends_with_info})
