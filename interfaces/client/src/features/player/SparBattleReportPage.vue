@@ -8,18 +8,6 @@ const route = useRoute()
 const battleData = ref(null)
 const expandedBattles = ref(new Set())
 
-<<<<<<< HEAD
-=======
-// 动态导入幻兽图片
-const beastImageModules = import.meta.glob('@/assets/images/image*.jpeg', { eager: true })
-const getBeastImage = (templateId) => {
-  if (!templateId) return ''
-  const key = `/src/assets/images/image${templateId}.jpeg`
-  const module = beastImageModules[key]
-  return module?.default || ''
-}
-
->>>>>>> origin/dev
 const loadBattleData = () => {
   try {
     const dataStr = route.query.data
@@ -86,28 +74,6 @@ onMounted(() => {
         {{ battleData.attacker_name }} vs {{ battleData.defender_name }}
       </div>
       
-<<<<<<< HEAD
-
-=======
-      <!-- PK图标和幻兽展示 -->
-      <div class="section pk-section">
-        <div class="beasts-row">
-          <div v-for="(beast, idx) in (battleData.attacker_beasts || [])" :key="'a' + idx" class="beast-item">
-            <img v-if="getBeastImage(beast.template_id)" :src="getBeastImage(beast.template_id)" :alt="beast.name" class="beast-image">
-            <span v-else class="beast-icon">🐉</span>
-            <div class="beast-name">{{ beast.name }}</div>
-          </div>
-        </div>
-        <span class="pk-text">PK</span>
-        <div class="beasts-row">
-          <div v-for="(beast, idx) in (battleData.defender_beasts || [])" :key="'d' + idx" class="beast-item">
-            <img v-if="getBeastImage(beast.template_id)" :src="getBeastImage(beast.template_id)" :alt="beast.name" class="beast-image">
-            <span v-else class="beast-icon">🐉</span>
-            <div class="beast-name">{{ beast.name }}</div>
-          </div>
-        </div>
-      </div>
->>>>>>> origin/dev
       
       <!-- 幻兽经验 -->
       <div v-for="(beast, idx) in (battleData.attacker_beasts || [])" :key="idx" class="section">
@@ -179,54 +145,6 @@ onMounted(() => {
   margin: 4px 0;
 }
 
-<<<<<<< HEAD
-=======
-.pk-section {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  margin: 12px 0;
-}
-
-.beasts-row {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-.beast-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-}
-
-.beast-image {
-  width: 48px;
-  height: 48px;
-  object-fit: contain;
-}
-
-.beast-icon {
-  font-size: 48px;
-  line-height: 48px;
-}
-
-.beast-name {
-  font-size: 11px;
-  text-align: center;
-  max-width: 60px;
-  word-break: break-all;
-}
-
-.pk-text {
-  font-weight: bold;
-  font-size: 16px;
-  margin: 0 8px;
-}
-
->>>>>>> origin/dev
 .result-line {
   font-weight: bold;
 }
