@@ -13,6 +13,7 @@ const dynamics = ref([])
 const loading = ref(true)
 const error = ref('')
 const currentUserId = ref(null)
+const isBlocked = ref(false)
 
 const isOtherPlayer = computed(() => {
   if (!player.value) return false
@@ -50,6 +51,21 @@ const loadCurrentUser = async () => {
   }
 }
 
+// 检查拉黑状态
+const checkBlockStatus = async () => {
+  if (!player.value?.user_id || !currentUserId.value) return
+  if (player.value.user_id === currentUserId.value) return
+  
+  try {
+    const res = await http.get(`/mail/block/check?target_id=${player.value.user_id}`)
+    if (res.data.ok) {
+      isBlocked.value = res.data.is_blocked || false
+    }
+  } catch (e) {
+    console.error('检查拉黑状态失败', e)
+  }
+}
+
 // 加载玩家信息
 const loadPlayer = async () => {
   const playerId = route.query.id
@@ -74,6 +90,8 @@ const loadPlayer = async () => {
       dynamics.value = res.data.dynamics || []
       // 声望阈值加载不阻塞主数据，可以并行或延迟加载
       loadPrestigeRequirement()
+      // 检查拉黑状态
+      await checkBlockStatus()
     } else {
       error.value = res.data.error || '加载失败'
     }
@@ -191,15 +209,28 @@ const addFriend = async () => {
   }
 }
 
-// 拉黑
+// 拉黑/解除拉黑
 const blockPlayer = () => {
-  router.push({
-    path: '/message',
-    query: {
-      message: '拉黑功能暂未实现',
-      type: 'error'
-    }
-  })
+  if (!player.value?.user_id) return
+  if (isBlocked.value) {
+    // 已拉黑，跳转到解除拉黑确认页面
+    router.push({
+      path: '/block/unblock',
+      query: {
+        target_id: player.value.user_id,
+        target_name: player.value.nickname || '该玩家'
+      }
+    })
+  } else {
+    // 未拉黑，跳转到拉黑确认页面
+    router.push({
+      path: '/block/confirm',
+      query: {
+        target_id: player.value.user_id,
+        target_name: player.value.nickname || '该玩家'
+      }
+    })
+  }
 }
 
 // 点击链接
@@ -255,7 +286,7 @@ const viewBeast = (beast) => {
       <div class="section">
         <a class="link" @click="sendMessage">写信</a>  
         <a class="link" @click="addFriend">{{ addingFriend ? '发送中...' : '加为好友' }}</a>  
-        <a class="link" @click="blockPlayer">拉黑</a>
+        <a class="link" @click="blockPlayer">{{ isBlocked ? '已拉黑' : '拉黑' }}</a>
       </div>
       <div class="section">
         ID : {{ player.user_id }}

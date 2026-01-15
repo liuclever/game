@@ -67,6 +67,8 @@ import ZhenYaoBattlePage from '@/features/tower/ZhenYaoBattlePage.vue'
 import LoginPage from '@/features/auth/LoginPage.vue'
 import PlayerProfilePage from '@/features/player/PlayerProfilePage.vue'
 import PlayerDetailPage from '@/features/player/PlayerDetailPage.vue'
+import BlockConfirmPage from '@/features/player/BlockConfirmPage.vue'
+import UnblockConfirmPage from '@/features/player/UnblockConfirmPage.vue'
 import MapPage from '@/features/map/MapPage.vue'
 import TeleportPage from '@/features/map/TeleportPage.vue'
 import TeleportSuccessPage from '@/features/map/TeleportSuccessPage.vue'
@@ -602,6 +604,16 @@ const routes = [
     path: '/confirm',
     name: 'Confirm',
     component: ConfirmPage,
+  },
+  {
+    path: '/block/confirm',
+    name: 'BlockConfirm',
+    component: BlockConfirmPage,
+  },
+  {
+    path: '/block/unblock',
+    name: 'UnblockConfirm',
+    component: UnblockConfirmPage,
   },
   {
     path: '/friend',

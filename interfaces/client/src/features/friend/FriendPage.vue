@@ -8,12 +8,17 @@ const route = useRoute()
 
 const TAB_LEVEL = 'level'
 const TAB_SOCIAL = 'social'
+const TAB_BLACKLIST = 'blacklist'
 
 const activeTab = ref(TAB_LEVEL)
 const loading = ref(false)
 
 // 当前玩家好友
 const friends = ref([])
+
+// 黑名单列表
+const blacklist = ref([])
+const loadingBlacklist = ref(false)
 
 // 加载好友列表
 const loadFriends = async () => {
@@ -63,11 +68,22 @@ const pageItems = computed(() => {
 
 const syncFromRoute = () => {
   const tab = String(route.query.tab || '')
-  activeTab.value = tab === TAB_SOCIAL ? TAB_SOCIAL : TAB_LEVEL
+  if (tab === TAB_SOCIAL) {
+    activeTab.value = TAB_SOCIAL
+  } else if (tab === TAB_BLACKLIST) {
+    activeTab.value = TAB_BLACKLIST
+  } else {
+    activeTab.value = TAB_LEVEL
+  }
 
   const p = parseInt(String(route.query.page || '1'), 10)
   currentPage.value = Number.isFinite(p) ? Math.min(Math.max(1, p), totalPages.value) : 1
   pageInput.value = String(currentPage.value)
+  
+  // 如果切换到黑名单标签，加载黑名单
+  if (activeTab.value === TAB_BLACKLIST) {
+    loadBlacklist()
+  }
 }
 
 const selectTab = (tab) => {
@@ -75,6 +91,11 @@ const selectTab = (tab) => {
   currentPage.value = 1
   pageInput.value = '1'
   router.replace({ path: '/friend', query: { tab } })
+  
+  // 如果切换到黑名单标签，加载黑名单
+  if (tab === TAB_BLACKLIST) {
+    loadBlacklist()
+  }
 }
 
 const goToPage = (page) => {
@@ -102,8 +123,58 @@ const searchFriend = () => {
   router.push('/friend/search')
 }
 
+// 加载黑名单列表
+const loadBlacklist = async () => {
+  loadingBlacklist.value = true
+  try {
+    const res = await http.get('/mail/blacklist')
+    if (res.data.ok) {
+      blacklist.value = res.data.blacklist || []
+    } else {
+      console.error('加载黑名单失败:', res.data.error)
+      blacklist.value = []
+    }
+  } catch (e) {
+    console.error('加载黑名单失败', e)
+    blacklist.value = []
+  } finally {
+    loadingBlacklist.value = false
+  }
+}
+
+// 查看黑名单用户详情
+const viewBlacklistedUser = (user) => {
+  router.push(`/player/profile?id=${user.user_id}`)
+}
+
+// 取消拉黑
+const unblocking = ref({})
+const unblockUser = async (user) => {
+  if (unblocking.value[user.user_id]) return
+  
+  if (!confirm(`确定要取消拉黑 ${user.nickname} 吗？`)) {
+    return
+  }
+  
+  unblocking.value[user.user_id] = true
+  try {
+    const res = await http.post('/mail/unblock', { target_id: user.user_id })
+    if (res.data.ok) {
+      alert(res.data.message || '已取消拉黑')
+      loadBlacklist()
+    } else {
+      alert(res.data.error || '取消拉黑失败')
+    }
+  } catch (e) {
+    console.error('取消拉黑失败', e)
+    alert(e?.response?.data?.error || '取消拉黑失败')
+  } finally {
+    unblocking.value[user.user_id] = false
+  }
+}
+
 const openBlacklist = () => {
-  alert('黑名单：暂未实现')
+  selectTab(TAB_BLACKLIST)
 }
 
 const goHome = () => {
@@ -167,6 +238,12 @@ watch(
         :class="{ active: activeTab === TAB_SOCIAL }"
         @click="selectTab(TAB_SOCIAL)"
       >社交排行</a>
+      <span> | </span>
+      <a
+        class="link"
+        :class="{ active: activeTab === TAB_BLACKLIST }"
+        @click="selectTab(TAB_BLACKLIST)"
+      >黑名单</a>
     </div>
 
     <template v-if="activeTab === TAB_LEVEL">
@@ -202,8 +279,24 @@ watch(
       </div>
     </template>
 
-    <template v-else>
+    <template v-else-if="activeTab === TAB_SOCIAL">
       <div class="section gray">社交排行：暂未实现</div>
+    </template>
+
+    <template v-else-if="activeTab === TAB_BLACKLIST">
+      <div class="section title">【黑名单】</div>
+      <div v-if="loadingBlacklist" class="section gray">加载中...</div>
+      <template v-else>
+        <div v-if="blacklist.length === 0" class="section gray">黑名单为空</div>
+        <div v-for="(user, idx) in blacklist" :key="user.user_id" class="section item">
+          <span class="rank">{{ idx + 1 }}.</span>
+          <a class="link name" @click="viewBlacklistedUser(user)">{{ user.nickname }}</a>
+          <span class="gray" style="margin-left: 10px;">(拉黑时间: {{ user.blocked_at }})</span>
+          <a class="link" @click="unblockUser(user)" style="margin-left: 10px;">
+            {{ unblocking[user.user_id] ? '取消中...' : '取消拉黑' }}
+          </a>
+        </div>
+      </template>
     </template>
 
     <!-- 导航菜单（与截图一致的几行） -->
