@@ -1,0 +1,292 @@
+{
+  "active_skills": {
+    "advanced": {
+      "高级必杀": {
+        "trigger_rate": 0.15,
+        "damage_multiplier": 2.5,
+        "attack_type": "all",
+        "effects": [],
+        "is_critical": true
+      },
+      "高级连击": {
+        "trigger_rate": 0.18,
+        "damage_multiplier": 2.0,
+        "attack_type": "all",
+        "effects": []
+      },
+      "高级破甲": {
+        "trigger_rate": 0.15,
+        "damage_multiplier": 0.8,
+        "attack_type": "physical",
+        "effects": [{"type": "physical_defense_down", "value": 0.30, "duration": 6}]
+      },
+      "高级致盲": {
+        "trigger_rate": 0.15,
+        "damage_multiplier": 0.8,
+        "attack_type": "magic",
+        "effects": [{"type": "magic_defense_down", "value": 0.30, "duration": 6}]
+      },
+      "高级麻痹": {
+        "trigger_rate": 0.15,
+        "damage_multiplier": 0.9,
+        "attack_type": "all",
+        "effects": [{"type": "speed_down", "value": 0.20, "duration": 6}]
+      },
+      "高级迷惑": {
+        "trigger_rate": 0.15,
+        "damage_multiplier": 0.8,
+        "attack_type": "all",
+        "effects": [{"type": "magic_attack_down", "value": 0.30, "duration": 6}]
+      },
+      "高级虚弱": {
+        "trigger_rate": 0.15,
+        "damage_multiplier": 0.8,
+        "attack_type": "all",
+        "effects": [{"type": "physical_attack_down", "value": 0.30, "duration": 6}]
+      },
+      "高级雷击": {
+        "trigger_rate": 0.10,
+        "damage_multiplier": 1.6,
+        "attack_type": "magic",
+        "effects": []
+      },
+      "高级撕咬": {
+        "trigger_rate": 0.10,
+        "damage_multiplier": 1.6,
+        "attack_type": "physical",
+        "effects": []
+      },
+      "高级冲撞": {
+        "trigger_rate": 0.15,
+        "damage_multiplier": 1.5,
+        "attack_type": "physical",
+        "effects": []
+      },
+      "高级水攻": {
+        "trigger_rate": 0.15,
+        "damage_multiplier": 1.5,
+        "attack_type": "magic",
+        "effects": []
+      },
+      "高级吸血": {
+        "trigger_rate": 0.15,
+        "damage_multiplier": 1.0,
+        "attack_type": "all",
+        "effects": [{"type": "lifesteal", "value": 0.30}]
+      },
+      "高级毒攻": {
+        "trigger_rate": 0.15,
+        "damage_multiplier": 0.5,
+        "attack_type": "all",
+        "effects": [{"type": "poison", "value": 0.04, "duration": 10}]
+      }
+    },
+    "normal": {
+      "必杀": {
+        "trigger_rate": 0.08,
+        "damage_multiplier": 2.5,
+        "attack_type": "all",
+        "effects": [],
+        "is_critical": true
+      },
+      "连击": {
+        "trigger_rate": 0.10,
+        "damage_multiplier": 2.0,
+        "attack_type": "all",
+        "effects": []
+      },
+      "破甲": {
+        "trigger_rate": 0.07,
+        "damage_multiplier": 0.8,
+        "attack_type": "physical",
+        "effects": [{"type": "physical_defense_down", "value": 0.30, "duration": 6}]
+      },
+      "致盲": {
+        "trigger_rate": 0.07,
+        "damage_multiplier": 0.8,
+        "attack_type": "magic",
+        "effects": [{"type": "magic_defense_down", "value": 0.30, "duration": 6}]
+      },
+      "麻痹": {
+        "trigger_rate": 0.07,
+        "damage_multiplier": 0.9,
+        "attack_type": "all",
+        "effects": [{"type": "speed_down", "value": 0.20, "duration": 6}]
+      },
+      "迷惑": {
+        "trigger_rate": 0.07,
+        "damage_multiplier": 0.8,
+        "attack_type": "all",
+        "effects": [{"type": "magic_attack_down", "value": 0.30, "duration": 6}]
+      },
+      "虚弱": {
+        "trigger_rate": 0.07,
+        "damage_multiplier": 0.8,
+        "attack_type": "all",
+        "effects": [{"type": "physical_attack_down", "value": 0.30, "duration": 6}]
+      },
+      "雷击": {
+        "trigger_rate": 0.05,
+        "damage_multiplier": 1.6,
+        "attack_type": "magic",
+        "effects": []
+      },
+      "撕咬": {
+        "trigger_rate": 0.05,
+        "damage_multiplier": 1.6,
+        "attack_type": "physical",
+        "effects": []
+      },
+      "冲撞": {
+        "trigger_rate": 0.07,
+        "damage_multiplier": 1.25,
+        "attack_type": "physical",
+        "effects": []
+      },
+      "水攻": {
+        "trigger_rate": 0.07,
+        "damage_multiplier": 1.25,
+        "attack_type": "magic",
+        "effects": []
+      },
+      "吸血": {
+        "trigger_rate": 0.07,
+        "damage_multiplier": 1.0,
+        "attack_type": "all",
+        "effects": [{"type": "lifesteal", "value": 0.30}]
+      },
+      "毒攻": {
+        "trigger_rate": 0.05,
+        "damage_multiplier": 0.5,
+        "attack_type": "all",
+        "effects": [{"type": "poison", "value": 0.04, "duration": 10}]
+      }
+    }
+  },
+  "passive_skills": {
+    "advanced": {
+      "高级闪避": {
+        "trigger_rate": 0.12,
+        "effect_type": "dodge",
+        "only_normal_attack": true
+      },
+      "高级反震": {
+        "trigger_rate": 0.12,
+        "effect_type": "reflect",
+        "reflect_ratio": 0.44
+      },
+      "高级反击": {
+        "trigger_rate": 0.06,
+        "effect_type": "counter",
+        "counter_ratio": 0.75
+      }
+    },
+    "normal": {
+      "闪避": {
+        "trigger_rate": 0.06,
+        "effect_type": "dodge",
+        "only_normal_attack": true
+      },
+      "反震": {
+        "trigger_rate": 0.06,
+        "effect_type": "reflect",
+        "reflect_ratio": 0.44
+      },
+      "反击": {
+        "trigger_rate": 0.06,
+        "effect_type": "counter",
+        "counter_ratio": 0.75
+      }
+    }
+  },
+  "buff_skills": {
+    "advanced": {
+      "高级强力": {"stat": "physical_attack", "modifier": 0.18},
+      "高级智慧": {"stat": "magic_attack", "modifier": 0.18},
+      "高级魔抗": {"stat": "magic_defense", "modifier": 0.10},
+      "高级防御": {"stat": "physical_defense", "modifier": 0.10},
+      "高级敏捷": {"stat": "speed", "modifier": 0.20},
+      "高级体魄": {"stat": "hp", "modifier": 0.20},
+      "毒攻强化": {"special": "poison_enhance", "value": 0.05},
+      "高级幸运": {"special": "critical_resist", "value": 0.80}
+    },
+    "normal": {
+      "强力": {"stat": "physical_attack", "modifier": 0.09},
+      "智慧": {"stat": "magic_attack", "modifier": 0.09},
+      "魔抗": {"stat": "magic_defense", "modifier": 0.05},
+      "防御": {"stat": "physical_defense", "modifier": 0.05},
+      "敏捷": {"stat": "speed", "modifier": 0.10},
+      "体魄": {"stat": "hp", "modifier": 0.10},
+      "幸运": {"special": "critical_resist", "value": 0.50},
+      "偷袭": {"special": "immune_counter", "value": true},
+      "抗性增强": {"special": "poison_resist", "value": 0.50}
+    }
+  },
+  "debuff_skills": {
+    "弱点攻击": {"stat": "attack", "modifier": -0.05},
+    "弱点防御": {"stat": "physical_defense", "modifier": -0.05},
+    "弱点魔抗": {"stat": "magic_defense", "modifier": -0.05},
+    "弱点敏捷": {"stat": "speed", "modifier": -0.05}
+  },
+  "skill_ids": {
+    "高级必杀": 1001,
+    "高级连击": 1002,
+    "高级破甲": 1003,
+    "高级致盲": 1004,
+    "高级麻痹": 1005,
+    "高级迷惑": 1006,
+    "高级虚弱": 1007,
+    "高级雷击": 1008,
+    "高级撕咬": 1009,
+    "高级冲撞": 1010,
+    "高级水攻": 1011,
+    "高级吸血": 1012,
+    "高级毒攻": 1013,
+
+    "必杀": 1101,
+    "连击": 1102,
+    "破甲": 1103,
+    "致盲": 1104,
+    "麻痹": 1105,
+    "迷惑": 1106,
+    "虚弱": 1107,
+    "雷击": 1108,
+    "撕咬": 1109,
+    "冲撞": 1110,
+    "水攻": 1111,
+    "吸血": 1112,
+    "毒攻": 1113,
+
+    "高级闪避": 2001,
+    "高级反震": 2002,
+    "高级反击": 2003,
+
+    "闪避": 2101,
+    "反震": 2102,
+    "反击": 2103,
+
+    "高级强力": 3001,
+    "高级智慧": 3002,
+    "高级魔抗": 3003,
+    "高级防御": 3004,
+    "高级敏捷": 3005,
+    "高级体魄": 3006,
+    "毒攻强化": 3007,
+    "高级幸运": 3008,
+
+    "强力": 3101,
+    "智慧": 3102,
+    "魔抗": 3103,
+    "防御": 3104,
+    "敏捷": 3105,
+    "体魄": 3106,
+    "幸运": 3107,
+    "偷袭": 3108,
+    "抗性增强": 3109,
+
+    "弱点攻击": 4001,
+    "弱点防御": 4002,
+    "弱点魔抗": 4003,
+    "弱点敏捷": 4004
+  }
+}

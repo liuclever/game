@@ -1,0 +1,30 @@
+/* 全局样式重置 */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  font-family: SimSun, "宋体", serif;
+  line-height: 1.5;
+  color: #333333;
+  background-color: #ffffff;
+  font-size: 16px; /* 增大基础字体大小 */
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background-color: #ffffff; /* 确保body背景为白色 */
+}
+
+html {
+  background-color: #ffffff; /* 确保html背景为白色 */
+}
+
+#app {
+  width: 100%;
+  background-color: #ffffff; /* 确保app背景为白色 */
+}
