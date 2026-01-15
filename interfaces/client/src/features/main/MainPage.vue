@@ -444,6 +444,7 @@ const doLevelup = async () => {
 onMounted(() => {
   checkAuth()
   loadAllianceTop3()
+  loadAnnouncements()
 })
 
 onUnmounted(() => {
