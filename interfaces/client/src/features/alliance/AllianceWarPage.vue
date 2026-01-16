@@ -422,7 +422,7 @@ const formatCountdown = (seconds) => {
       </div>
 
       <!-- 测试按钮组件（可删除） -->
-      <AllianceWarTestButton />
+      <!-- <AllianceWarTestButton /> -->
     </template>
 
     <div class="section spacer">
