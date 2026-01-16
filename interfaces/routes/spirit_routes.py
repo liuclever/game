@@ -148,8 +148,10 @@ def open_stone():
     try:
         created = services.spirit_service.open_stone(user_id, element, quantity)
         return jsonify({"ok": True, "created": [s.to_dict() for s in created]})
-    except Exception as e:
+    except SpiritError as e:
         return jsonify({"ok": False, "error": str(e)}), 400
+    except Exception as e:
+        return jsonify({"ok": False, "error": "开启失败"}), 400
 
 
 @spirit_bp.post("/<int:spirit_id>/equip")

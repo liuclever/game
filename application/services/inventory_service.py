@@ -75,12 +75,17 @@ class InventoryService:
         self.player_effect_repo = player_effect_repo
         self.activity_gift_service = None
         self.immortalize_pool_service: Optional["ImmortalizePoolService"] = None
+        self.spirit_service = None
 
     def set_activity_gift_service(self, activity_gift_service):
         self.activity_gift_service = activity_gift_service
 
     def set_immortalize_pool_service(self, service: "ImmortalizePoolService"):
         self.immortalize_pool_service = service
+
+    def set_spirit_service(self, spirit_service):
+        """依赖注入：战灵服务（用于背包内直接开启灵石）。"""
+        self.spirit_service = spirit_service
 
     def get_inventory(self, user_id: int, include_temp: bool = True) -> List[InventoryItemWithInfo]:
         """获取玩家背包（带物品详情）"""
@@ -119,7 +124,7 @@ class InventoryService:
         # consumable类型可以打开或使用
         if item_template.type == "consumable":
             # 明确不在背包实现的道具：不显示“使用/打开”
-            if item_template.id in (6006, 6031, 6032):  # 战灵钥匙/洗髓丹/坐骑口粮
+            if item_template.id in (6031, 6032):  # 洗髓丹/坐骑口粮
                 return (False, "")
             # 判断是"打开"还是"使用"
             name = item_template.name or ""
@@ -129,10 +134,16 @@ class InventoryService:
             else:
                 return (True, "使用")
         
-        # material类型中，声望石可以使用
+        # material类型：部分道具允许在背包中“使用/打开”
         if item_template.type == "material":
             if item_template.id == 12001:  # 声望石
                 return (True, "使用")
+            # 战灵钥匙：跳转战灵功能页核销（前端会提示并跳转）
+            if int(item_template.id) == 6006:
+                return (True, "使用")
+            # 六系灵石（未开）：背包内直接“打开”
+            if int(item_template.id) in (7101, 7102, 7103, 7104, 7105, 7106):
+                return (True, "打开")
         
         return (False, "")
 
@@ -610,6 +621,7 @@ class InventoryService:
             6004,  # 招财神符
             4001, 6013,  # 活力草
             3011,  # 神·逆鳞碎片（背包内合成）
+            7101, 7102, 7103, 7104, 7105, 7106,  # 六系灵石（未开）-> 背包内直接开启
         }
         if int(item_template.id) in batch_allowed_item_ids:
             if int(quantity) > 10:
@@ -638,6 +650,30 @@ class InventoryService:
                 "rewards": {"神·逆鳞": exchange_count},
             }
 
+        # ========== 背包内开启灵石：六系灵石(未开)(7101-7106) ==========
+        # 规则：开启消耗灵石，获得对应元素随机种族战灵（由 SpiritService 严格按配置执行）
+        if int(item_template.id) in (7101, 7102, 7103, 7104, 7105, 7106):
+            if not self.spirit_service:
+                raise InventoryError("系统错误：SpiritService 未配置")
+            id_to_element = {
+                7101: "earth",
+                7102: "fire",
+                7103: "water",
+                7104: "wood",
+                7105: "metal",
+                7106: "god",
+            }
+            element_key = id_to_element.get(int(item_template.id))
+            if not element_key:
+                raise InventoryError("灵石配置错误")
+
+            created = self.spirit_service.open_stone(user_id=user_id, element_key=element_key, quantity=int(quantity))
+            got = len(created or [])
+            return {
+                "message": f"开启成功，消耗{item_template.name}×{quantity}，获得战灵×{got}",
+                "rewards": {"战灵": got},
+            }
+
         # ========== 不允许在背包直接“使用”的物品：给出明确指引（不扣除物品） ==========
         # 严格遵循《商城购买 + 背包核销机制》：不能在背包用的道具应提示去对应功能界面核销
         non_bag_use_hints = {
@@ -654,7 +690,7 @@ class InventoryService:
             11001: "盟主证明用于【创建联盟】时自动消耗",
             6028: "炼魂丹请在【炼妖壶】功能中开始炼妖时自动消耗",
             6029: "庄园建造手册请在【庄园】扩建土地时自动消耗",
-            6006: "战灵钥匙暂未开放（背包中不可使用）",
+            6006: "战灵钥匙请前往【战灵】界面用于激活第2/第3条属性条",
             6016: "神奇重生丹请在【幻兽-重生】界面使用",
             6017: "重生丹请在【幻兽-重生】界面使用",
             6031: "洗髓丹暂未开放（背包中不可使用）",

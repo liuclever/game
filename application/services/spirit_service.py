@@ -47,6 +47,12 @@ class SpiritService:
         self.player_beast_repo = player_beast_repo
         self.config = get_spirit_system_config()
 
+    def _require_level_35(self, user_id: int) -> None:
+        player = self.player_repo.get_by_id(user_id)
+        player_level = int(getattr(player, "level", 0) or 0) if player else 0
+        if player_level < 35:
+            raise SpiritError("35级才能解锁战灵功能")
+
     # ===================== 账户 =====================
     def get_account(self, user_id: int) -> SpiritAccount:
         acc = self.account_repo.get_by_user_id(user_id)
@@ -123,6 +129,7 @@ class SpiritService:
 
     # ===================== 开启灵石 =====================
     def open_stone(self, user_id: int, element_key: str, quantity: int = 1) -> List[SpiritWithInfo]:
+        self._require_level_35(user_id)
         if quantity <= 0:
             raise SpiritError("quantity 必须是正整数")
         if not self.config.is_valid_element(element_key):
@@ -199,6 +206,7 @@ class SpiritService:
 
     # ===================== 词条解锁/锁定 =====================
     def unlock_line(self, user_id: int, spirit_id: int, line_index: int) -> SpiritWithInfo:
+        self._require_level_35(user_id)
         if line_index not in (2, 3):
             raise SpiritError("仅支持解锁第2/第3条词条")
 
@@ -234,6 +242,7 @@ class SpiritService:
         return SpiritWithInfo(spirit=sp, element_name=self.config.get_element_name(sp.element))
 
     def set_line_lock(self, user_id: int, spirit_id: int, line_index: int, locked: bool) -> SpiritWithInfo:
+        self._require_level_35(user_id)
         # 兼容前端旧实现：line_index=0 表示锁定/解锁第1条（用于“整只战灵锁定”）
         if line_index == 0:
             line_index = 1
@@ -254,6 +263,7 @@ class SpiritService:
 
     # ===================== 洗练 =====================
     def refine(self, user_id: int, spirit_id: int) -> Dict[str, Any]:
+        self._require_level_35(user_id)
         sp = self.spirit_repo.get_by_id(spirit_id)
         if sp is None or sp.user_id != user_id:
             raise SpiritError("战灵不存在")
@@ -314,6 +324,7 @@ class SpiritService:
 
     # ===================== 出售 =====================
     def sell(self, user_id: int, spirit_id: int) -> Dict[str, Any]:
+        self._require_level_35(user_id)
         sp = self.spirit_repo.get_by_id(spirit_id)
         if sp is None or sp.user_id != user_id:
             raise SpiritError("战灵不存在")
@@ -329,6 +340,7 @@ class SpiritService:
 
     # ===================== 灵力水晶兑换灵力 =====================
     def consume_spirit_crystal(self, user_id: int, quantity: int = 1) -> Dict[str, Any]:
+        self._require_level_35(user_id)
         """
         消耗“灵力水晶”获得灵力。
         规则（战灵拓展.txt）：1 个灵力水晶 = +10 灵力

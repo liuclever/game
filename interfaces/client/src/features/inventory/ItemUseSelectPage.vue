@@ -35,7 +35,7 @@ const loadItem = async () => {
       }
       item.value = found
       // 可批量道具一次最多10个；不可批量的不要实现批量（固定只能选1个）
-      const BATCH_ITEM_IDS = new Set([6003, 6014, 6030, 6007, 6008, 6009, 6010, 6004, 4001, 6013, 3011])
+      const BATCH_ITEM_IDS = new Set([6003, 6014, 6030, 6007, 6008, 6009, 6010, 6004, 4001, 6013, 3011, 7101, 7102, 7103, 7104, 7105, 7106])
       allowBatch.value = BATCH_ITEM_IDS.has(Number(found.item_id))
       maxQuantity.value = allowBatch.value ? Math.min(10, found.quantity) : 1
       quantity.value = 1

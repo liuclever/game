@@ -88,9 +88,6 @@ const goDetail = (petId) => {
   router.push({ path: `/handbook/pet/${petId}`, query: { evolution: 0 } })
 }
 
-// 图鉴说明入口：展示 doc 原文（1:1 同步）
-const goIntro = () => router.push('/handbook/intro')
-
 const goHome = () => router.push('/')
 
 watch(
@@ -105,7 +102,6 @@ onMounted(() => load())
   <div class="handbook-page">
     <div class="section title title-row">
       <span>{{ worldTitle }}</span>
-      <a class="link intro-link" @click="goIntro">说明</a>
     </div>
 
     <div class="section" v-if="loading">加载中...</div>

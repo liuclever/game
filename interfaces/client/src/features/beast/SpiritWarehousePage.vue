@@ -5,24 +5,8 @@ import http from '@/services/http'
 
 const router = useRouter()
 
-// 兑换灵力：消耗灵力水晶（1个=10灵力）
-const redeemCrystal = async () => {
-  const input = prompt('请输入要使用的灵力水晶数量（一次最多10个）', '1')
-  if (!input) return
-  const qty = Math.max(1, Math.min(10, Number(input) || 1))
-  try {
-    const res = await http.post('/spirit/consume-crystal', { quantity: qty })
-    if (res.data?.ok) {
-      alert(`兑换成功：消耗灵力水晶×${res.data.used_crystals}，获得灵力×${res.data.gained_spirit_power}`)
-      await loadData()
-    } else {
-      alert(res.data?.error || '兑换失败')
-    }
-  } catch (err) {
-    console.error('兑换灵力失败:', err)
-    alert(err?.response?.data?.error || '兑换失败，请稍后重试')
-  }
-}
+// 注：战灵获取（开启灵石）已按需求转移到【背包-灵石】点击使用；
+// 灵件室仅负责展示/锁定/一键出售。
 
 // 跳转到战灵详情页
 const goToSpiritDetail = (spiritId) => {
@@ -80,12 +64,6 @@ onMounted(() => {
 const filteredSpirits = computed(() => {
   return spirits.value.filter(sp => sp.element === currentElement.value)
 })
-
-// 获取战灵的已解锁属性条数
-const getUnlockedLineCount = (spirit) => {
-  if (!spirit.lines) return 0
-  return spirit.lines.filter(ln => ln.unlocked).length
-}
 
 // 获取战灵的总属性条数
 const getTotalLineCount = (spirit) => {
@@ -225,8 +203,6 @@ const goHome = () => {
       <!-- 一键出售 -->
       <div class="section">
         <a class="link" @click="sellAllUnlocked">一键出售</a>
-        <span> | </span>
-        <a class="link" @click="redeemCrystal">使用灵力水晶</a>
       </div>
       
       <!-- 战灵列表 -->
@@ -236,13 +212,12 @@ const goHome = () => {
         </div>
         <div v-else>
           <div v-for="spirit in filteredSpirits" :key="spirit.id" class="section spirit-row">
-            <a class="link spirit-info" :class="{ 'spirit-unlocked': !isLocked(spirit) }" @click="goToSpiritDetail(spirit.id)">
-              {{ spirit.name }} ({{ getUnlockedLineCount(spirit) }}条属性)
+            <a class="link spirit-info" @click="goToSpiritDetail(spirit.id)">
+              {{ spirit.name }} ({{ getTotalLineCount(spirit) }}条属性)
             </a>
             <a class="link action-btn" @click.prevent="toggleLock(spirit)">
-              {{ isLocked(spirit) ? '解锁' : '锁定' }}
+              {{ isLocked(spirit) ? '锁定' : '解锁' }}
             </a>
-            <a class="link action-btn" @click.prevent="sellSpirit(spirit)">售出</a>
           </div>
         </div>
       </div>

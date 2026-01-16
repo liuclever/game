@@ -142,6 +142,8 @@ class ServiceContainer:
             tower_state_repo=self.tower_state_repo,
             player_beast_repo=self.player_beast_repo,
         )
+        # 依赖注入回填：让背包可以直接开启灵石（使用 SpiritService.open_stone）
+        self.inventory_service.set_spirit_service(self.spirit_service)
         self.drop_service = DropService(
             item_repo=self.item_repo, 
             inventory_service=self.inventory_service

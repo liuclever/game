@@ -63,6 +63,27 @@ const hasSignedToday = computed(() => {
 
 const signinRewardMsg = ref('')
 
+// 古树（幸运果实）快捷状态：主页展示“今日幸运果实数字/是否已领取”，点击跳转古树
+const treeStatus = ref(null)
+const treeStatusError = ref('')
+const loadTreeStatus = async () => {
+  if (!isLoggedIn.value) return
+  treeStatusError.value = ''
+  try {
+    const res = await http.get('/tree/status')
+    if (res.data?.ok) {
+      treeStatus.value = res.data
+    } else {
+      treeStatusError.value = res.data?.error || '加载失败'
+    }
+  } catch (e) {
+    treeStatusError.value = e?.response?.data?.error || '加载失败'
+  }
+}
+const treeTodayNumber = computed(() => treeStatus.value?.today_number ?? null)
+const treeClaimedToday = computed(() => !Boolean(treeStatus.value?.can_draw_today))
+const goTree = () => router.push('/tree')
+
 // 修行状态
 const cultivation = ref({
   is_cultivating: false,
@@ -164,6 +185,8 @@ const checkAuth = async () => {
       loadCultivationStatus()
       // 获取当前位置
       loadCurrentLocation()
+      // 获取古树状态（用于“今日幸运果实”快捷展示）
+      loadTreeStatus()
     } else {
       isLoggedIn.value = false
       currentUser.value = null
@@ -378,21 +401,21 @@ const stopCultivation = async () => {
     console.log('正在终止修行中，请稍候...')
     return
   }
-  
+
   // 防止重复点击
   stopping.value = true
-  
+
   try {
     // 先刷新一次状态，确保前后端一致
     await loadCultivationStatus()
-    
+
     // 再次检查是否真的在修行中
     if (!cultivation.value.is_cultivating) {
       alert('当前未在修行')
       stopping.value = false
       return
     }
-    
+
     const res = await http.post('/cultivation/stop')
     if (res.data.ok) {
       if (countdownTimer) clearInterval(countdownTimer)
@@ -629,9 +652,9 @@ const handleLink = (name) => {
   <div class="main-page">
     <!-- 公告列表 -->
     <div class="announcement-list" v-if="announcements.length > 0">
-      <div 
-        v-for="ann in announcements" 
-        :key="ann.id" 
+      <div
+        v-for="ann in announcements"
+        :key="ann.id"
         class="announcement-item"
         @click="goAnnouncementDetail(ann.id)"
       >
@@ -639,10 +662,10 @@ const handleLink = (name) => {
         <span class="ann-title">{{ ann.title }}</span>
       </div>
     </div>
-    
+
     <!-- 欢迎区 -->
     <div class="section" v-if="isLoggedIn && currentUser">
-      欢迎您，<a class="link username" @click="goPlayerHome(currentUser.id)">{{ currentUser.nickname }}</a>
+      欢迎您，<a class="link username" @click="goPlayerHome(currentUser.id)">{{ currentUser.nickname }}</a><span v-if="Number(currentUser.vip_level || 0) > 0">👑</span>
       <span> (ID:{{ currentUser.id }}) </span>
       <a class="link" @click="handleLink('好友')">好友>></a>
     </div>
@@ -662,6 +685,13 @@ const handleLink = (name) => {
         <span class="gray">未登录</span>
       </template>
       <div class="section indent red" v-if="signinRewardMsg">{{ signinRewardMsg }}</div>
+    </div>
+    <div class="section" v-if="isLoggedIn">
+      今日幸运果实数字
+      <a class="link" @click="goTree">
+         {{ treeClaimedToday ? '已领取' : '未领取' }}
+      </a>
+      <span class="gray" v-if="treeStatusError">（{{ treeStatusError }}）</span>
     </div>
     <div class="section">
       任务: 通关【回音之谷】 <a class="link" @click="handleLink('前往')">前往</a>
@@ -703,7 +733,7 @@ const handleLink = (name) => {
           <a class="link" @click="stopCultivation">终止</a>
         </div>
         <div class="section indent" v-else-if="cultivation.is_cultivating">
-          修行: 修行中（{{ formatCountdown }}后可收获）  
+          修行: 修行中（{{ formatCountdown }}后可收获）
           <a class="link" @click="router.push('/cultivation')">查看</a>
           <a class="link" @click="stopCultivation">终止</a>
         </div>
@@ -750,9 +780,9 @@ const handleLink = (name) => {
         等级:<span class="bold">{{ summonerTitle }}</span>
       </div>
       <div class="section indent">
-        声望:{{ prestigeDisplay }} <a 
-          v-if="cultivation.can_levelup" 
-          class="link red" 
+        声望:{{ prestigeDisplay }} <a
+          v-if="cultivation.can_levelup"
+          class="link red"
           @click="doLevelup"
         >晋级</a>
       </div>
@@ -803,10 +833,10 @@ const handleLink = (name) => {
     </div>
 
     <!-- 底部信息 -->
-   
+
 
     <!-- 版权 -->
-   
+
   </div>
 </template>
 

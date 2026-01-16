@@ -165,7 +165,6 @@ import DynamicsPage from '@/features/dynamics/DynamicsPage.vue'
 import DynamicsBattleReportPage from '@/features/dynamics/BattleReportPage.vue'
 import PrivateMessageChatPage from '@/features/mail/PrivateMessageChatPage.vue'
 import HandbookIndexPage from '@/features/handbook/HandbookIndexPage.vue'
-import HandbookIntroPage from '@/features/handbook/HandbookIntroPage.vue'
 import HandbookPetDetailPage from '@/features/handbook/HandbookPetDetailPage.vue'
 import HandbookSkillDetailPage from '@/features/handbook/HandbookSkillDetailPage.vue'
 import TreePage from '@/features/tree/TreePage.vue'
@@ -201,11 +200,6 @@ const routes = [
     path: '/handbook',
     name: 'HandbookIndex',
     component: HandbookIndexPage,
-  },
-  {
-    path: '/handbook/intro',
-    name: 'HandbookIntro',
-    component: HandbookIntroPage,
   },
   {
     path: '/handbook/pet/:id',
