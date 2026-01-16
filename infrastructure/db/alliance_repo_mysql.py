@@ -860,6 +860,27 @@ class MySQLAllianceRepo(IAllianceRepo):
             )
             signup.id = new_id
 
+    def _map_army_signup(self, row: dict) -> AllianceArmySignup:
+        """将数据库行映射为AllianceArmySignup对象"""
+        hp_state = None
+        if row.get('hp_state'):
+            if isinstance(row['hp_state'], str):
+                hp_state = json.loads(row['hp_state'])
+            else:
+                hp_state = row['hp_state']
+        
+        return AllianceArmySignup(
+            id=row.get('id'),
+            registration_id=row.get('registration_id', 0),
+            alliance_id=row.get('alliance_id', 0),
+            army=row.get('army', ''),
+            user_id=row.get('user_id', 0),
+            signup_order=row.get('signup_order', 0),
+            hp_state=hp_state,
+            status=row.get('status', 1),
+            created_at=row.get('created_at'),
+        )
+    
     def list_army_signups(self, registration_id: int) -> List[AllianceArmySignup]:
         sql = """
             SELECT id, registration_id, alliance_id, army, user_id, signup_order, hp_state, status, created_at

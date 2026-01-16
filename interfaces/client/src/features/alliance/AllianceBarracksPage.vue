@@ -1,9 +1,10 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed, onMounted, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import http from '@/services/http'
 
 const router = useRouter()
+const route = useRoute()
 const loading = ref(true)
 const info = ref(null)
 const activeFilter = ref('未分配')
@@ -70,6 +71,55 @@ const goToPage = (page) => {
 
 const goAlliance = () => router.push('/alliance')
 const goHome = () => router.push('/')
+
+// 检查是否是盟主
+const isLeader = computed(() => {
+  return info.value?.current_role === 1  // ROLE_LEADER = 1
+})
+
+// 跳转到踢出确认页面
+const kickMember = (member) => {
+  router.push({
+    path: '/alliance/barracks/manage-confirm',
+    query: {
+      action: 'kick',
+      target_user_id: member.user_id,
+      target_nickname: member.nickname || `玩家${member.user_id}`
+    }
+  })
+}
+
+// 跳转到分配确认页面（系统根据等级自动决定分配到哪个军队）
+const assignMember = (member) => {
+  // 根据等级判断会分配到哪个军队：40级及以下伏虎军，40级以上飞龙军
+  const level = member.level || 0
+  const armyName = level <= 40 ? '伏虎军' : '飞龙军'
+  
+  router.push({
+    path: '/alliance/barracks/manage-confirm',
+    query: {
+      action: 'assign',
+      target_user_id: member.user_id,
+      target_nickname: member.nickname || `玩家${member.user_id}`,
+      army_name: armyName
+    }
+  })
+}
+
+// 监听路由变化，如果有error参数，显示错误信息并刷新列表
+watch(() => route.query.error, (error) => {
+  if (error) {
+    alert(error)
+    fetchBarracks()
+  }
+}, { immediate: true })
+
+// 从确认页面返回时刷新列表
+watch(() => route.path, (newPath) => {
+  if (newPath === '/alliance/barracks') {
+    fetchBarracks()
+  }
+})
 </script>
 
 <template>
@@ -111,7 +161,17 @@ const goHome = () => router.push('/')
       <div style="padding: 10px;">
         <div v-if="paginatedMembers.length > 0">
           <div v-for="member in paginatedMembers" :key="member.user_id" style="padding: 5px 0; color: #cc0000;">
-            {{ member.nickname || `玩家${member.user_id}` }}/{{ member.level || 1 }}
+            <span>{{ member.nickname || `玩家${member.user_id}` }}/{{ member.level || 1 }}</span>
+            <span v-if="isLeader && !member.is_self" style="margin-left: 10px;">
+              <!-- 未分配列表：显示分配按钮（系统根据等级自动决定） -->
+              <template v-if="activeFilter === '未分配'">
+                <a href="#" @click.prevent="assignMember(member)" style="color: #0066cc; text-decoration: underline;">[分配]</a>
+              </template>
+              <!-- 飞龙军或伏虎军列表：显示踢出按钮 -->
+              <template v-else>
+                <a href="#" @click.prevent="kickMember(member)" style="color: #cc0000; text-decoration: underline;">[踢出]</a>
+              </template>
+            </span>
           </div>
         </div>
         <div v-else style="padding: 20px; color: #999;">暂无成员</div>

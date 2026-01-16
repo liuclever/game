@@ -120,6 +120,47 @@ class ImmortalizePoolService:
         if end and now < end:
             raise ImmortalizeError("化仙阵正在运行中")
 
+        # 检查并扣除7种结晶各1个
+        if not self.inventory_service:
+            raise ImmortalizeError("系统错误：背包服务未初始化")
+        
+        # 7种结晶ID：金、木、水、火、土、风、电
+        crystal_item_ids = [1001, 1002, 1003, 1004, 1005, 1006, 1007]
+        crystal_names = {
+            1001: "金之结晶",
+            1002: "木之结晶",
+            1003: "水之结晶",
+            1004: "火之结晶",
+            1005: "土之结晶",
+            1006: "风之结晶",
+            1007: "电之结晶"
+        }
+        required_qty = 1
+        
+        # 检查结晶是否足够
+        missing = []
+        for item_id in crystal_item_ids:
+            owned = self.inventory_service.get_item_count(user_id, item_id)
+            if owned < required_qty:
+                crystal_name = crystal_names.get(item_id, f"结晶{item_id}")
+                missing.append({
+                    "item_id": item_id,
+                    "name": crystal_name,
+                    "required": required_qty,
+                    "owned": owned
+                })
+        
+        if missing:
+            missing_str = "、".join([f"{m['name']}({m['owned']}/{m['required']})" for m in missing])
+            raise ImmortalizeError(f"结晶不足：{missing_str}")
+        
+        # 扣除结晶
+        try:
+            for item_id in crystal_item_ids:
+                self.inventory_service.remove_item(user_id, item_id, required_qty)
+        except InventoryError as exc:
+            raise ImmortalizeError(f"扣除结晶失败：{str(exc)}") from exc
+
         duration_hours = self.config.get_formation_duration_hours()
         pool.formation_level = pool.pool_level
         pool.formation_started_at = now

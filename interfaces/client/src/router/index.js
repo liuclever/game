@@ -124,6 +124,7 @@ import AllianceWarSignupSuccessPage from '@/features/alliance/AllianceWarSignupS
 import AllianceWarLandSignupConfirmPage from '@/features/alliance/AllianceWarLandSignupConfirmPage.vue'
 import AllianceWarLandSignupResultPage from '@/features/alliance/AllianceWarLandSignupResultPage.vue'
 import AllianceBarracksPage from '@/features/alliance/AllianceBarracksPage.vue'
+import AllianceBarracksManageConfirmPage from '@/features/alliance/AllianceBarracksManageConfirmPage.vue'
 // import AllianceTeamPage from '@/features/alliance/AllianceTeamPage.vue' // 功能已禁用
 import AllianceSacredBeastPage from '@/features/alliance/AllianceSacredBeastPage.vue'
 import AllianceChatPage from '@/features/alliance/AllianceChatPage.vue'
@@ -934,6 +935,11 @@ const routes = [
         path: '/alliance/barracks',
         name: 'AllianceBarracks',
         component: AllianceBarracksPage,
+      },
+      {
+        path: '/alliance/barracks/manage-confirm',
+        name: 'AllianceBarracksManageConfirm',
+        component: AllianceBarracksManageConfirmPage,
       },
       // {
       //   path: '/alliance/team',

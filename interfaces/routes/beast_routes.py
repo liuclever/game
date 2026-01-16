@@ -1157,41 +1157,14 @@ def evolve_beast():
     # ==================== 扣除进化材料 ====================
     # 常量：物品ID
     SHEN_NI_LIN_ITEM_ID = 3010
-    EVOLVE_STONE_IDS = {
-        20: 3001,  # 黄阶进化石
-        30: 3002,  # 玄阶进化石
-        40: 3003,  # 地阶进化石
-        50: 3004,  # 天阶进化石
-        60: 3005,  # 飞马进化石
-        70: 3006,  # 天龙进化石
-        80: 3007   # 战神进化石
-    }
     
     evolve_transition = f"{old_realm}->{next_realm}"
     
     try:
-        # 1. 地界->灵界：扣除神逆鳞×1 + 进化石×10
+        # 1. 地界->灵界：扣除神逆鳞×1
         if evolve_transition == "地界->灵界":
-            # 获取玩家等级来确定进化石
-            player = services.player_repo.get_by_id(user_id)
-            if not player:
-                return jsonify({"ok": False, "error": "玩家不存在"}), 404
-            
-            player_level = player.level
-            # 确定进化石ID（根据玩家等级段）
-            evolve_stone_id = None
-            for level_threshold in sorted(EVOLVE_STONE_IDS.keys(), reverse=True):
-                if player_level >= level_threshold:
-                    evolve_stone_id = EVOLVE_STONE_IDS[level_threshold]
-                    break
-            
-            if not evolve_stone_id:
-                return jsonify({"ok": False, "error": "玩家等级不足20级，无法进化"}), 400
-            
             # 扣除神逆鳞×1
             services.inventory_service.remove_item(user_id, SHEN_NI_LIN_ITEM_ID, 1)
-            # 扣除进化石×10
-            services.inventory_service.remove_item(user_id, evolve_stone_id, 10)
         
         # 2. 灵界->神界：扣除神逆鳞×4 + 进化神草×90 + 铜钱200万
         elif evolve_transition == "灵界->神界":

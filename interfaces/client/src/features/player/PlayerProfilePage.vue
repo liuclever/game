@@ -233,6 +233,27 @@ const blockPlayer = () => {
   }
 }
 
+// 查看联盟
+const viewAlliance = () => {
+  if (!player.value?.alliance) {
+    alert('该玩家未加入联盟')
+    return
+  }
+  
+  // 如果查看的是自己的信息，跳转到自己的联盟页面
+  if (!isOtherPlayer.value) {
+    router.push('/alliance')
+  } else {
+    // 查看其他玩家的联盟：跳转到联盟大厅并搜索该联盟名称
+    router.push({
+      path: '/alliance/hall',
+      query: {
+        keyword: player.value.alliance
+      }
+    })
+  }
+}
+
 // 点击链接
 const handleLink = (name) => {
   const routes = {
@@ -243,9 +264,15 @@ const handleLink = (name) => {
     '闯塔': '/tower',
     '排行': '/ranking',
     '商城': '/shop',
+    '联盟': '/alliance',  // 添加联盟路由
   }
   if (routes[name]) {
-    router.push(routes[name])
+    // 如果是联盟链接，使用专门的viewAlliance函数处理
+    if (name === '联盟') {
+      viewAlliance()
+    } else {
+      router.push(routes[name])
+    }
   } else {
     router.push({
       path: '/message',
