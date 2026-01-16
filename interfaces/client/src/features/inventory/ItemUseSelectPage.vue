@@ -12,6 +12,7 @@ const loading = ref(true)
 const item = ref(null)
 const quantity = ref(1)
 const maxQuantity = ref(1)
+const allowBatch = ref(false)
 
 // 加载道具信息
 const loadItem = async () => {
@@ -33,7 +34,10 @@ const loadItem = async () => {
         return
       }
       item.value = found
-      maxQuantity.value = found.quantity
+      // 可批量道具一次最多10个；不可批量的不要实现批量（固定只能选1个）
+      const BATCH_ITEM_IDS = new Set([6003, 6014, 6030, 6007, 6008, 6009, 6010, 6004, 4001, 6013, 3011])
+      allowBatch.value = BATCH_ITEM_IDS.has(Number(found.item_id))
+      maxQuantity.value = allowBatch.value ? Math.min(10, found.quantity) : 1
       quantity.value = 1
     } else {
       showMessage('加载失败', 'error')
@@ -48,7 +52,7 @@ const loadItem = async () => {
   }
 }
 
-import { getItemUseRoute } from '@/utils/itemUseRoutes'
+import { getItemUseRoute, getItemUseHint } from '@/utils/itemUseRoutes'
 
 // 使用道具
 const useItem = async () => {
@@ -63,8 +67,11 @@ const useItem = async () => {
   // 检查是否有特殊的使用路由
   const useRoute = getItemUseRoute(item.value.item_id, item.value.name)
   if (useRoute) {
-    // 跳转到对应的使用窗口
-    router.push(useRoute)
+    // 不能在背包直接使用：弹窗提示并引导跳转
+    const tip = getItemUseHint(item.value.item_id, item.value.name)
+    if (confirm(tip)) {
+      router.push(useRoute)
+    }
     return
   }
 
@@ -128,16 +135,16 @@ onMounted(() => {
         <div class="item-desc" v-if="item.description">{{ item.description }}</div>
       </div>
 
-      <div class="section">
+      <div class="section" v-if="allowBatch">
         <div>选择{{ item.action_name || '使用' }}数量：</div>
-        <input 
-          type="number" 
-          v-model.number="quantity" 
-          :min="1" 
+        <input
+          type="number"
+          v-model.number="quantity"
+          :min="1"
           :max="maxQuantity"
           class="quantity-input"
         />
-        <div class="hint">（最多{{ maxQuantity }}个）</div>
+        <div class="hint">（一次最多10个，当前最多{{ maxQuantity }}个）</div>
       </div>
 
       <div class="section">

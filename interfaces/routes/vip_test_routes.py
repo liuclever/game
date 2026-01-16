@@ -91,6 +91,7 @@ def reset_daily():
     
     # 重置招财神符使用次数
     execute_update(
+        # 已取消招财神符“每日使用次数”逻辑（限购由商城 daily_limit 控制），保留 SQL 为兼容旧库：
         "DELETE FROM fortune_talisman_daily WHERE user_id = %s",
         (user_id,)
     )
@@ -150,7 +151,11 @@ def reset_player():
     execute_update("DELETE FROM player_beast WHERE user_id = %s", (user_id,))
     
     # 清空每日状态
-    execute_update("DELETE FROM fortune_talisman_daily WHERE user_id = %s", (user_id,))
+    # 已取消招财神符“每日使用次数”逻辑（限购由商城 daily_limit 控制）
+    try:
+        execute_update("DELETE FROM fortune_talisman_daily WHERE user_id = %s", (user_id,))
+    except Exception:
+        pass
     execute_update("DELETE FROM arena_daily_challenge WHERE user_id = %s", (user_id,))
     
     # 清空月卡
@@ -255,6 +260,7 @@ def get_test_status():
     
     # 获取招财神符今日使用次数
     ft_rows = execute_query(
+        # 已取消招财神符“每日使用次数”逻辑（限购由商城 daily_limit 控制）
         "SELECT use_count FROM fortune_talisman_daily WHERE user_id = %s AND use_date = CURDATE()",
         (user_id,)
     )
@@ -393,6 +399,7 @@ def skip_day():
         (user_id,)
     )
     execute_update(
+        # 已取消招财神符“每日使用次数”逻辑（限购由商城 daily_limit 控制），保留 SQL 为兼容旧库：
         "DELETE FROM fortune_talisman_daily WHERE user_id = %s",
         (user_id,)
     )

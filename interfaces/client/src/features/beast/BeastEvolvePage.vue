@@ -76,7 +76,7 @@ const bagItems = ref([])
 const EVOLVE_STONE_COST = 10
 const SHEN_NI_LIN_ITEM_ID = 3010
 
-const SHEN_NI_LIN_NAME = '神逆鳞'
+const SHEN_NI_LIN_NAME = '神·逆鳞'
 const EVOLVE_GOD_HERB_NAME = '进化神草'
 const EVOLVE_CRYSTAL_NAME = '进化水晶'
 

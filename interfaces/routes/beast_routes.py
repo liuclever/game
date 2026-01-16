@@ -869,7 +869,7 @@ def release_beast(beast_id: int):
     # ========== 4. 根据境界返还进化材料 ==========
     returned_items = []
     realm_to_material = {
-        "地界": 3010,   # 神逆鳞
+        "地界": 3010,   # 神·逆鳞
         "天界": 3012,   # 进化神草
         "神界": 3014,   # 进化圣水晶
     }
@@ -1170,7 +1170,7 @@ def evolve_beast():
     evolve_transition = f"{old_realm}->{next_realm}"
     
     try:
-        # 1. 地界->灵界：扣除神逆鳞×1 + 进化石×10
+        # 1. 地界->灵界：扣除神·逆鳞×1 + 进化石×10
         if evolve_transition == "地界->灵界":
             # 获取玩家等级来确定进化石
             player = services.player_repo.get_by_id(user_id)
@@ -1188,12 +1188,12 @@ def evolve_beast():
             if not evolve_stone_id:
                 return jsonify({"ok": False, "error": "玩家等级不足20级，无法进化"}), 400
             
-            # 扣除神逆鳞×1
+            # 扣除神·逆鳞×1
             services.inventory_service.remove_item(user_id, SHEN_NI_LIN_ITEM_ID, 1)
             # 扣除进化石×10
             services.inventory_service.remove_item(user_id, evolve_stone_id, 10)
         
-        # 2. 灵界->神界：扣除神逆鳞×4 + 进化神草×90 + 铜钱200万
+        # 2. 灵界->神界：扣除神·逆鳞×4 + 进化神草×90 + 铜钱200万
         elif evolve_transition == "灵界->神界":
             # 获取玩家信息
             player = services.player_repo.get_by_id(user_id)
@@ -1204,7 +1204,7 @@ def evolve_beast():
             if player.gold < 2000000:
                 return jsonify({"ok": False, "error": "铜钱不足，需要200万铜钱"}), 400
             
-            # 扣除神逆鳞×4
+            # 扣除神·逆鳞×4
             services.inventory_service.remove_item(user_id, SHEN_NI_LIN_ITEM_ID, 4)
             # 扣除进化神草×90（需要通过名称查找item_id）
             # 查找进化神草的item_id
@@ -1219,7 +1219,7 @@ def evolve_beast():
             player.gold -= 2000000
             services.player_repo.update_player(player)
         
-        # 3. 神界->天界：扣除神逆鳞×10 + 进化水晶×60 + 铜钱500万
+        # 3. 神界->天界：扣除神·逆鳞×10 + 进化水晶×60 + 铜钱500万
         elif evolve_transition == "神界->天界":
             # 获取玩家信息
             player = services.player_repo.get_by_id(user_id)
@@ -1230,7 +1230,7 @@ def evolve_beast():
             if player.gold < 5000000:
                 return jsonify({"ok": False, "error": "铜钱不足，需要500万铜钱"}), 400
             
-            # 扣除神逆鳞×10
+            # 扣除神·逆鳞×10
             services.inventory_service.remove_item(user_id, SHEN_NI_LIN_ITEM_ID, 10)
             # 扣除进化水晶×60（需要通过名称查找item_id）
             evolve_crystal_items = [item for item in services.inventory_service.get_user_items(user_id) 

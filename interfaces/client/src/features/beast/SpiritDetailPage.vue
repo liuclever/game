@@ -149,7 +149,7 @@ const toggleLock = async () => {
   try {
     const newLockState = !isLocked.value
     const res = await http.post(`/spirit/${spirit.value.id}/lock-line`, {
-      line_index: 0,
+      line_index: 1,
       locked: newLockState
     })
     
@@ -179,7 +179,7 @@ const sellSpirit = async () => {
   try {
     const res = await http.post(`/spirit/${spirit.value.id}/sell`)
     if (res.data.ok) {
-      alert(`出售成功，获得 ${res.data.spiritPower || 0} 灵力`)
+      alert(`出售成功，获得 ${res.data.gained_spirit_power || 0} 灵力`)
       router.push('/spirit/warehouse')
     } else {
       alert(res.data.error || '出售失败')
@@ -236,9 +236,19 @@ const unlockLine = async (lineIndex) => {
   }
 }
 
-// 获取激活所需钥匙数量
+// 获取激活所需钥匙数量（严格按《战灵拓展》：随元素与条数变化）
+const UNLOCK_KEY_COST = {
+  earth: { 2: 1, 3: 2 },
+  fire: { 2: 2, 3: 3 },
+  water: { 2: 3, 3: 4 },
+  wood: { 2: 4, 3: 5 },
+  metal: { 2: 5, 3: 6 },
+  god: { 2: 6, 3: 7 },
+}
 const getUnlockKeyCost = (lineIndex) => {
-  return lineIndex === 2 ? 1 : 2
+  const element = spirit.value?.element || 'earth'
+  const mp = UNLOCK_KEY_COST[element] || UNLOCK_KEY_COST.earth
+  return mp[lineIndex] || 0
 }
 
 // 返回战灵首页

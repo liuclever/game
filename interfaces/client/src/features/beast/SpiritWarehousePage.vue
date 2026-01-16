@@ -5,6 +5,25 @@ import http from '@/services/http'
 
 const router = useRouter()
 
+// 兑换灵力：消耗灵力水晶（1个=10灵力）
+const redeemCrystal = async () => {
+  const input = prompt('请输入要使用的灵力水晶数量（一次最多10个）', '1')
+  if (!input) return
+  const qty = Math.max(1, Math.min(10, Number(input) || 1))
+  try {
+    const res = await http.post('/spirit/consume-crystal', { quantity: qty })
+    if (res.data?.ok) {
+      alert(`兑换成功：消耗灵力水晶×${res.data.used_crystals}，获得灵力×${res.data.gained_spirit_power}`)
+      await loadData()
+    } else {
+      alert(res.data?.error || '兑换失败')
+    }
+  } catch (err) {
+    console.error('兑换灵力失败:', err)
+    alert(err?.response?.data?.error || '兑换失败，请稍后重试')
+  }
+}
+
 // 跳转到战灵详情页
 const goToSpiritDetail = (spiritId) => {
   router.push(`/spirit/${spiritId}`)
@@ -92,7 +111,7 @@ const toggleLock = async (spirit) => {
     
     // 锁定/解锁第一条属性来代表整个战灵的锁定状态
     const res = await http.post(`/spirit/${spirit.id}/lock-line`, {
-      line_index: 0,
+      line_index: 1,
       locked: newLockState
     })
     
@@ -127,7 +146,7 @@ const sellSpirit = async (spirit) => {
       // 从列表中移除
       spirits.value = spirits.value.filter(s => s.id !== spirit.id)
       warehouseCount.value -= 1
-      alert(`出售成功，获得 ${res.data.spiritPower || 0} 灵力`)
+      alert(`出售成功，获得 ${res.data.gained_spirit_power || 0} 灵力`)
     } else {
       alert(res.data.error || '出售失败')
     }
@@ -157,7 +176,7 @@ const sellAllUnlocked = async () => {
       const res = await http.post(`/spirit/${spirit.id}/sell`)
       if (res.data.ok) {
         successCount++
-        totalPower += res.data.spiritPower || 0
+        totalPower += res.data.gained_spirit_power || 0
       }
     } catch (err) {
       console.error('出售战灵失败:', err)
@@ -206,6 +225,8 @@ const goHome = () => {
       <!-- 一键出售 -->
       <div class="section">
         <a class="link" @click="sellAllUnlocked">一键出售</a>
+        <span> | </span>
+        <a class="link" @click="redeemCrystal">使用灵力水晶</a>
       </div>
       
       <!-- 战灵列表 -->

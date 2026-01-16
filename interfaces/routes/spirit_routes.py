@@ -23,6 +23,26 @@ def get_account():
     return jsonify({"ok": True, "account": acc.to_dict()})
 
 
+@spirit_bp.post("/consume-crystal")
+def consume_crystal():
+    """消耗灵力水晶(6101) -> 获得灵力（1个=10灵力）"""
+    user_id = get_current_user_id()
+    if not user_id:
+        return jsonify({"ok": False, "error": "请先登录"})
+
+    data = request.get_json(silent=True) or {}
+    try:
+        quantity = int(data.get("quantity", 1) or 1)
+    except Exception:
+        quantity = 1
+
+    try:
+        result = services.spirit_service.consume_spirit_crystal(user_id, quantity)
+        return jsonify({"ok": True, **result})
+    except SpiritError as e:
+        return jsonify({"ok": False, "error": str(e)}), 400
+
+
 @spirit_bp.post("/unlock-element")
 def unlock_element():
     user_id = get_current_user_id()

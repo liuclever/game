@@ -72,7 +72,7 @@ const recycleItem = async () => {
   }
 }
 
-import { getItemUseRoute } from '@/utils/itemUseRoutes'
+import { getItemUseRoute, getItemUseHint } from '@/utils/itemUseRoutes'
 
 // 跳转到使用选择页或特殊使用窗口
 const goToUse = () => {
@@ -84,8 +84,10 @@ const goToUse = () => {
   // 检查是否有特殊的使用路由
   const useRoute = getItemUseRoute(item.value.item_id, item.value.name)
   if (useRoute) {
-    // 直接跳转到对应的使用窗口
-    router.push(useRoute)
+    const tip = getItemUseHint(item.value.item_id, item.value.name)
+    if (confirm(tip)) {
+      router.push(useRoute)
+    }
   } else {
     // 没有特殊路由的道具，跳转到使用选择页
     router.push({ path: '/inventory/item/use', query: { id: item.value.id } })

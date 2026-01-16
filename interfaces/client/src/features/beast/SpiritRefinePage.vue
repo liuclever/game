@@ -149,20 +149,20 @@ const currentSpiritPower = computed(() => {
   return account.value?.spirit_power || 0
 })
 
-// 判断战灵是否被锁定（第一条词条）
-const isFirstLineLocked = computed(() => {
-  if (!spirit.value || !spirit.value.lines || !spirit.value.lines[0]) return false
-  return spirit.value.lines[0].locked
-})
+const isLineLocked = (lineIndex) => {
+  const ln = spirit.value?.lines?.[lineIndex - 1]
+  return !!ln?.locked
+}
 
 // 获取属性显示名称
 const getAttrName = (attrKey) => {
   return attrNames[attrKey] || attrKey
 }
 
-// 格式化百分比值
+// 格式化百分比值（1bp=0.01%，保留到0.01%）
 const formatPercent = (valueBp) => {
-  return '+' + (valueBp / 100).toFixed(0)
+  const v = Number(valueBp || 0)
+  return `+${(v / 100).toFixed(2)}%`
 }
 
 // 获取品质名称
@@ -180,23 +180,43 @@ const getQualityName = (element, valueBp) => {
   return '普通'
 }
 
-// 获取激活所需钥匙数量
+// 获取激活所需钥匙数量（严格按《战灵拓展》：随元素与条数变化）
+const UNLOCK_KEY_COST = {
+  earth: { 2: 1, 3: 2 },
+  fire: { 2: 2, 3: 3 },
+  water: { 2: 3, 3: 4 },
+  wood: { 2: 4, 3: 5 },
+  metal: { 2: 5, 3: 6 },
+  god: { 2: 6, 3: 7 },
+}
 const getUnlockKeyCost = (lineIndex) => {
-  return lineIndex === 2 ? 1 : 2
+  const element = spirit.value?.element || 'earth'
+  const mp = UNLOCK_KEY_COST[element] || UNLOCK_KEY_COST.earth
+  return mp[lineIndex] || 0
 }
 
 // ========== 操作 ==========
-// 锁定/解锁第一条词条
-const toggleFirstLineLock = async () => {
+// 锁定/解锁指定词条（最多锁定2条，严格符合文档“锁0/1/2条”）
+const toggleLineLock = async (lineIndex) => {
   if (!spirit.value) return
-  
+  const ln = spirit.value?.lines?.[lineIndex - 1]
+  if (!ln?.unlocked) {
+    alert('词条未激活')
+    return
+  }
+
+  const newLockState = !isLineLocked(lineIndex)
+  if (newLockState && lockedCount.value >= 2) {
+    alert('最多只能锁定2条属性')
+    return
+  }
+
   try {
-    const newLockState = !isFirstLineLocked.value
     const res = await http.post(`/spirit/${spirit.value.id}/lock-line`, {
-      line_index: 1,
+      line_index: lineIndex,
       locked: newLockState
     })
-    
+
     if (res.data.ok) {
       spirit.value.lines = res.data.spirit.lines
     } else {
@@ -294,9 +314,7 @@ const goHome = () => {
         <div class="section attr-line">
           <template v-if="spirit.lines && spirit.lines[index - 1] && spirit.lines[index - 1].unlocked">
             {{ index }}.{{ getAttrName(spirit.lines[index - 1].attr || spirit.lines[index - 1].attr_key) }}{{ formatPercent(spirit.lines[index - 1].value_bp) }}({{ getQualityName(spirit.element, spirit.lines[index - 1].value_bp) }})
-            <template v-if="index === 1">
-              <a class="link" @click="toggleFirstLineLock">{{ isFirstLineLocked ? '解锁' : '锁定' }}</a>
-            </template>
+            <a class="link" @click="toggleLineLock(index)">{{ isLineLocked(index) ? '解锁' : '锁定' }}</a>
           </template>
           <template v-else>
             {{ index }}.未激活.<a class="link" @click="unlockLine(index)">激活</a>（钥匙×{{ getUnlockKeyCost(index) }}）

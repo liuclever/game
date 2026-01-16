@@ -175,7 +175,8 @@ class SpiritService:
 
         # 种族匹配
         beast_race = getattr(beast, "race", "") or ""
-        if sp.race and sp.race != beast_race:
+        # 若幻兽种族为空（历史数据缺失），不阻断装备；否则严格匹配
+        if sp.race and beast_race and sp.race != beast_race:
             raise SpiritError("战灵种族与幻兽不匹配")
 
         # 同一只幻兽同一元素只能装备一枚：先卸下旧的
@@ -209,7 +210,7 @@ class SpiritService:
         if line.unlocked:
             return SpiritWithInfo(spirit=sp, element_name=self.config.get_element_name(sp.element))
 
-        cost = self.config.get_line_unlock_cost(line_index)
+        cost = self.config.get_line_unlock_cost(sp.element, line_index)
         if not cost:
             raise SpiritError("词条解锁配置缺失")
 
@@ -233,6 +234,9 @@ class SpiritService:
         return SpiritWithInfo(spirit=sp, element_name=self.config.get_element_name(sp.element))
 
     def set_line_lock(self, user_id: int, spirit_id: int, line_index: int, locked: bool) -> SpiritWithInfo:
+        # 兼容前端旧实现：line_index=0 表示锁定/解锁第1条（用于“整只战灵锁定”）
+        if line_index == 0:
+            line_index = 1
         if line_index not in (1, 2, 3):
             raise SpiritError("line_index must be 1..3")
 
@@ -323,6 +327,37 @@ class SpiritService:
 
         return {"gained_spirit_power": gain, "account": acc.to_dict()}
 
+    # ===================== 灵力水晶兑换灵力 =====================
+    def consume_spirit_crystal(self, user_id: int, quantity: int = 1) -> Dict[str, Any]:
+        """
+        消耗“灵力水晶”获得灵力。
+        规则（战灵拓展.txt）：1 个灵力水晶 = +10 灵力
+        """
+        qty = int(quantity or 0)
+        if qty <= 0:
+            raise SpiritError("quantity 必须是正整数")
+        if qty > 10:
+            # 与背包批量规则一致，避免一次性过大（可多次兑换）
+            qty = 10
+
+        SPIRIT_CRYSTAL_ITEM_ID = 6101
+        POWER_PER_CRYSTAL = 10
+
+        try:
+            self.inventory_service.remove_item(user_id=user_id, item_id=SPIRIT_CRYSTAL_ITEM_ID, quantity=qty)
+        except InventoryError as e:
+            raise SpiritError(str(e))
+
+        acc = self.get_account(user_id)
+        acc.spirit_power = int(acc.spirit_power or 0) + qty * POWER_PER_CRYSTAL
+        self.account_repo.save(acc)
+
+        return {
+            "gained_spirit_power": qty * POWER_PER_CRYSTAL,
+            "used_crystals": qty,
+            "account": acc.to_dict(),
+        }
+
     # ===================== 计算加成（供战斗/展示复用） =====================
     def calc_percent_bonus_bp_for_beast(self, beast_id: int, beast_nature: str) -> Dict[str, int]:
         """计算某只幻兽身上所有已装备战灵带来的百分比加成（basis points）。
@@ -372,16 +407,12 @@ class SpiritService:
     def _roll_new_spirit(self, user_id: int, element_key: str) -> Spirit:
         race = self._pick_weighted(self.config.get_race_weights(element_key))
 
-        # 战灵只有1条属性
+        # 战灵初始自带 1 条属性，最多 3 条；第2/3条需战灵钥匙激活
         attr, val_bp = self._roll_attr_and_value(element_key)
-        
         lines: List[SpiritLine] = [
-            SpiritLine(
-                attr_key=attr,
-                value_bp=val_bp,
-                unlocked=True,
-                locked=False,
-            )
+            SpiritLine(attr_key=attr, value_bp=val_bp, unlocked=True, locked=False),
+            SpiritLine(attr_key="", value_bp=0, unlocked=False, locked=False),
+            SpiritLine(attr_key="", value_bp=0, unlocked=False, locked=False),
         ]
 
         return Spirit(user_id=user_id, beast_id=None, element=element_key, race=race, lines=lines)
