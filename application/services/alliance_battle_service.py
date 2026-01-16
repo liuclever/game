@@ -51,9 +51,16 @@ class AllianceBattleService:
         self.beast_pvp_service = beast_pvp_service
 
     def lock_and_pair_land(self, land_id: int, seed: Optional[int] = None) -> dict:
-        """Lock confirmed registrations on a land and pair them into battles."""
-
-        registrations = self.alliance_repo.list_land_registrations_by_land(land_id, statuses=[STATUS_CONFIRMED])
+        """Lock confirmed registrations on a land and pair them into battles.
+        
+        注意：会同时接受 STATUS_CONFIRMED (3) 和 STATUS_REGISTERED (1) 状态的报名，
+        因为报名后可能直接是已报名状态，需要兼容处理。
+        """
+        from domain.entities.alliance_registration import STATUS_REGISTERED
+        # 同时接受已确认和已报名的状态（兼容不同流程）
+        registrations = self.alliance_repo.list_land_registrations_by_land(
+            land_id, statuses=[STATUS_CONFIRMED, STATUS_REGISTERED]
+        )
         waiting_regs = [r for r in registrations if r.bye_waiting_round is not None]
         ready_regs = [r for r in registrations if r.bye_waiting_round is None]
 
@@ -225,16 +232,17 @@ class AllianceBattleService:
             battle.finished_at = now
             self.alliance_repo.update_land_battle(battle)
 
+            battle_id = battle.id or 0
             if current_round.left_alive > current_round.right_alive:
-                self._finalize_registration(left_registration, STATUS_VICTOR)
-                self._finalize_registration(right_registration, STATUS_ELIMINATED)
+                self._finalize_registration(left_registration, STATUS_VICTOR, battle_id, right_registration.alliance_id)
+                self._finalize_registration(right_registration, STATUS_ELIMINATED, battle_id, left_registration.alliance_id)
             elif current_round.right_alive > current_round.left_alive:
-                self._finalize_registration(left_registration, STATUS_ELIMINATED)
-                self._finalize_registration(right_registration, STATUS_VICTOR)
+                self._finalize_registration(left_registration, STATUS_ELIMINATED, battle_id, right_registration.alliance_id)
+                self._finalize_registration(right_registration, STATUS_VICTOR, battle_id, left_registration.alliance_id)
             else:
                 # 双方同时战败
-                self._finalize_registration(left_registration, STATUS_ELIMINATED)
-                self._finalize_registration(right_registration, STATUS_ELIMINATED)
+                self._finalize_registration(left_registration, STATUS_ELIMINATED, battle_id, right_registration.alliance_id)
+                self._finalize_registration(right_registration, STATUS_ELIMINATED, battle_id, left_registration.alliance_id)
 
             return {"ok": True, "battle_finished": True, "round": round_result}
 
@@ -544,9 +552,56 @@ class AllianceBattleService:
             if signup.status == SIGNUP_STATUS_ADVANCED:
                 self._update_signup_state(signup, SIGNUP_STATUS_READY, signup.hp_state)
 
-    def _finalize_registration(self, registration: AllianceRegistration, status: int) -> None:
+    def _finalize_registration(self, registration: AllianceRegistration, status: int, battle_id: Optional[int] = None, opponent_alliance_id: Optional[int] = None) -> None:
         registration.status = status
         self.alliance_repo.save_land_registration(registration)
         if status == STATUS_VICTOR:
-            season_key = datetime.utcnow().strftime("%Y-%m")
-            self.alliance_repo.increment_alliance_war_score(registration.alliance_id, season_key, 1)
+            # 记录战绩
+            if battle_id and opponent_alliance_id:
+                now = datetime.utcnow()
+                war_date = now.date()
+                # 判断是第一次还是第二次盟战
+                weekday = now.weekday()
+                if weekday <= 2:  # 周一-周三
+                    war_phase = "first"
+                else:  # 周四-周六
+                    war_phase = "second"
+                
+                army_type = registration.army or "dragon"
+                self.alliance_repo.add_war_battle_record(
+                    registration.alliance_id, opponent_alliance_id, registration.land_id,
+                    army_type, war_phase, war_date, "win", 1, battle_id
+                )
+                
+                # 记录失败方战绩
+                self.alliance_repo.add_war_battle_record(
+                    opponent_alliance_id, registration.alliance_id, registration.land_id,
+                    army_type, war_phase, war_date, "lose", 0, battle_id
+                )
+            
+            # 检查是否是最终胜利者（该土地/据点没有其他活跃的报名）
+            all_registrations = self.alliance_repo.list_land_registrations_by_land(registration.land_id)
+            active_registrations = [r for r in all_registrations if r.is_active() and r.id != registration.id]
+            
+            # 如果没有其他活跃的报名，说明是最终胜利者
+            if not active_registrations:
+                # 更新赛季积分
+                season_key = datetime.utcnow().strftime("%Y-%m")
+                self.alliance_repo.increment_alliance_war_score(registration.alliance_id, season_key, 1)
+                
+                # 更新联盟战功（最终胜利获得1个联盟战功）
+                from infrastructure.db.connection import execute_update
+                execute_update(
+                    "UPDATE alliances SET war_honor = war_honor + 1, war_honor_history = war_honor_history + 1 WHERE id = %s",
+                    (registration.alliance_id,)
+                )
+                
+                # 设置土地占领（只有最终胜利者才能占领）
+                now = datetime.utcnow()
+                war_date = now.date()
+                weekday = now.weekday()
+                if weekday <= 2:  # 周一-周三
+                    war_phase = "first"
+                else:  # 周四-周六
+                    war_phase = "second"
+                self.alliance_repo.set_land_occupation(registration.land_id, registration.alliance_id, war_phase, war_date)

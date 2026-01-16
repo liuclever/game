@@ -117,7 +117,7 @@ onMounted(() => {
   background: #fff;
   min-height: 100vh;
   padding: 20px;
-  font-size: 15px;
+  font-size: 18px;
   color: #000;
   line-height: 1.8;
   font-family: 'Microsoft YaHei', '微软雅黑', SimSun, '宋体', sans-serif;

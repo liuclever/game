@@ -57,12 +57,24 @@ const buyItem = async () => {
         }
       })
     } else {
-      // 错误时仍然使用提示
-      alert(res.data.error)
+      // 跳转到错误提示页面
+      router.push({
+        path: '/message',
+        query: {
+          message: res.data.error || '购买失败',
+          type: 'error'
+        }
+      })
     }
   } catch (e) {
     console.error('购买失败', e)
-    alert('购买失败')
+    router.push({
+      path: '/message',
+      query: {
+        message: e.response?.data?.error || '购买失败',
+        type: 'error'
+      }
+    })
   }
 }
 
@@ -120,7 +132,7 @@ onMounted(() => {
   background: #ffffff;
   min-height: 100vh;
   padding: 8px 12px;
-  font-size: 13px;
+  font-size: 16px;
   line-height: 1.8;
   font-family: SimSun, "宋体", serif;
 }
@@ -149,12 +161,12 @@ onMounted(() => {
   width: 50px;
   padding: 2px 4px;
   border: 1px solid #999;
-  font-size: 13px;
+  font-size: 16px;
 }
 
 .buy-btn {
   padding: 2px 8px;
-  font-size: 12px;
+  font-size: 18px;
   cursor: pointer;
 }
 
@@ -187,6 +199,6 @@ onMounted(() => {
 }
 
 .small {
-  font-size: 11px;
+  font-size: 17px;
 }
 </style>

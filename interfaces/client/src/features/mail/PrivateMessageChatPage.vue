@@ -97,13 +97,13 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-.chat-page { background: #FFF8DC; min-height: 100vh; padding: 8px 12px; font-size: 13px; line-height: 1.6; font-family: SimSun, "宋体", serif; }
+.chat-page { background: #ffffff; min-height: 100vh; padding: 8px 12px; font-size: 16px; line-height: 1.6; font-family: SimSun, "宋体", serif; }
 .section { margin: 4px 0; }
 .title, .title2 { font-weight: bold; margin-bottom: 8px; }
 .send-area { display: flex; gap: 8px; align-items: center; margin: 8px 0; }
-.message-input { flex: 1; padding: 4px 8px; border: 1px solid #ccc; font-size: 13px; }
-.send-btn { padding: 4px 16px; background: #0066CC; color: white; border: 1px solid #0066CC; cursor: pointer; font-size: 13px; }
-.send-btn:disabled { background: #ccc; cursor: not-allowed; }
+.message-input { flex: 1; padding: 4px 8px; border: 1px solid #ccc; font-size: 16px; }
+.send-btn { padding: 4px 16px; background: #0066CC; color: white; border: 1px solid #0066CC; cursor: pointer; font-size: 16px; }
+.send-btn:disabled { background: #ffffff; cursor: not-allowed; }
 .messages-list { border: 1px solid #ddd; padding: 8px; min-height: 200px; max-height: 400px; overflow-y: auto; }
 .message-item { margin: 4px 0; padding: 2px 0; }
 .time { color: #666; margin-right: 4px; }
@@ -111,7 +111,7 @@ onMounted(async () => {
 .sender.me { color: #0066CC; }
 .pager { display: flex; gap: 8px; align-items: center; justify-content: center; margin: 8px 0; }
 .page-input { width: 50px; padding: 2px 4px; border: 1px solid #ccc; text-align: center; }
-.btn { padding: 4px 12px; background: #0066CC; color: white; border: 1px solid #0066CC; cursor: pointer; font-size: 13px; }
+.btn { padding: 4px 12px; background: #0066CC; color: white; border: 1px solid #0066CC; cursor: pointer; font-size: 16px; }
 .link { color: #0066CC; cursor: pointer; }
 .link:hover { text-decoration: underline; }
 .gray { color: #666666; }

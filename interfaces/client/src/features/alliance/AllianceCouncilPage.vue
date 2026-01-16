@@ -64,7 +64,7 @@ onMounted(() => {
 
             <div class="section links">
                 <a class="link" @click="goToNotice">公告栏</a>. <a class="link" @click="goToMembers">成员管理</a><br>
-                <a class="link" @click="goToTalent">天赋研习</a>. <a class="link" @click="goToBuildingUpgrade">建筑升级</a><br>
+                <a class="link" @click="goToBuildingUpgrade">建筑升级</a><br>
                 <a class="link">转让联盟</a>. <a class="link">解散联盟</a>
             </div>
 
@@ -79,10 +79,10 @@ onMounted(() => {
 
 <style scoped>
 .alliance-council-page {
-    background: #FFF8DC;
+    background: #ffffff;
     min-height: 100vh;
     padding: 8px 12px;
-    font-size: 13px;
+    font-size: 16px;
     line-height: 1.6;
     font-family: SimSun, "宋体", serif;
 }
@@ -112,7 +112,7 @@ onMounted(() => {
 .footer-info {
     margin-top: 20px;
     color: #999;
-    font-size: 11px;
+    font-size: 17px;
     border-top: 1px solid #EEE;
     padding-top: 8px;
 }

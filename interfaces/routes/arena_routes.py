@@ -109,6 +109,9 @@ def get_arena_info():
     player_nickname = player.nickname
     rank_name, can_arena = get_player_rank(player_level)
     
+    # 调试日志
+    print(f"[DEBUG] 玩家 {player_nickname}(ID:{user_id}) 查询擂台: 阶段={rank_name}, 类型={arena_type}")
+    
     if not can_arena:
         return jsonify({
             "ok": True,
@@ -125,6 +128,10 @@ def get_arena_info():
     
     arena_info = arena_rows[0] if arena_rows else None
     
+    # 调试日志
+    if arena_info:
+        print(f"[DEBUG] 查询到擂台: champion_user_id={arena_info.get('champion_user_id')}, champion_nickname={arena_info.get('champion_nickname')}")
+    
     ball_id = get_arena_ball_id(arena_type)
     ball_rows = execute_query(
         "SELECT quantity FROM player_inventory WHERE user_id = %s AND item_id = %s",
@@ -140,11 +147,26 @@ def get_arena_info():
     is_empty = arena_info is None or arena_info.get('champion_user_id') is None
     is_champion = arena_info and arena_info.get('champion_user_id') == user_id
     
+    # 调试日志
+    print(f"[DEBUG] is_empty={is_empty}, is_champion={is_champion}")
+    
     # 获取VIP擂台次数限制
     vip_level = getattr(player, 'vip_level', 0) or 0
     normal_limit, gold_limit = get_vip_arena_limits(vip_level)
     daily_limit = gold_limit if arena_type == 'gold' else normal_limit
     today_count = get_today_challenge_count(user_id)
+    
+    arena_response = {
+        "champion": arena_info['champion_nickname'] if arena_info and arena_info.get('champion_user_id') else None,
+        "championUserId": arena_info['champion_user_id'] if arena_info else None,
+        "consecutiveWins": arena_info['consecutive_wins'] if arena_info else 0,
+        "prizePool": arena_info['prize_pool'] if arena_info else 0,
+        "isChampion": is_champion,
+        "isEmpty": is_empty,
+    }
+    
+    # 调试日志
+    print(f"[DEBUG] 返回的arena对象: {arena_response}")
     
     return jsonify({
         "ok": True,
@@ -155,14 +177,7 @@ def get_arena_info():
         "arenaName": arena_name,
         "arenaTypeName": arena_type_name,
         "arenaType": arena_type,
-        "arena": {
-            "champion": arena_info['champion_nickname'] if arena_info and arena_info.get('champion_user_id') else None,
-            "championUserId": arena_info['champion_user_id'] if arena_info else None,
-            "consecutiveWins": arena_info['consecutive_wins'] if arena_info else 0,
-            "prizePool": arena_info['prize_pool'] if arena_info else 0,
-            "isChampion": is_champion,
-            "isEmpty": is_empty,
-        },
+        "arena": arena_response,
         "ballName": get_arena_ball_name(arena_type),
         "ballCount": ball_count,
         "maxWins": ARENA_MAX_WINS,

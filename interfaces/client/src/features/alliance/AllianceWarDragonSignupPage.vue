@@ -15,25 +15,15 @@ const allTargets = ref([
 
 const visibleTargets = computed(() => allTargets.value.filter((target) => target.id !== 3))
 
-const handleAttack = async (target) => {
-  const confirmed = window.confirm(`确认报名攻打 ${target.name} 吗？`)
-  if (!confirmed) {
-    return
-  }
-  try {
-    const res = await http.post('/alliance/war/target-signup', {
-      target_id: target.id,
-      army: 'dragon',
-    })
-    if (res.data?.ok) {
-      alert('报名成功，等待盟主确认。')
-    } else {
-      alert(res.data?.error || '报名失败')
+const handleAttack = (target) => {
+  // 跳转到确认页面
+  router.push({
+    path: '/alliance/war/land-signup-confirm',
+    query: {
+      land_id: target.id,
+      land_name: target.name
     }
-  } catch (err) {
-    console.error('攻打报名失败', err)
-    alert(err.response?.data?.error || '报名失败')
-  }
+  })
 }
 
 const goBack = () => {
@@ -78,7 +68,7 @@ const goHome = () => {
   background: #ffffff;
   min-height: 100vh;
   padding: 14px 18px 32px;
-  font-size: 13px;
+  font-size: 16px;
   line-height: 1.6;
   font-family: 'SimSun', '宋体', serif;
   color: #000000;

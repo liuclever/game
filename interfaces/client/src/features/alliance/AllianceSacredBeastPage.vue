@@ -132,13 +132,13 @@ const goHome = () => router.push('/')
 <style scoped>
 div {
   font-family: SimSun, "宋体", serif;
-  font-size: 13px;
+  font-size: 16px;
   line-height: 1.6;
 }
 
 h1 {
   margin: 10px 0;
-  font-size: 13px;
+  font-size: 16px;
   font-weight: bold;
 }
 </style>

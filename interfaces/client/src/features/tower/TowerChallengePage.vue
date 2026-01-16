@@ -1,4 +1,5 @@
 <script setup>
+import { useMessage } from '@/composables/useMessage'
 import { ref, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import http from '@/services/http'
@@ -18,6 +19,8 @@ const towerNames = {
 const towerName = computed(() => towerNames[towerType.value] || '通天塔')
 
 // 加载状态
+const { message, messageType, showMessage } = useMessage()
+
 const loading = ref(true)
 const error = ref('')
 
@@ -267,7 +270,7 @@ const handleLink = (name) => {
   if (routes[name]) {
     router.push(routes[name])
   } else {
-    alert(`点击了: ${name}`)
+    showMessage(`点击了: ${name}`, 'info')
   }
 }
 
@@ -313,6 +316,11 @@ onMounted(async () => {
 
 <template>
   <div class="challenge-page">
+    <!-- 消息提示 -->
+    <div v-if="message" class="message" :class="messageType">
+      {{ message }}
+    </div>
+
     <!-- 加载中 -->
     <div v-if="loading" class="section">正在闯塔中...</div>
     
@@ -394,7 +402,7 @@ onMounted(async () => {
 
 <style scoped>
 .challenge-page {
-  background: #FFF8DC;
+  background: #ffffff;
   min-height: 100vh;
   padding: 8px 12px;
   font-size: 13px;
@@ -450,4 +458,32 @@ onMounted(async () => {
   padding-top: 10px;
   border-top: 1px solid #CCCCCC;
 }
+
+/* 消息提示样式 */
+.message {
+  padding: 12px;
+  margin: 12px 0;
+  border-radius: 4px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.message.success {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.message.error {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.message.info {
+  background: #d1ecf1;
+  color: #0c5460;
+  border: 1px solid #bee5eb;
+}
+
 </style>

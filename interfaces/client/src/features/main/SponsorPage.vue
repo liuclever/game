@@ -260,9 +260,9 @@ onMounted(() => {
 <style scoped>
 .sponsor-page {
   min-height: 100vh;
-  background: #f5f5dc;
+  background: #FFFFFF;
   padding: 10px 15px;
-  font-size: 14px;
+  font-size: 17px;
   color: #333;
   font-family: 'SimSun', '宋体', serif;
   line-height: 1.8;
@@ -318,7 +318,7 @@ onMounted(() => {
 
 .bonus-tag {
   color: #f44336;
-  font-size: 12px;
+  font-size: 18px;
   margin-left: 2px;
 }
 
@@ -333,15 +333,15 @@ onMounted(() => {
   width: 80px;
   padding: 2px 5px;
   border: 1px solid #999;
-  font-size: 14px;
+  font-size: 17px;
 }
 
 .exchange-btn {
   padding: 2px 10px;
-  background: #f5f5dc;
+  background: #FFFFFF;
   border: 1px solid #999;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 17px;
 }
 
 .exchange-btn:hover {
@@ -355,12 +355,12 @@ onMounted(() => {
 
 .notice {
   color: #666;
-  font-size: 12px;
+  font-size: 18px;
 }
 
 .hint {
   color: #f60;
-  font-size: 12px;
+  font-size: 18px;
 }
 
 .error {
@@ -390,7 +390,7 @@ onMounted(() => {
 }
 
 .confirm-title {
-  background: #f5f5f5;
+  background: #ffffff;
   padding: 12px 15px;
   font-size: 16px;
   font-weight: bold;
@@ -405,7 +405,7 @@ onMounted(() => {
 .order-row {
   display: flex;
   margin: 8px 0;
-  font-size: 14px;
+  font-size: 17px;
 }
 
 .order-row .label {
@@ -449,7 +449,7 @@ onMounted(() => {
 }
 
 .btn-cancel {
-  background: #f5f5f5;
+  background: #ffffff;
   color: #666;
   border-radius: 0 0 0 8px;
 }
@@ -461,7 +461,7 @@ onMounted(() => {
 }
 
 .btn-submit:disabled {
-  background: #ccc;
+  background: #ffffff;
   cursor: not-allowed;
 }
 </style>

@@ -1,9 +1,10 @@
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, onMounted, onActivated, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import http from '@/services/http'
 
 const router = useRouter()
+const route = useRoute()
 const loading = ref(true)
 const allianceData = ref(null)
 const creationMode = ref(false)
@@ -108,8 +109,13 @@ const goToWar = () => {
   router.push('/alliance/war')
 }
 
+const goToWarHonor = () => {
+  router.push('/alliance/war/honor')
+}
+
 const goToTalent = () => {
-  router.push('/alliance/talent')
+  // 功能已禁用，仅保留文字显示
+  // router.push('/alliance/talent')
 }
 
 const goToHall = () => {
@@ -125,7 +131,8 @@ const goToTrainingIntro = () => {
 }
 
 const goToWarehouse = () => {
-  router.push('/alliance/warehouse')
+  // 物资库点击直接跳转到捐献页面
+  router.push('/alliance/donate')
 }
 
 const goToItemStorage = () => {
@@ -145,11 +152,52 @@ const goToTeam = () => {
 }
 
 const goToSacredBeast = () => {
-  router.push('/alliance/sacred-beast')
+  // 功能已禁用，仅保留文字显示
+  // router.push('/alliance/sacred-beast')
+}
+
+const goToCompetition = () => {
+  router.push('/alliance/competition')
+}
+
+const claimFireOre = async () => {
+  // 如果已领取，不允许再次领取
+  if (allianceData.value?.fire_ore_claimed_today) {
+    return
+  }
+  
+  try {
+    const res = await http.post('/alliance/fire-ore/claim')
+    if (res.data.ok) {
+      // 跳转到成功页面
+      router.push({
+        path: '/alliance/fire-ore/success',
+        query: {
+          itemName: res.data.item_name || '火能原石'
+        }
+      })
+    } else {
+      // 错误也跳转到提示页面（可以创建错误提示页面，或使用当前页面显示错误）
+      router.push({
+        path: '/alliance/fire-ore/success',
+        query: {
+          error: res.data.error || '领取失败'
+        }
+      })
+    }
+  } catch (e) {
+    console.error('领取火能原石失败', e)
+    router.push({
+      path: '/alliance/fire-ore/success',
+      query: {
+        error: e.response?.data?.error || '领取失败，请稍后再试'
+      }
+    })
+  }
 }
 
 const activityText = (activity) => {
-  const actor = activity.actorName || `玩家${activity.actorUserId || ''}`
+  const actor = activity.actorName || (activity.actorUserId ? `玩家${activity.actorUserId}` : '')
   const target = activity.targetName || (activity.targetUserId ? `玩家${activity.targetUserId}` : '')
   switch (activity.type) {
     case 'join':
@@ -159,7 +207,12 @@ const activityText = (activity) => {
     case 'leave':
       return `${actor} 退出联盟`
     case 'donate':
-      return `${actor} 捐献 ${activity.itemQuantity || 0}x ${activity.itemName || ''}`
+      const itemName = activity.itemName || ''
+      const quantity = activity.itemQuantity || 0
+      if (itemName && quantity > 0) {
+        return `${actor} 捐献 ${quantity}x ${itemName}`
+      }
+      return `${actor} 进行了捐献`
     default:
       return `${actor} 进行了 ${activity.type} 操作`
   }
@@ -167,6 +220,33 @@ const activityText = (activity) => {
 
 onMounted(() => {
   fetchAllianceInfo()
+  // 检查路由参数
+  if (route.query.refresh === '1') {
+    // 如果已经有刷新参数，立即刷新
+    setTimeout(() => {
+      fetchAllianceInfo()
+      router.replace({ path: '/alliance' })
+    }, 200)
+  }
+})
+
+// 监听路由变化，当从成功页面返回时刷新数据
+watch(() => route.query.refresh, (newVal, oldVal) => {
+  if (newVal === '1' && oldVal !== '1') {
+    // 当刷新参数变为 '1' 时，刷新数据
+    setTimeout(() => {
+      fetchAllianceInfo()
+      router.replace({ path: '/alliance' })
+    }, 200)
+  }
+})
+
+// 当从其他页面返回时，如果有刷新参数，则刷新数据（用于 keep-alive 的情况）
+onActivated(() => {
+  if (route.query.refresh === '1') {
+    fetchAllianceInfo()
+    router.replace({ path: '/alliance' })
+  }
 })
 </script>
 
@@ -188,7 +268,7 @@ onMounted(() => {
       </div>
 
       <div class="section info">
-        <div>成员:{{ allianceData.member_count }}/30 </div>
+        <div>成员:{{ allianceData.member_count }}/{{ allianceData.member_capacity || 10 }}</div>
         <div>职位: {{ roleLabel(allianceData.member_info.role) }}</div>
         <div>贡献: {{ allianceData.member_info.contribution }}/57</div>
       </div>
@@ -199,15 +279,18 @@ onMounted(() => {
       </div>
 
         <div class="section quick-links">
-          <a class="link">联盟争霸赛: 签到激活阶段</a><br>
-          <a class="link">战功兑换</a>. <a class="link" @click="goToChat">进入聊天室</a>
+          <a class="link" @click="goToCompetition">联盟争霸赛: 签到激活阶段</a><br>
+          <a class="link" @click="goToWarHonor">战功兑换</a>. <a class="link" @click="goToChat">进入聊天室</a>
         </div>
 
 
       <div class="section-group">
         <div class="group-title">【火能修行】 <a class="link small" @click.prevent="goToTrainingIntro">简介</a></div>
         <div class="group-content">
-          火能原石: <a class="link">领取</a> (消耗5贡献) (今天周日火修效果翻倍)<br>
+          火能原石: 
+          <span v-if="allianceData && allianceData.fire_ore_claimed_today" class="claimed-text">已领取</span>
+          <a v-else-if="allianceData" class="link" @click="claimFireOre">领取</a>
+          <span v-else>加载中...</span><br>
           修行广场: <a class="link" @click="goToTrainingGround">进入</a>
         </div>
       </div>
@@ -215,8 +298,8 @@ onMounted(() => {
       <div class="section-group">
         <div class="group-title">【联盟建筑】</div>
         <div class="group-content building-links">
-          <a class="link" @click="goToCouncil">议事厅</a>. <a class="link" @click="goToBeastStorage">幻兽室</a>. <a class="link" @click="goToTalent">天赋池</a><br>
-          <a class="link" @click="goToWarehouse">物资库</a>. <a class="link" @click="goToBarracks">兵营</a>. <a class="link" @click="goToSacredBeast">圣兽山</a><br>
+          <a class="link" @click="goToCouncil">议事厅</a>. <a class="link" @click="goToBeastStorage">幻兽室</a>. <span class="disabled-text">天赋池</span><br>
+          <a class="link" @click="goToWarehouse">物资库</a>. <a class="link" @click="goToBarracks">兵营</a>. <span class="disabled-text">圣兽山</span><br>
           <a class="link" @click="goToTeam">精英战队</a>. <a class="link" @click="goToItemStorage">寄存仓库</a>
         </div>
       </div>
@@ -279,10 +362,10 @@ onMounted(() => {
 
 <style scoped>
 .alliance-page {
-  background: #FFF8DC;
+  background: #ffffff;
   min-height: 100vh;
   padding: 8px 12px;
-  font-size: 13px;
+  font-size: 16px;
   line-height: 1.6;
   font-family: SimSun, "宋体", serif;
 }
@@ -304,7 +387,7 @@ onMounted(() => {
 .alliance-header {
   color: #8B4513;
   font-weight: bold;
-  font-size: 14px;
+  font-size: 17px;
 }
 
 .alliance-name {
@@ -314,7 +397,7 @@ onMounted(() => {
 .alliance-level {
     color: #666;
     font-weight: normal;
-    font-size: 12px;
+    font-size: 18px;
 }
 
 .info {
@@ -334,6 +417,11 @@ onMounted(() => {
     font-weight: bold;
 }
 
+.claimed-text {
+  color: #666;
+  font-style: italic;
+}
+
 .group-content {
     padding-left: 8px;
 }
@@ -348,10 +436,15 @@ onMounted(() => {
 }
 
 .small {
-  font-size: 11px;
+  font-size: 17px;
 }
 
 .blue { color: #0066CC; }
+
+.disabled-text {
+  color: #999;
+  cursor: default;
+}
 
 .btn {
   padding: 4px 12px;
@@ -366,7 +459,7 @@ onMounted(() => {
 }
 
 .requirement, .cost {
-    font-size: 12px;
+    font-size: 18px;
     color: #CC3300;
 }
 

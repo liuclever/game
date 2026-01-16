@@ -1,4 +1,5 @@
 <script setup>
+import { useMessage } from '@/composables/useMessage'
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import http from '@/services/http'
@@ -6,6 +7,8 @@ import http from '@/services/http'
 const router = useRouter()
 
 // 顶部切换：预选赛 / 正赛
+const { message, messageType, showMessage } = useMessage()
+
 const phase = ref('pre') // 'pre' | 'final'
 
 // 基本信息
@@ -149,14 +152,14 @@ const doRegister = async () => {
   try {
     const res = await http.post('/king/register')
     if (res.data.ok) {
-      alert(res.data.message)
+      showMessage(res.data.message, 'success')
       loadKingInfo()
     } else {
-      alert(res.data.error || '报名失败')
+      showMessage(res.data.error || '报名失败', 'error')
     }
   } catch (e) {
     console.error('报名失败', e)
-    alert(e?.response?.data?.error || '报名失败')
+    showMessage(e?.response?.data?.error || '报名失败', 'error')
   }
 }
 
@@ -164,11 +167,11 @@ const doRegister = async () => {
 const doChallenge = async (target) => {
   if (challenging.value) return
   if (todayCount.value >= todayMax.value) {
-    alert('今日挑战次数已用完')
+    showMessage('今日挑战次数已用完', 'error')
     return
   }
   if (cooldownRemaining.value > 0) {
-    alert(`冷却中，还需等待${cooldownRemaining.value}秒`)
+    showMessage(`冷却中，还需等待${cooldownRemaining.value}秒`, 'info')
     return
   }
   
@@ -181,18 +184,18 @@ const doChallenge = async (target) => {
         sessionStorage.setItem('king_battle_report', JSON.stringify(res.data.battleReport))
         router.push('/king/battle-report')
       } else {
-        alert(res.data.message)
+        showMessage(res.data.message, 'success')
         loadKingInfo()
         loadDynamics()
       }
     } else {
-      alert(res.data.error || '挑战失败')
+      showMessage(res.data.error || '挑战失败', 'error')
       loadKingInfo()
       loadDynamics()
     }
   } catch (e) {
     console.error('挑战失败', e)
-    alert(e?.response?.data?.error || '挑战失败')
+    showMessage(e?.response?.data?.error || '挑战失败', 'error')
   } finally {
     challenging.value = false
   }
@@ -230,14 +233,14 @@ const claimReward = async () => {
   try {
     const res = await http.post('/king/claim_reward')
     if (res.data.ok) {
-      alert(res.data.message)
+      showMessage(res.data.message, 'success')
       loadRewardInfo()
     } else {
-      alert(res.data.error || '领取失败')
+      showMessage(res.data.error || '领取失败', 'error')
     }
   } catch (e) {
     console.error('领取奖励失败', e)
-    alert('领取失败')
+    showMessage('领取失败', 'error')
   }
 }
 
@@ -263,6 +266,11 @@ onUnmounted(() => {
 
 <template>
   <div class="king-page">
+    <!-- 消息提示 -->
+    <div v-if="message" class="message" :class="messageType">
+      {{ message }}
+    </div>
+
     <div class="section title">【召唤之王挑战赛】 <a class="link" @click="goIntro">简介</a></div>
 
     <div class="section">召唤之王：<span class="blue">低调</span></div>
@@ -396,7 +404,7 @@ onUnmounted(() => {
 .king-page { 
   padding: 10px; 
   font-size: 13px; 
-  background: #FFF8DC; 
+  background: #ffffff; 
   min-height: 100vh;
   font-family: SimSun, "宋体", serif;
 }
@@ -430,7 +438,7 @@ onUnmounted(() => {
 }
 
 .modal-content {
-  background: #FFF8DC;
+  background: #ffffff;
   padding: 20px;
   border-radius: 4px;
   max-width: 500px;
@@ -443,4 +451,32 @@ onUnmounted(() => {
   color: #ff6600;
   font-weight: bold;
 }
+
+/* 消息提示样式 */
+.message {
+  padding: 12px;
+  margin: 12px 0;
+  border-radius: 4px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.message.success {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.message.error {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.message.info {
+  background: #d1ecf1;
+  color: #0c5460;
+  border: 1px solid #bee5eb;
+}
+
 </style>

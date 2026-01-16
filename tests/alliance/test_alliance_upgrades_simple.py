@@ -157,14 +157,14 @@ def test_member_capacity():
     """测试联盟成员容量"""
     print("\n=== 测试联盟成员容量 ===")
     
-    # 测试成员容量：基础30人，每升一级+10人
+    # 测试成员容量：1级10人，每升一级+10人
     cap_1 = AllianceRules.member_capacity(1)
     cap_2 = AllianceRules.member_capacity(2)
     cap_3 = AllianceRules.member_capacity(3)
-    assert cap_1 == 30, "1级容量应该是30人"
-    assert cap_2 == 40, "2级容量应该是40人（+10）"
-    assert cap_3 == 50, "3级容量应该是50人（+10）"
-    print("[OK] 联盟成员容量规则正确（基础30，每级+10）")
+    assert cap_1 == 10, "1级容量应该是10人"
+    assert cap_2 == 20, "2级容量应该是20人（+10）"
+    assert cap_3 == 30, "3级容量应该是30人（+10）"
+    print("[OK] 联盟成员容量规则正确（1级10人，每级+10）")
 
 
 def test_all_rules_summary():

@@ -362,7 +362,9 @@ watch(
 
 <style scoped>
 .ranking-page {
-  background: #ffffff;
+  padding: 10px;
+  font-size: 17px;
+  background: #FFFFFF;
   min-height: 100vh;
   padding: 12px 16px;
   font-size: 16px;

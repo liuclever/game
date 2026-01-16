@@ -225,7 +225,7 @@ onMounted(() => {
   background: #FFFFFF;
   min-height: 100vh;
   padding: 8px 12px;
-  font-size: 13px;
+  font-size: 16px;
   line-height: 1.6;
   font-family: SimSun, "宋体", serif;
 }
@@ -266,19 +266,19 @@ onMounted(() => {
 }
 
 .small {
-  font-size: 11px;
+  font-size: 17px;
 }
 
 .page-input {
   width: 40px;
   padding: 2px 4px;
   border: 1px solid #ccc;
-  font-size: 12px;
+  font-size: 18px;
 }
 
 .jump-btn {
   padding: 2px 8px;
-  font-size: 12px;
+  font-size: 18px;
   cursor: pointer;
   margin-left: 4px;
 }

@@ -1,5 +1,5 @@
 import json
-from datetime import datetime
+from datetime import datetime, date
 from typing import List, Optional, Dict, Tuple
 from domain.entities.alliance import (
     Alliance,
@@ -638,6 +638,74 @@ class MySQLAllianceRepo(IAllianceRepo):
         """
         execute_update(sql, (status, status, room_id))
 
+    def has_claimed_fire_ore_today(self, user_id: int) -> bool:
+        """检查玩家今日是否已领取火能原石"""
+        # 使用 player 表的 last_fire_ore_claim_date 字段，如果没有该字段则返回 False
+        try:
+            sql = """
+                SELECT last_fire_ore_claim_date
+                FROM player
+                WHERE user_id = %s
+            """
+            rows = execute_query(sql, (user_id,))
+            if not rows:
+                return False
+            claim_date = rows[0].get("last_fire_ore_claim_date")
+            if not claim_date:
+                return False
+            from datetime import date, datetime
+            today = date.today()
+            
+            # 如果已经是 date 类型，直接比较
+            if isinstance(claim_date, date):
+                return claim_date == today
+            
+            # 如果是字符串，尝试解析
+            if isinstance(claim_date, str):
+                try:
+                    # 尝试解析日期字符串
+                    if 'T' in claim_date or ' ' in claim_date:
+                        claim_date = datetime.fromisoformat(claim_date.replace('Z', '+00:00')).date()
+                    else:
+                        claim_date = datetime.strptime(claim_date, '%Y-%m-%d').date()
+                    return claim_date == today
+                except (ValueError, AttributeError):
+                    return False
+            
+            # 如果是 datetime 类型，转换为 date
+            if isinstance(claim_date, datetime):
+                return claim_date.date() == today
+            
+            # 如果有 date() 方法，调用它
+            if hasattr(claim_date, 'date'):
+                try:
+                    return claim_date.date() == today
+                except:
+                    return False
+            
+            return False
+        except Exception:
+            # 如果字段不存在或其他错误，返回 False
+            return False
+
+    def record_fire_ore_claim(self, user_id: int) -> None:
+        """记录火能原石领取"""
+        # 更新 player 表的 last_fire_ore_claim_date 字段
+        # 如果字段不存在，会抛出异常，但我们已经添加了字段迁移脚本
+        try:
+            sql = """
+                UPDATE player
+                SET last_fire_ore_claim_date = CURDATE()
+                WHERE user_id = %s
+            """
+            execute_update(sql, (user_id,))
+        except Exception as e:
+            # 如果字段不存在，记录错误但不影响主流程
+            # 这种情况下，has_claimed_fire_ore_today 会始终返回 False
+            import logging
+            logging.warning(f"Failed to update last_fire_ore_claim_date for user {user_id}: {e}")
+            # 不抛出异常，允许功能继续
+
     def update_alliance_resources(self, alliance_id: int, funds_delta: int = 0, prosperity_delta: int = 0) -> None:
         sql = "UPDATE alliances SET funds = GREATEST(0, funds + %s), prosperity = GREATEST(0, prosperity + %s) WHERE id = %s"
         execute_update(sql, (funds_delta, prosperity_delta, alliance_id))
@@ -726,55 +794,55 @@ class MySQLAllianceRepo(IAllianceRepo):
         execute_update(sql, (alliance_id, season_key, delta))
 
     def list_alliance_war_leaderboard(self, since: datetime, limit: int, offset: int) -> List[Dict]:
+        """排行榜基于alliances表的war_honor字段（当前战功），与联盟内显示保持一致"""
         sql = """
-            SELECT a.id, a.name, a.level, 
-                   COALESCE(SUM(r.cost), 0) as total_merit
+            SELECT 
+                a.id AS alliance_id,
+                a.name AS alliance_name,
+                COALESCE(a.war_honor, 0) AS score
             FROM alliances a
-            JOIN alliance_land_registration r ON a.id = r.alliance_id
-            WHERE r.registration_time >= %s
-            GROUP BY a.id, a.name, a.level
-            ORDER BY total_merit DESC
+            WHERE a.war_honor > 0
+            ORDER BY a.war_honor DESC, a.id ASC
             LIMIT %s OFFSET %s
         """
-        return execute_query(sql, (since, limit, offset))
+        return execute_query(sql, (limit, offset))
 
     def count_alliance_war_leaderboard(self, since: datetime) -> int:
+        """统计排行榜数量，基于alliances表的war_honor字段"""
         sql = """
-            SELECT COUNT(DISTINCT alliance_id) as cnt
-            FROM alliance_land_registration
-            WHERE registration_time >= %s
+            SELECT COUNT(*) as cnt
+            FROM alliances
+            WHERE war_honor > 0
         """
-        rows = execute_query(sql, (since,))
+        rows = execute_query(sql)
         return rows[0]['cnt'] if rows else 0
 
     def get_alliance_war_leaderboard_entry(self, alliance_id: int, since: datetime) -> Optional[Dict]:
-        # 该条目用于“盟战排行榜：指定联盟的名次与分数”
+        """获取指定联盟在排行榜中的条目，基于alliances表的war_honor字段"""
         sql = """
             SELECT
                 t.alliance_id,
-                t.name,
+                t.alliance_name,
                 t.score,
                 DENSE_RANK() OVER (ORDER BY t.score DESC, t.alliance_id ASC) AS rank
             FROM (
                 SELECT
                     a.id AS alliance_id,
-                    a.name,
-                    COALESCE(SUM(r.cost), 0) AS score
+                    a.name AS alliance_name,
+                    COALESCE(a.war_honor, 0) AS score
                 FROM alliances a
-                JOIN alliance_land_registration r ON a.id = r.alliance_id
-                WHERE r.registration_time >= %s
-                GROUP BY a.id, a.name
+                WHERE a.war_honor > 0
             ) t
             WHERE t.alliance_id = %s
         """
-        rows = execute_query(sql, (since, alliance_id))
+        rows = execute_query(sql, (alliance_id,))
         if not rows:
             return None
         row = rows[0]
         return {
             "rank": row["rank"],
             "alliance_id": row["alliance_id"],
-            "alliance_name": row["name"],
+            "alliance_name": row["alliance_name"],
             "score": row["score"],
         }
 
@@ -1295,3 +1363,197 @@ class MySQLAllianceRepo(IAllianceRepo):
             log_data=log_data,
             created_at=row.get("created_at"),
         )
+
+    # === 盟战签到 ===
+    def has_war_checkin(self, alliance_id: int, user_id: int, war_phase: str, war_weekday: int, checkin_date: date) -> bool:
+        if isinstance(checkin_date, str):
+            checkin_date = datetime.strptime(checkin_date, "%Y-%m-%d").date()
+        sql = """
+            SELECT 1 FROM alliance_war_checkin
+            WHERE alliance_id = %s AND user_id = %s AND war_phase = %s AND war_weekday = %s AND checkin_date = %s
+            LIMIT 1
+        """
+        rows = execute_query(sql, (alliance_id, user_id, war_phase, war_weekday, checkin_date))
+        return len(rows) > 0
+
+    def add_war_checkin(self, alliance_id: int, user_id: int, war_phase: str, war_weekday: int, checkin_date: date, copper_reward: int) -> int:
+        if isinstance(checkin_date, str):
+            checkin_date = datetime.strptime(checkin_date, "%Y-%m-%d").date()
+        sql = """
+            INSERT INTO alliance_war_checkin (alliance_id, user_id, war_phase, war_weekday, checkin_date, copper_reward)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        """
+        return execute_insert(sql, (alliance_id, user_id, war_phase, war_weekday, checkin_date, copper_reward))
+
+    # === 盟战战绩 ===
+    def add_war_battle_record(self, alliance_id: int, opponent_alliance_id: int, land_id: int, army_type: str, war_phase: str, war_date: date, battle_result: str, honor_gained: int, battle_id: Optional[int] = None) -> int:
+        if isinstance(war_date, str):
+            war_date = datetime.strptime(war_date, "%Y-%m-%d").date()
+        sql = """
+            INSERT INTO alliance_war_battle_records 
+            (battle_id, alliance_id, opponent_alliance_id, land_id, army_type, war_phase, war_date, battle_result, honor_gained)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """
+        return execute_insert(sql, (battle_id, alliance_id, opponent_alliance_id, land_id, army_type, war_phase, war_date, battle_result, honor_gained))
+
+    def list_war_battle_records(self, alliance_id: int, limit: int = 50) -> List[Dict]:
+        sql = """
+            SELECT 
+                r.id,
+                r.battle_id,
+                r.alliance_id,
+                r.opponent_alliance_id,
+                a1.name AS alliance_name,
+                a2.name AS opponent_alliance_name,
+                r.land_id,
+                l.name AS land_name,
+                r.army_type,
+                r.war_phase,
+                r.war_date,
+                r.battle_result,
+                r.honor_gained,
+                r.created_at
+            FROM alliance_war_battle_records r
+            LEFT JOIN alliances a1 ON a1.id = r.alliance_id
+            LEFT JOIN alliances a2 ON a2.id = r.opponent_alliance_id
+            LEFT JOIN lands l ON l.id = r.land_id
+            WHERE r.alliance_id = %s
+            ORDER BY r.war_date DESC, r.created_at DESC
+            LIMIT %s
+        """
+        return execute_query(sql, (alliance_id, limit))
+
+    # === 战功兑换 ===
+    def add_war_honor_exchange(self, alliance_id: int, user_id: int, exchange_type: str, honor_cost: int, item_id: int, item_name: str, item_quantity: int) -> int:
+        sql = """
+            INSERT INTO alliance_war_honor_exchange 
+            (alliance_id, user_id, exchange_type, honor_cost, item_id, item_name, item_quantity)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+        """
+        return execute_insert(sql, (alliance_id, user_id, exchange_type, honor_cost, item_id, item_name, item_quantity))
+
+    def list_war_honor_exchanges(self, alliance_id: int, limit: int = 50) -> List[Dict]:
+        sql = """
+            SELECT 
+                e.id,
+                e.alliance_id,
+                e.user_id,
+                p.nickname AS user_name,
+                e.exchange_type,
+                e.honor_cost,
+                e.item_id,
+                e.item_name,
+                e.item_quantity,
+                e.exchanged_at
+            FROM alliance_war_honor_exchange e
+            LEFT JOIN player p ON p.user_id = e.user_id
+            WHERE e.alliance_id = %s
+            ORDER BY e.exchanged_at DESC
+            LIMIT %s
+        """
+        return execute_query(sql, (alliance_id, limit))
+
+    # === 赛季奖励 ===
+    def get_season_reward(self, alliance_id: int, season_key: str) -> Optional[Dict]:
+        sql = """
+            SELECT id, alliance_id, season_key, rank, copper_reward, items_json, distributed_at, created_at
+            FROM alliance_season_rewards
+            WHERE alliance_id = %s AND season_key = %s
+        """
+        rows = execute_query(sql, (alliance_id, season_key))
+        return rows[0] if rows else None
+
+    def add_season_reward(self, alliance_id: int, season_key: str, rank: int, copper_reward: int, items_json: str) -> int:
+        sql = """
+            INSERT INTO alliance_season_rewards (alliance_id, season_key, rank, copper_reward, items_json)
+            VALUES (%s, %s, %s, %s, %s)
+            ON DUPLICATE KEY UPDATE rank = VALUES(rank), copper_reward = VALUES(copper_reward), items_json = VALUES(items_json)
+        """
+        return execute_insert(sql, (alliance_id, season_key, rank, copper_reward, items_json))
+
+    def distribute_season_rewards(self, season_key: str) -> List[Dict]:
+        """发放赛季奖励，返回发放记录列表"""
+        # 获取前三名
+        sql = """
+            SELECT 
+                aws.alliance_id,
+                a.name AS alliance_name,
+                aws.score,
+                DENSE_RANK() OVER (ORDER BY aws.score DESC, aws.alliance_id ASC) AS rank
+            FROM alliance_war_scores aws
+            INNER JOIN alliances a ON a.id = aws.alliance_id
+            WHERE aws.season_key = %s AND aws.score > 0
+            ORDER BY aws.score DESC, aws.alliance_id ASC
+            LIMIT 3
+        """
+        top3 = execute_query(sql, (season_key,))
+        
+        distributed = []
+        for row in top3:
+            rank = row["rank"]
+            alliance_id = row["alliance_id"]
+            # 检查是否已发放
+            existing = self.get_season_reward(alliance_id, season_key)
+            if existing and existing.get("distributed_at"):
+                continue  # 已发放，跳过
+            
+            # 获取奖励配置
+            from application.services.alliance_service import AllianceService
+            reward_config = AllianceService.SEASON_REWARD_RULES.get(rank, {})
+            copper_reward = reward_config.get("copper", 0)
+            items = reward_config.get("items", [])
+            items_json = json.dumps(items, ensure_ascii=False)
+            
+            # 记录奖励
+            self.add_season_reward(alliance_id, season_key, rank, copper_reward, items_json)
+            
+            # 标记为已发放
+            update_sql = """
+                UPDATE alliance_season_rewards 
+                SET distributed_at = NOW()
+                WHERE alliance_id = %s AND season_key = %s
+            """
+            execute_update(update_sql, (alliance_id, season_key))
+            
+            distributed.append({
+                "alliance_id": alliance_id,
+                "alliance_name": row["alliance_name"],
+                "rank": rank,
+                "copper_reward": copper_reward,
+                "items": items,
+            })
+        
+        return distributed
+
+    # === 土地占领 ===
+    def get_land_occupation(self, land_id: int) -> Optional[Dict]:
+        sql = """
+            SELECT 
+                o.id,
+                o.land_id,
+                o.alliance_id,
+                a.name AS alliance_name,
+                o.occupied_at,
+                o.war_phase,
+                o.war_date
+            FROM alliance_land_occupation o
+            INNER JOIN alliances a ON a.id = o.alliance_id
+            WHERE o.land_id = %s
+            ORDER BY o.occupied_at DESC
+            LIMIT 1
+        """
+        rows = execute_query(sql, (land_id,))
+        return rows[0] if rows else None
+
+    def set_land_occupation(self, land_id: int, alliance_id: int, war_phase: str, war_date: date) -> int:
+        if isinstance(war_date, str):
+            war_date = datetime.strptime(war_date, "%Y-%m-%d").date()
+        # 先删除旧记录
+        delete_sql = "DELETE FROM alliance_land_occupation WHERE land_id = %s"
+        execute_update(delete_sql, (land_id,))
+        # 插入新记录
+        sql = """
+            INSERT INTO alliance_land_occupation (land_id, alliance_id, war_phase, war_date)
+            VALUES (%s, %s, %s, %s)
+        """
+        return execute_insert(sql, (land_id, alliance_id, war_phase, war_date))

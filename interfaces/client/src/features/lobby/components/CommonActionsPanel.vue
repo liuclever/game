@@ -58,6 +58,6 @@ onMounted(() => {
 
 .cultivation-status {
   margin-top: 4px;
-  font-size: 13px;
+  font-size: 16px;
 }
 </style>

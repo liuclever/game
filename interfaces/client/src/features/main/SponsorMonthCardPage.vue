@@ -126,9 +126,9 @@ onMounted(() => {
 <style scoped>
 .month-card-page {
   min-height: 100vh;
-  background: #f5f5dc;
+  background: #FFFFFF;
   padding: 10px 15px;
-  font-size: 14px;
+  font-size: 17px;
   color: #333;
   font-family: 'SimSun', '宋体', serif;
   line-height: 1.8;
@@ -139,6 +139,6 @@ onMounted(() => {
 .active { color: #006600; font-weight: bold; }
 .inactive { color: #999; }
 .claimed { color: #999; }
-.hint { color: #666; font-size: 12px; }
+.hint { color: #666; font-size: 18px; }
 .error { color: #c62828; }
 </style>

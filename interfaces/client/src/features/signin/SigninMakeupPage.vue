@@ -6,6 +6,8 @@ import http from '@/services/http'
 const router = useRouter()
 
 const loading = ref(false)
+const message = ref('') // 提示信息
+const messageType = ref('') // 消息类型: success, error, info
 const makeupInfo = ref({
   availableMakeups: 0,
   maxMakeups: 3,
@@ -14,6 +16,17 @@ const makeupInfo = ref({
   currentMonth: '',
   currentYear: 0
 })
+
+// 显示消息
+const showMessage = (msg, type = 'info') => {
+  message.value = msg
+  messageType.value = type
+  // 3秒后自动清除
+  setTimeout(() => {
+    message.value = ''
+    messageType.value = ''
+  }, 3000)
+}
 
 const loadMakeupInfo = async () => {
   loading.value = true
@@ -30,7 +43,35 @@ const loadMakeupInfo = async () => {
 }
 
 const buyCard = () => {
-  console.log('购买补签卡功能')
+  // 跳转到商城购买补签卡（商品ID: 127）
+  router.push('/shop/item/127')
+}
+
+const doMakeup = async (day) => {
+  if (makeupInfo.value.currentCards < 1) {
+    // 补签卡不足，显示提示
+    showMessage('补签卡不足，请前往商城购买', 'error')
+    return
+  }
+  
+  loading.value = true
+  try {
+    const res = await http.post('/signin/makeup', { day })
+    if (res.data.ok) {
+      showMessage(res.data.message || '补签成功！', 'success')
+      // 刷新补签信息
+      await loadMakeupInfo()
+    } else {
+      const errorMsg = res.data.error || '补签失败'
+      showMessage(errorMsg, 'error')
+    }
+  } catch (e) {
+    console.error('补签失败', e)
+    const errorMsg = e?.response?.data?.error || e?.message || '补签失败'
+    showMessage('补签失败：' + errorMsg, 'error')
+  } finally {
+    loading.value = false
+  }
 }
 
 const goBack = () => {
@@ -49,6 +90,11 @@ onMounted(() => {
 <template>
   <div class="makeup-page">
     <div class="section" v-if="loading">加载中...</div>
+    
+    <!-- 消息提示 -->
+    <div v-if="message" class="message" :class="messageType">
+      {{ message }}
+    </div>
     
     <template v-else>
       <!-- 补签信息 -->
@@ -71,7 +117,7 @@ onMounted(() => {
       <!-- 未签到日期列表 -->
       <div class="section" v-if="makeupInfo.missedDays && makeupInfo.missedDays.length > 0">
         <div v-for="day in makeupInfo.missedDays" :key="day" class="missed-day">
-          {{ day }}日 <a class="link">补签</a>
+          {{ day }}日 <a class="link" @click="doMakeup(day)">补签</a>
         </div>
       </div>
       <div class="section" v-else>
@@ -91,7 +137,7 @@ onMounted(() => {
 
 <style scoped>
 .makeup-page {
-  background: #FFF8DC;
+  background: #ffffff;
   min-height: 100vh;
   padding: 8px 12px;
   font-size: 13px;
@@ -115,5 +161,32 @@ onMounted(() => {
 
 .link:hover {
   text-decoration: underline;
+}
+
+/* 消息提示样式 */
+.message {
+  padding: 12px;
+  margin: 12px 0;
+  border-radius: 4px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.message.success {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.message.error {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.message.info {
+  background: #d1ecf1;
+  color: #0c5460;
+  border: 1px solid #bee5eb;
 }
 </style>

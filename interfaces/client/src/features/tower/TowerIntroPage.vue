@@ -102,7 +102,7 @@ const goHome = () => {
 
 <style scoped>
 .intro-page {
-  background: #FFF8DC;
+  background: #ffffff;
   min-height: 100vh;
   padding: 8px 12px;
   font-size: 13px;

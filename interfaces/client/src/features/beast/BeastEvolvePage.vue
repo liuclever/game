@@ -632,10 +632,10 @@ onMounted(() => {
 
 <style scoped>
 .evolve-page {
-  background: #FFF8DC;
+  background: #ffffff;
   min-height: 100vh;
   padding: 8px 12px;
-  font-size: 13px;
+  font-size: 16px;
   line-height: 1.6;
   font-family: SimSun, "宋体", serif;
 }
@@ -684,19 +684,19 @@ onMounted(() => {
 }
 
 .small {
-  font-size: 11px;
+  font-size: 17px;
 }
 
 .page-btn {
-  font-size: 12px;
+  font-size: 18px;
   padding: 1px 8px;
-  background: #F0F0F0;
+  background: #ffffff;
   border: 1px solid #CCCCCC;
   cursor: pointer;
 }
 
 .page-btn:hover {
-  background: #E0E0E0;
+  background: #ffffff;
 }
 
 .footer {

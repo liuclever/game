@@ -253,9 +253,9 @@ onMounted(() => {
 <style scoped>
 .vip-page {
   min-height: 100vh;
-  background: #f5f5dc;
+  background: #FFFFFF;
   padding: 10px 15px;
-  font-size: 14px;
+  font-size: 17px;
   color: #333;
   font-family: 'SimSun', '宋体', serif;
   line-height: 1.8;
@@ -284,7 +284,7 @@ onMounted(() => {
 }
 
 .gift-detail {
-  font-size: 12px;
+  font-size: 18px;
   color: #666;
   margin-left: 10px;
 }
@@ -303,7 +303,7 @@ onMounted(() => {
 }
 
 .modal-content {
-  background: #f5f5dc;
+  background: #FFFFFF;
   border: 2px solid #8b4513;
   max-width: 90%;
   max-height: 80vh;
@@ -333,7 +333,7 @@ onMounted(() => {
 }
 
 .modal-body {
-  font-size: 13px;
+  font-size: 16px;
   line-height: 1.6;
 }
 

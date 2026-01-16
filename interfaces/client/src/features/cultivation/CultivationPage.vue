@@ -232,7 +232,7 @@ onMounted(async () => {
 <style scoped>
 .page {
   padding: 8px;
-  font-size: 14px;
+  font-size: 17px;
 }
 
 .header {
@@ -302,7 +302,7 @@ onMounted(async () => {
 
 .drop-hint {
   color: #999;
-  font-size: 12px;
+  font-size: 18px;
 }
 
 .link {
@@ -317,7 +317,7 @@ onMounted(async () => {
 .rules-section, .rate-section {
   margin-top: 16px;
   padding: 8px;
-  background: #f5f5f5;
+  background: #ffffff;
   border-radius: 4px;
 }
 

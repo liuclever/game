@@ -130,6 +130,10 @@ class MailService:
         if sender_id == receiver_id:
             return {"ok": False, "error": "不能给自己发消息"}
         
+        # 检查是否被拉黑
+        if self.is_blocked(sender_id, receiver_id):
+            return {"ok": False, "error": "无法发送消息，你已被对方拉黑或已将对方拉黑"}
+        
         try:
             message_id = execute_insert(
                 """INSERT INTO private_message 
@@ -212,6 +216,10 @@ class MailService:
         """发送好友请求"""
         if requester_id == receiver_id:
             return {"ok": False, "error": "不能添加自己为好友"}
+        
+        # 检查是否被拉黑
+        if self.is_blocked(requester_id, receiver_id):
+            return {"ok": False, "error": "无法发送好友请求，你已被对方拉黑或已将对方拉黑"}
         
         friend_rows = execute_query(
             """SELECT id FROM friend_relation 
@@ -301,6 +309,122 @@ class MailService:
         except Exception as e:
             print(f"拒绝好友请求失败: {e}")
             return {"ok": False, "error": f"处理失败: {str(e)}"}
+    
+    def get_friends(self, user_id: int) -> List[Dict]:
+        """获取好友列表"""
+        try:
+            rows = execute_query(
+                """SELECT fr.friend_id, p.nickname, p.level, p.vip_level
+                   FROM friend_relation fr
+                   JOIN player p ON fr.friend_id = p.user_id
+                   WHERE fr.user_id = %s
+                   ORDER BY p.level DESC, p.nickname ASC""",
+                (user_id,)
+            )
+            result = []
+            for row in rows:
+                result.append({
+                    "user_id": row['friend_id'],
+                    "friend_id": row['friend_id'],
+                    "nickname": row['nickname'],
+                    "level": row['level'],
+                    "vip": row.get('vip_level', 0),
+                })
+            return result
+        except Exception as e:
+            print(f"获取好友列表失败: {e}")
+            import traceback
+            traceback.print_exc()
+            return []
+    
+    def block_user(self, user_id: int, blocked_user_id: int, blocked_user_name: str) -> Dict:
+        """拉黑用户"""
+        if user_id == blocked_user_id:
+            return {"ok": False, "error": "不能拉黑自己"}
+        
+        try:
+            # 检查是否已经在黑名单中
+            existing = execute_query(
+                """SELECT id FROM blacklist WHERE user_id = %s AND blocked_user_id = %s""",
+                (user_id, blocked_user_id)
+            )
+            if existing:
+                return {"ok": False, "error": "该用户已在黑名单中"}
+            
+            # 添加到黑名单
+            execute_insert(
+                """INSERT INTO blacklist (user_id, blocked_user_id, blocked_user_name)
+                   VALUES (%s, %s, %s)""",
+                (user_id, blocked_user_id, blocked_user_name)
+            )
+            
+            # 如果双方是好友，自动删除好友关系
+            execute_update(
+                """DELETE FROM friend_relation 
+                   WHERE (user_id = %s AND friend_id = %s) OR (user_id = %s AND friend_id = %s)""",
+                (user_id, blocked_user_id, blocked_user_id, user_id)
+            )
+            
+            # 删除待处理的好友请求
+            execute_update(
+                """DELETE FROM friend_request 
+                   WHERE (requester_id = %s AND receiver_id = %s) 
+                      OR (requester_id = %s AND receiver_id = %s)""",
+                (user_id, blocked_user_id, blocked_user_id, user_id)
+            )
+            
+            return {"ok": True, "message": "已成功拉黑该用户"}
+        except Exception as e:
+            print(f"拉黑用户失败: {e}")
+            return {"ok": False, "error": f"拉黑失败: {str(e)}"}
+    
+    def unblock_user(self, user_id: int, blocked_user_id: int) -> Dict:
+        """取消拉黑"""
+        try:
+            execute_update(
+                """DELETE FROM blacklist WHERE user_id = %s AND blocked_user_id = %s""",
+                (user_id, blocked_user_id)
+            )
+            return {"ok": True, "message": "已取消拉黑"}
+        except Exception as e:
+            print(f"取消拉黑失败: {e}")
+            return {"ok": False, "error": f"取消拉黑失败: {str(e)}"}
+    
+    def get_blacklist(self, user_id: int) -> List[Dict]:
+        """获取黑名单列表"""
+        try:
+            rows = execute_query(
+                """SELECT blocked_user_id, blocked_user_name, created_at
+                   FROM blacklist
+                   WHERE user_id = %s
+                   ORDER BY created_at DESC""",
+                (user_id,)
+            )
+            result = []
+            for row in rows:
+                result.append({
+                    "user_id": row['blocked_user_id'],
+                    "nickname": row['blocked_user_name'],
+                    "blocked_at": self._format_time(row['created_at']),
+                })
+            return result
+        except Exception as e:
+            print(f"获取黑名单列表失败: {e}")
+            return []
+    
+    def is_blocked(self, user_id: int, target_user_id: int) -> bool:
+        """检查用户是否被拉黑（双向检查）"""
+        try:
+            rows = execute_query(
+                """SELECT id FROM blacklist 
+                   WHERE (user_id = %s AND blocked_user_id = %s) 
+                      OR (user_id = %s AND blocked_user_id = %s)""",
+                (user_id, target_user_id, target_user_id, user_id)
+            )
+            return len(rows) > 0
+        except Exception as e:
+            print(f"检查拉黑状态失败: {e}")
+            return False
     
     def _format_time(self, dt) -> str:
         """格式化时间为 MM.DD HH:MM"""

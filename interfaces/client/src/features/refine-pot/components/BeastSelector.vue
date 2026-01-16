@@ -103,7 +103,7 @@ const handleChange = (event) => {
   display: inline-flex;
   flex-direction: column;
   font-family: SimSun, '宋体', serif;
-  font-size: 13px;
+  font-size: 16px;
   color: #000;
 }
 
@@ -113,7 +113,7 @@ const handleChange = (event) => {
 
 .selector {
   min-width: 160px;
-  font-size: 13px;
+  font-size: 16px;
 }
 
 .hint {

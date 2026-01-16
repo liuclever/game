@@ -6,6 +6,9 @@ class AllianceRules:
     LEAGUE_LEADER_TOKEN_ID = 11001
     TRAINING_DURATION_MINUTES = 120
     TRAINING_DAILY_LIMIT = 1
+    FIRE_ORE_CONTRIBUTION_COST = 5  # 领取火能原石需要消耗的贡献值
+    FIRE_ORE_ITEM_ID = 1004  # 火能原石物品ID
+    MIN_TRAINING_PARTICIPANTS = 2  # 开始修行所需的最少人数
     RENAME_MIN_LENGTH = 2
     RENAME_MAX_LENGTH = 13
     RENAME_COST_YUANBAO = 1000
@@ -75,7 +78,7 @@ class AllianceRules:
         {
             "level": 1,
             "next_level": 2,
-            "requires": {"furnace": 1, "talent": 1, "beast": 1},
+            "requires": {"furnace": 1, "warehouse": 1, "beast": 1},
             "funds": 1000,
             "crystals": 3000,
             "prosperity": 40_000,
@@ -83,7 +86,7 @@ class AllianceRules:
         {
             "level": 2,
             "next_level": 3,
-            "requires": {"furnace": 2, "talent": 2, "beast": 2},
+            "requires": {"furnace": 2, "warehouse": 2, "beast": 2},
             "funds": 3000,
             "crystals": 6000,
             "prosperity": 80_000,
@@ -91,7 +94,7 @@ class AllianceRules:
         {
             "level": 3,
             "next_level": 4,
-            "requires": {"furnace": 3, "talent": 3, "beast": 3},
+            "requires": {"furnace": 3, "warehouse": 3, "beast": 3},
             "funds": 5000,
             "crystals": 9000,
             "prosperity": 160_000,
@@ -99,7 +102,7 @@ class AllianceRules:
         {
             "level": 4,
             "next_level": 5,
-            "requires": {"furnace": 4, "talent": 4, "beast": 4},
+            "requires": {"furnace": 4, "warehouse": 4, "beast": 4},
             "funds": 7000,
             "crystals": 12_000,
             "prosperity": 320_000,
@@ -107,7 +110,7 @@ class AllianceRules:
         {
             "level": 5,
             "next_level": 6,
-            "requires": {"furnace": 5, "talent": 5, "beast": 5},
+            "requires": {"furnace": 5, "warehouse": 5, "beast": 5},
             "funds": 9000,
             "crystals": 15_000,
             "prosperity": 640_000,
@@ -115,7 +118,7 @@ class AllianceRules:
         {
             "level": 6,
             "next_level": 7,
-            "requires": {"furnace": 6, "talent": 6, "beast": 6},
+            "requires": {"furnace": 6, "warehouse": 6, "beast": 6},
             "funds": 12_000,
             "crystals": 19_000,
             "prosperity": 1_000_000,
@@ -123,7 +126,7 @@ class AllianceRules:
         {
             "level": 7,
             "next_level": 8,
-            "requires": {"furnace": 7, "talent": 7, "beast": 7},
+            "requires": {"furnace": 7, "warehouse": 7, "beast": 7},
             "funds": 15_000,
             "crystals": 23_000,
             "prosperity": 2_000_000,
@@ -131,7 +134,7 @@ class AllianceRules:
         {
             "level": 8,
             "next_level": 9,
-            "requires": {"furnace": 8, "talent": 8, "beast": 8},
+            "requires": {"furnace": 8, "warehouse": 8, "beast": 8},
             "funds": 18_000,
             "crystals": 27_000,
             "prosperity": 4_000_000,
@@ -139,7 +142,7 @@ class AllianceRules:
         {
             "level": 9,
             "next_level": 10,
-            "requires": {"furnace": 9, "talent": 9, "beast": 9},
+            "requires": {"furnace": 9, "warehouse": 9, "beast": 9},
             "funds": 25_000,
             "crystals": 35_000,
             "prosperity": 6_500_000,
@@ -449,7 +452,7 @@ class AllianceRules:
     FURNACE_BASE_ROOMS = 4
     FURNACE_ROOM_PER_LEVEL = 1
     FURNACE_BASE_CRYSTAL_BONUS = 0
-    FURNACE_CRYSTAL_BONUS_PER_LEVEL = 2
+    FURNACE_CRYSTAL_BONUS_PER_LEVEL = 1  # 每升一级，火能修行每个人所获得的焚火晶增加1个
 
     TALENT_POOL_BASE_CAP = 1
     TALENT_POOL_CAP_PER_LEVEL = 1
@@ -472,8 +475,8 @@ class AllianceRules:
         10: {"funds": 3200, "crystals": 2000},
     }
 
-    MEMBER_BASE_CAPACITY = 30
-    MEMBER_PER_LEVEL = 10
+    MEMBER_BASE_CAPACITY = 10  # 1级联盟成员上限为10人
+    MEMBER_PER_LEVEL = 10  # 每升一级增加10人上限
 
     @staticmethod
     def can_create_alliance(player: Player, has_token: bool) -> tuple:
@@ -678,15 +681,13 @@ class AllianceRules:
         return level * 5
 
     @staticmethod
-    def training_crystal_reward(alliance_level: int, participant_count: int) -> int:
+    def training_crystal_reward(furnace_level: int) -> int:
         """
-        火能修行奖励：基础 9 个焚火晶，联盟每升一级 +2
-        若同时修行人数 ≥ 2，则额外 +2
+        火能修行奖励：根据焚火炉等级获得焚火晶
+        1级获得6个，2级获得7个，3级获得8个，...，10级获得15个
         """
-        level = max(1, alliance_level or 1)
-        base = 9 + (level - 1) * 2
-        group_bonus = 2 if participant_count >= 2 else 0
-        return base + group_bonus
+        level = max(1, min(furnace_level or 1, 10))
+        return 5 + level  # 1级=6, 2级=7, ..., 10级=15
 
     @staticmethod
     def get_donation_rule(key: str):

@@ -188,10 +188,10 @@ onMounted(() => {
 
 <style scoped>
 .alliance-members-page {
-  background: #fff8dc;
+  background: #ffffff;
   min-height: 100vh;
   padding: 12px 16px;
-  font-size: 13px;
+  font-size: 16px;
   font-family: SimSun, "宋体", serif;
 }
 
@@ -201,7 +201,7 @@ onMounted(() => {
 
 .title {
   font-weight: bold;
-  font-size: 15px;
+  font-size: 18px;
 }
 
 .leaders div {
@@ -282,7 +282,7 @@ onMounted(() => {
 
 .btn.small {
   padding: 2px 6px;
-  font-size: 12px;
+  font-size: 18px;
 }
 
 .muted {
@@ -300,7 +300,7 @@ onMounted(() => {
 }
 
 .link.small {
-  font-size: 12px;
+  font-size: 18px;
   margin-left: 4px;
 }
 </style>

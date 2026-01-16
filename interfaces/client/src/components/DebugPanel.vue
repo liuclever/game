@@ -307,7 +307,7 @@ onMounted(() => {
   border-radius: 6px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.3);
   min-width: 280px;
-  font-size: 12px;
+  font-size: 18px;
   font-family: 'SimSun', serif;
 }
 
@@ -328,7 +328,7 @@ onMounted(() => {
   border: none;
   padding: 2px 8px;
   cursor: pointer;
-  font-size: 11px;
+  font-size: 17px;
 }
 
 .panel-body {

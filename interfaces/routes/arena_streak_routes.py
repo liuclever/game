@@ -98,7 +98,7 @@ def get_info():
     # 获取当前连胜王
     today = datetime.now().date()
     streak_king = execute_query(
-        """SELECT p.nickname, a.max_streak_today 
+        """SELECT p.user_id, p.nickname, a.max_streak_today 
            FROM arena_streak a 
            JOIN player p ON a.user_id = p.user_id 
            WHERE a.record_date = %s 
@@ -119,6 +119,7 @@ def get_info():
         ],
         "refresh_seconds": refresh_seconds,
         "streak_king": {
+            "user_id": streak_king[0]['user_id'] if streak_king else None,
             "nickname": streak_king[0]['nickname'] if streak_king else "暂无",
             "streak": streak_king[0]['max_streak_today'] if streak_king else 0
         },
@@ -133,12 +134,12 @@ def refresh_opponents():
         return jsonify({"ok": False, "error": "请先登录"})
     
     # 检查元宝
-    player = execute_query("SELECT gold FROM player WHERE user_id = %s", (user_id,))
-    if not player or player[0]['gold'] < 50:
-        return jsonify({"ok": False, "error": "元宝不足"})
+    player = execute_query("SELECT yuanbao FROM player WHERE user_id = %s", (user_id,))
+    if not player or player[0]['yuanbao'] < 50:
+        return jsonify({"ok": False, "error": "元宝不足（需要50元宝）"})
     
     # 扣除元宝
-    execute_update("UPDATE player SET gold = gold - 50 WHERE user_id = %s", (user_id,))
+    execute_update("UPDATE player SET yuanbao = yuanbao - 50 WHERE user_id = %s", (user_id,))
     
     # 更新刷新时间
     today = datetime.now().date()
@@ -147,7 +148,7 @@ def refresh_opponents():
         (user_id, today)
     )
     
-    return jsonify({"ok": True, "message": "刷新成功"})
+    return jsonify({"ok": True, "message": "刷新成功，消耗50元宝"})
 
 @arena_streak_bp.post('/battle')
 def battle():
@@ -267,7 +268,7 @@ def get_ranking():
     """获取今日连胜榜"""
     today = datetime.now().date()
     ranking = execute_query(
-        """SELECT p.nickname, a.max_streak_today 
+        """SELECT p.user_id, p.nickname, a.max_streak_today 
            FROM arena_streak a 
            JOIN player p ON a.user_id = p.user_id 
            WHERE a.record_date = %s 
@@ -279,7 +280,8 @@ def get_ranking():
         "ok": True,
         "ranking": [
             {
-                "nickname": r['nickname'] or f"玩家",
+                "user_id": r['user_id'],
+                "nickname": r['nickname'] or f"玩家{r['user_id']}",
                 "streak": r['max_streak_today']
             } for r in ranking
         ]
@@ -289,7 +291,7 @@ def get_ranking():
 def get_history():
     """获取历届连胜王（近30天）"""
     history = execute_query(
-        """SELECT nickname, max_streak, record_date 
+        """SELECT user_id, nickname, max_streak, record_date 
            FROM arena_streak_history 
            ORDER BY record_date DESC LIMIT 30"""
     )
@@ -298,6 +300,7 @@ def get_history():
         "ok": True,
         "history": [
             {
+                "user_id": h['user_id'],
                 "nickname": h['nickname'],
                 "streak": h['max_streak'],
                 "date": h['record_date'].strftime('%Y-%m-%d')

@@ -43,10 +43,10 @@ const goHome = () => {
 
 <style scoped>
 .refine-pot-page {
-  background: #fff8dc;
+  background: #ffffff;
   min-height: 100vh;
   font-family: SimSun, '宋体', serif;
-  font-size: 13px;
+  font-size: 16px;
   line-height: 1.6;
   padding: 8px 12px 40px;
   color: #000;

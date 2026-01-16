@@ -68,7 +68,7 @@ const submitRename = async () => {
 
 <style scoped>
 .rename-page {
-  background: #fff8dc;
+  background: #ffffff;
   min-height: 100vh;
   padding: 12px 16px;
   font-family: SimSun, '宋体', serif;

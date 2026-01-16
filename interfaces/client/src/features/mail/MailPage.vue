@@ -285,10 +285,10 @@ watch(
 
 <style scoped>
 .mail-page {
-  background: #FFF8DC;
+  background: #ffffff;
   min-height: 100vh;
   padding: 12px;
-  font-size: 13px;
+  font-size: 16px;
   line-height: 1.7;
   font-family: SimSun, "宋体", serif;
 }
@@ -296,7 +296,7 @@ watch(
 .tabs { margin-bottom: 8px; }
 .row { display: flex; gap: 6px; align-items: center; }
 .name { flex: 0 0 auto; }
-.unread { color: #CC0000; font-size: 12px; margin-left: 4px; }
+.unread { color: #CC0000; font-size: 18px; margin-left: 4px; }
 .request-row { display: flex; gap: 6px; align-items: baseline; flex-wrap: wrap; }
 .time { color: #000; }
 .nav { margin-top: 8px; }

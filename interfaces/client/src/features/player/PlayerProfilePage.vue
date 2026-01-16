@@ -13,6 +13,7 @@ const dynamics = ref([])
 const loading = ref(true)
 const error = ref('')
 const currentUserId = ref(null)
+const isBlocked = ref(false)
 
 const isOtherPlayer = computed(() => {
   if (!player.value) return false
@@ -50,6 +51,21 @@ const loadCurrentUser = async () => {
   }
 }
 
+// 检查拉黑状态
+const checkBlockStatus = async () => {
+  if (!player.value?.user_id || !currentUserId.value) return
+  if (player.value.user_id === currentUserId.value) return
+  
+  try {
+    const res = await http.get(`/mail/block/check?target_id=${player.value.user_id}`)
+    if (res.data.ok) {
+      isBlocked.value = res.data.is_blocked || false
+    }
+  } catch (e) {
+    console.error('检查拉黑状态失败', e)
+  }
+}
+
 // 加载玩家信息
 const loadPlayer = async () => {
   const playerId = route.query.id
@@ -72,7 +88,10 @@ const loadPlayer = async () => {
       }
       beasts.value = res.data.beasts || []
       dynamics.value = res.data.dynamics || []
-      await loadPrestigeRequirement()
+      // 声望阈值加载不阻塞主数据，可以并行或延迟加载
+      loadPrestigeRequirement()
+      // 检查拉黑状态
+      await checkBlockStatus()
     } else {
       error.value = res.data.error || '加载失败'
     }
@@ -109,11 +128,23 @@ const challenge = async () => {
         query: { data: JSON.stringify(res.data.battle) }
       })
     } else {
-      alert(res.data.error || '切磋失败')
+      router.push({
+        path: '/message',
+        query: {
+          message: res.data.error || '切磋失败',
+          type: 'error'
+        }
+      })
     }
   } catch (e) {
     console.error('切磋失败', e)
-    alert(e?.response?.data?.error || '切磋失败')
+    router.push({
+      path: '/message',
+      query: {
+        message: e?.response?.data?.error || '切磋失败',
+        type: 'error'
+      }
+    })
   } finally {
     sparring.value = false
   }
@@ -127,6 +158,79 @@ const goBack = () => {
 // 返回首页
 const goHome = () => {
   router.push('/')
+}
+
+// 写信
+const sendMessage = () => {
+  if (!player.value?.user_id) return
+  router.push({ 
+    path: '/mail/chat', 
+    query: { target_id: player.value.user_id, name: player.value.nickname } 
+  })
+}
+
+// 加为好友
+const addingFriend = ref(false)
+const addFriend = async () => {
+  if (!player.value?.user_id) return
+  if (addingFriend.value) return
+  
+  addingFriend.value = true
+  try {
+    const res = await http.post('/mail/friend-request/send', { target_id: player.value.user_id })
+    if (res.data.ok) {
+      router.push({
+        path: '/message',
+        query: {
+          message: res.data.message || '好友请求已发送',
+          type: 'success'
+        }
+      })
+    } else {
+      router.push({
+        path: '/message',
+        query: {
+          message: res.data.error || '发送失败',
+          type: 'error'
+        }
+      })
+    }
+  } catch (e) {
+    console.error('发送好友请求失败', e)
+    router.push({
+      path: '/message',
+      query: {
+        message: e?.response?.data?.error || '发送失败',
+        type: 'error'
+      }
+    })
+  } finally {
+    addingFriend.value = false
+  }
+}
+
+// 拉黑/解除拉黑
+const blockPlayer = () => {
+  if (!player.value?.user_id) return
+  if (isBlocked.value) {
+    // 已拉黑，跳转到解除拉黑确认页面
+    router.push({
+      path: '/block/unblock',
+      query: {
+        target_id: player.value.user_id,
+        target_name: player.value.nickname || '该玩家'
+      }
+    })
+  } else {
+    // 未拉黑，跳转到拉黑确认页面
+    router.push({
+      path: '/block/confirm',
+      query: {
+        target_id: player.value.user_id,
+        target_name: player.value.nickname || '该玩家'
+      }
+    })
+  }
 }
 
 // 点击链接
@@ -143,7 +247,13 @@ const handleLink = (name) => {
   if (routes[name]) {
     router.push(routes[name])
   } else {
-    alert(`${name} 功能待实现`)
+    router.push({
+      path: '/message',
+      query: {
+        message: `${name} 功能待实现`,
+        type: 'error'
+      }
+    })
   }
 }
 
@@ -174,9 +284,9 @@ const viewBeast = (beast) => {
         昵称: <span class="username">{{ player.nickname }}</span> 🐦 （{{ player.gender || '男' }}）
       </div>
       <div class="section">
-        <a class="link" @click="handleLink('写信')">写信</a>  
-        <a class="link" @click="handleLink('加为好友')">加为好友</a>  
-        <a class="link" @click="handleLink('拉黑')">拉黑</a>
+        <a class="link" @click="sendMessage">写信</a>  
+        <a class="link" @click="addFriend">{{ addingFriend ? '发送中...' : '加为好友' }}</a>  
+        <a class="link" @click="blockPlayer">{{ isBlocked ? '已拉黑' : '拉黑' }}</a>
       </div>
       <div class="section">
         ID : {{ player.user_id }}
@@ -264,10 +374,10 @@ const viewBeast = (beast) => {
 
 <style scoped>
 .profile-page {
-  background: #FFF8DC;
+  background: #ffffff;
   min-height: 100vh;
   padding: 8px 12px;
-  font-size: 13px;
+  font-size: 16px;
   line-height: 1.8;
   font-family: SimSun, "宋体", serif;
 }
@@ -319,7 +429,7 @@ const viewBeast = (beast) => {
 }
 
 .small {
-  font-size: 11px;
+  font-size: 17px;
 }
 
 .dynamic {

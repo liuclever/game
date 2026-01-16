@@ -1,4 +1,5 @@
 from flask import Blueprint, request, jsonify, session
+from datetime import datetime
 from interfaces.web_api.bootstrap import services
 
 alliance_bp = Blueprint('alliance', __name__, url_prefix='/api/alliance')
@@ -85,6 +86,7 @@ def get_my_alliance():
             },
             "member_count": result["member_count"],
             "member_capacity": result.get("member_capacity"),
+            "fire_ore_claimed_today": bool(result.get("fire_ore_claimed_today", False)),
         })
     
     return jsonify(result)
@@ -184,6 +186,16 @@ def kick_member():
 
     result = services.alliance_service.kick_member(user_id, int(target_user_id))
     return jsonify(result)
+
+@alliance_bp.post('/quit')
+def quit_alliance():
+    user_id = get_current_user_id()
+    if not user_id:
+        return jsonify({"ok": False, "error": "请先登录"}), 401
+
+    result = services.alliance_service.quit_alliance(user_id)
+    status = 200 if result.get("ok") else 400
+    return jsonify(result), status
 
 @alliance_bp.get('/talent')
 def get_alliance_talent():
@@ -340,6 +352,26 @@ def join_training_room():
     status = 200 if result.get("ok") else 400
     return jsonify(result), status
 
+@alliance_bp.post('/training-ground/end')
+def end_training():
+    """手动结束修行"""
+    user_id = get_current_user_id()
+    if not user_id:
+        return jsonify({"ok": False, "error": "请先登录"}), 401
+
+    data = request.get_json() or {}
+    room_id = data.get('roomId')
+    try:
+        room_id = int(room_id)
+    except (TypeError, ValueError):
+        room_id = None
+    if not room_id:
+        return jsonify({"ok": False, "error": "缺少房间ID"}), 400
+
+    result = services.alliance_service.end_training(user_id, room_id)
+    status = 200 if result.get("ok") else 400
+    return jsonify(result), status
+
 @alliance_bp.post('/training-ground/claim')
 def claim_training_reward():
     user_id = get_current_user_id()
@@ -353,6 +385,115 @@ def claim_training_reward():
     except (TypeError, ValueError):
         participant_id = None
     result = services.alliance_service.claim_training_reward(user_id, participant_id)
+    status = 200 if result.get("ok") else 400
+    return jsonify(result), status
+
+@alliance_bp.post('/fire-ore/claim')
+def claim_fire_ore():
+    """领取火能原石（消耗5贡献）"""
+    user_id = get_current_user_id()
+    if not user_id:
+        return jsonify({"ok": False, "error": "请先登录"}), 401
+
+    result = services.alliance_service.claim_fire_ore(user_id)
+    status = 200 if result.get("ok") else 400
+    return jsonify(result), status
+
+@alliance_bp.get('/competition')
+def get_competition_info():
+    """获取联盟争霸赛信息"""
+    user_id = get_current_user_id()
+    if not user_id:
+        return jsonify({"ok": False, "error": "请先登录"}), 401
+    
+    try:
+        result = services.competition_service.get_competition_info(user_id)
+        status = 200 if result.get("ok") else 400
+        return jsonify(result), status
+    except Exception as e:
+        # 记录错误但不中断服务
+        import traceback
+        print(f"获取联盟争霸赛信息失败: {e}")
+        print(traceback.format_exc())
+        return jsonify({"ok": False, "error": f"获取争霸赛信息失败：{str(e)}"}), 500
+
+@alliance_bp.post('/competition/register')
+def register_competition():
+    """联盟报名争霸赛"""
+    user_id = get_current_user_id()
+    if not user_id:
+        return jsonify({"ok": False, "error": "请先登录"}), 401
+    
+    data = request.get_json() or {}
+    team_keys = data.get("team_keys", [])
+    
+    result = services.competition_service.register_alliance(user_id, team_keys)
+    status = 200 if result.get("ok") else 400
+    return jsonify(result), status
+
+@alliance_bp.post('/competition/signup')
+def signup_competition():
+    """成员签到"""
+    user_id = get_current_user_id()
+    if not user_id:
+        return jsonify({"ok": False, "error": "请先登录"}), 401
+    
+    result = services.competition_service.signup_member(user_id)
+    status = 200 if result.get("ok") else 400
+    return jsonify(result), status
+
+@alliance_bp.get('/competition/team-ranking')
+def get_team_ranking():
+    """获取战队排行榜"""
+    user_id = get_current_user_id()
+    if not user_id:
+        return jsonify({"ok": False, "error": "请先登录"}), 401
+    
+    zone = request.args.get('zone', 'calf_tiger')
+    stage = request.args.get('stage', 'all')
+    
+    result = services.competition_service.get_team_rankings(zone, stage)
+    status = 200 if result.get("ok") else 400
+    return jsonify(result), status
+
+@alliance_bp.get('/competition/elite-ranking')
+def get_elite_ranking():
+    """获取精英排行榜"""
+    user_id = get_current_user_id()
+    if not user_id:
+        return jsonify({"ok": False, "error": "请先登录"}), 401
+    
+    page = int(request.args.get('page', 1))
+    page_size = int(request.args.get('page_size', 10))
+    
+    result = services.competition_service.get_elite_rankings(page, page_size)
+    status = 200 if result.get("ok") else 400
+    return jsonify(result), status
+
+@alliance_bp.get('/competition/alliance-ranking')
+def get_alliance_ranking():
+    """获取联盟积分排行"""
+    user_id = get_current_user_id()
+    if not user_id:
+        return jsonify({"ok": False, "error": "请先登录"}), 401
+    
+    page = int(request.args.get('page', 1))
+    page_size = int(request.args.get('page_size', 10))
+    
+    result = services.competition_service.get_alliance_prestige_rankings(user_id, page, page_size)
+    status = 200 if result.get("ok") else 400
+    return jsonify(result), status
+
+@alliance_bp.get('/competition/past-records')
+def get_past_records():
+    """获取往届战绩"""
+    user_id = get_current_user_id()
+    if not user_id:
+        return jsonify({"ok": False, "error": "请先登录"}), 401
+    
+    session_key = request.args.get('session')
+    
+    result = services.competition_service.get_past_records(user_id, session_key)
     status = 200 if result.get("ok") else 400
     return jsonify(result), status
 
@@ -433,6 +574,57 @@ def exchange_war_honor():
     return jsonify(result), status
 
 
+@alliance_bp.post('/war/checkin')
+def war_checkin():
+    user_id = get_current_user_id()
+    if not user_id:
+        return jsonify({"ok": False, "error": "请先登录"}), 401
+
+    result = services.alliance_service.war_checkin(user_id)
+    status = 200 if result.get("ok") else 400
+    return jsonify(result), status
+
+@alliance_bp.get('/war/status')
+def get_war_status():
+    user_id = get_current_user_id()
+    if not user_id:
+        return jsonify({"ok": False, "error": "请先登录"}), 401
+
+    result = services.alliance_service.get_war_status(user_id)
+    return jsonify(result)
+
+@alliance_bp.get('/war/battle-records')
+def get_war_battle_records():
+    user_id = get_current_user_id()
+    if not user_id:
+        return jsonify({"ok": False, "error": "请先登录"}), 401
+
+    limit = request.args.get('limit', 50)
+    result = services.alliance_service.get_war_battle_records(user_id, limit)
+    return jsonify(result)
+
+@alliance_bp.post('/war/honor/exchange-item')
+def exchange_war_honor_item():
+    """战功兑换物品（2战功=1焚火晶，4战功=1金袋）"""
+    user_id = get_current_user_id()
+    if not user_id:
+        return jsonify({"ok": False, "error": "请先登录"}), 401
+
+    data = request.get_json() or {}
+    exchange_type = data.get("exchange_type")
+    if not exchange_type:
+        return jsonify({"ok": False, "error": "缺少兑换类型"}), 400
+
+    result = services.alliance_service.exchange_war_honor_item(user_id, exchange_type)
+    status = 200 if result.get("ok") else 400
+    return jsonify(result), status
+
+@alliance_bp.get('/war/top3')
+def get_top3_alliances():
+    """获取盟战排行榜前三名（用于首页显示，无需登录）"""
+    result = services.alliance_service.get_top3_alliances()
+    return jsonify(result)
+
 @alliance_bp.get('/war/ranking')
 def get_war_ranking():
     user_id = get_current_user_id()
@@ -451,9 +643,14 @@ def get_war_ranking():
 
     size = max(1, min(50, size))
 
-    result = services.alliance_service.get_war_ranking(user_id, page, size)
-    status = 200 if result.get("ok") else 400
-    return jsonify(result), status
+    try:
+        result = services.alliance_service.get_war_ranking(user_id, page, size)
+        status = 200 if result.get("ok") else 400
+        return jsonify(result), status
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({"ok": False, "error": f"排行榜加载失败: {str(e)}"}), 500
 
 
 @alliance_bp.get('/war/live-feed')
@@ -463,6 +660,18 @@ def get_war_live_feed():
         return jsonify({"ok": False, "error": "请先登录"}), 401
 
     result = services.alliance_service.get_war_live_feed(user_id)
+    status = 200 if result.get("ok") else 400
+    return jsonify(result), status
+
+
+@alliance_bp.get('/war/targets')
+def list_war_targets():
+    """获取盟战土地列表及其占领联盟信息"""
+    user_id = get_current_user_id()
+    if not user_id:
+        return jsonify({"ok": False, "error": "请先登录"}), 401
+
+    result = services.alliance_service.list_war_lands()
     status = 200 if result.get("ok") else 400
     return jsonify(result), status
 
@@ -521,6 +730,136 @@ def get_round_duels():
     )
     status = 200 if result.get("ok") else 400
     return jsonify(result), status
+
+
+@alliance_bp.post('/war/lock-and-pair/<int:land_id>')
+def lock_and_pair_land(land_id: int):
+    """配对联盟并创建对战（管理接口）
+    
+    将已确认报名的联盟进行配对，创建对战记录。
+    需要至少2个联盟报名才能配对。
+    
+    时间检查：只在对战时间内（周三/周六 20:00-22:00）才能配对。
+    """
+    user_id = get_current_user_id()
+    if not user_id:
+        return jsonify({"ok": False, "error": "请先登录"}), 401
+    
+    # 检查是否在对战时间内
+    now = datetime.utcnow()
+    is_war, phase, status = services.alliance_service._is_war_time(now)
+    if not is_war or status != "battle":
+        return jsonify({
+            "ok": False,
+            "error": f"当前不在对战时间内（对战时间：周三/周六 20:00-22:00），当前状态：{status}"
+        }), 400
+    
+    result = services.alliance_battle_service.lock_and_pair_land(land_id)
+    status = 200 if result.get("ok") else 400
+    return jsonify(result), status
+
+
+@alliance_bp.post('/war/advance-round/<int:battle_id>')
+def advance_battle_round(battle_id: int):
+    """推进对战回合（管理接口）
+    
+    执行当前回合的所有决斗，并推进到下一回合或结束战斗。
+    """
+    user_id = get_current_user_id()
+    if not user_id:
+        return jsonify({"ok": False, "error": "请先登录"}), 401
+    
+    result = services.alliance_battle_service.advance_round(battle_id)
+    status = 200 if result.get("ok") else 400
+    return jsonify(result), status
+
+
+@alliance_bp.post('/war/run-battle/<int:land_id>')
+def run_land_battle(land_id: int):
+    """执行土地对战完整流程（管理接口）
+    
+    自动执行：
+    1. 配对联盟
+    2. 执行所有对战的所有回合直到结束
+    3. 最终胜利者自动占领土地
+    
+    时间检查：只在对战时间内（周三/周六 20:00-22:00）才能执行。
+    允许通过环境变量 ALLIANCE_WAR_ALLOW_TIME_BYPASS=true 跳过时间检查（测试用）。
+    """
+    user_id = get_current_user_id()
+    if not user_id:
+        return jsonify({"ok": False, "error": "请先登录"}), 401
+    
+    # 检查是否在对战时间内（允许通过环境变量跳过）
+    import os
+    allow_bypass = os.getenv("ALLIANCE_WAR_ALLOW_TIME_BYPASS", "").lower() in ("1", "true", "yes")
+    if not allow_bypass:
+        now = datetime.utcnow()
+        is_war, phase, status = services.alliance_service._is_war_time(now)
+        if not is_war or status != "battle":
+            return jsonify({
+                "ok": False,
+                "error": f"当前不在对战时间内（对战时间：周三/周六 20:00-22:00），当前状态：{status}。测试时可设置环境变量 ALLIANCE_WAR_ALLOW_TIME_BYPASS=true 跳过"
+            }), 400
+    
+    # 1. 配对联盟
+    pair_result = services.alliance_battle_service.lock_and_pair_land(land_id)
+    if not pair_result.get("ok"):
+        return jsonify(pair_result), 400
+    
+    battles = pair_result.get("battles", [])
+    if not battles:
+        return jsonify({
+            "ok": True,
+            "message": "没有可配对的对战",
+            "battles": []
+        }), 200
+    
+    # 2. 执行每场对战的所有回合
+    battle_results = []
+    for battle_info in battles:
+        battle_id = battle_info["battle_id"]
+        left_alliance_id = battle_info["left_alliance_id"]
+        right_alliance_id = battle_info["right_alliance_id"]
+        
+        rounds_executed = 0
+        battle_finished = False
+        
+        # 循环推进回合直到战斗结束
+        while not battle_finished:
+            advance_result = services.alliance_battle_service.advance_round(battle_id)
+            if not advance_result.get("ok"):
+                battle_results.append({
+                    "battle_id": battle_id,
+                    "left_alliance_id": left_alliance_id,
+                    "right_alliance_id": right_alliance_id,
+                    "status": "error",
+                    "error": advance_result.get("error"),
+                    "rounds_executed": rounds_executed
+                })
+                break
+            
+            rounds_executed += 1
+            round_info = advance_result.get("round", {})
+            
+            if advance_result.get("battle_finished"):
+                battle_finished = True
+                battle_results.append({
+                    "battle_id": battle_id,
+                    "left_alliance_id": left_alliance_id,
+                    "right_alliance_id": right_alliance_id,
+                    "status": "finished",
+                    "rounds_executed": rounds_executed,
+                    "final_round": round_info
+                })
+    
+    return jsonify({
+        "ok": True,
+        "message": f"成功执行 {len(battles)} 场对战",
+        "pair_result": pair_result,
+        "battle_results": battle_results
+    }), 200
+
 
 @alliance_bp.get('/chat/messages')
 def get_chat_messages():

@@ -1,4 +1,5 @@
 <script setup>
+import { useMessage } from '@/composables/useMessage'
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import http from '@/services/http'
@@ -6,6 +7,8 @@ import http from '@/services/http'
 const router = useRouter()
 
 // 当前选中的塔
+const { message, messageType, showMessage } = useMessage()
+
 const currentTower = ref('tongtian')
 const towers = {
   tongtian: '通天塔',
@@ -75,7 +78,7 @@ const switchTower = async (type) => {
   if (type === 'zhanling') {
     const isTest = await checkTestMode()
     if (isTest) {
-      alert('测试模式下战灵塔未开放')
+      showMessage('测试模式下战灵塔未开放', 'info')
       return
     }
   }
@@ -122,21 +125,21 @@ const formatInspireTime = computed(() => {
 // 使用鼓舞丹
 const useInspirePill = async () => {
   if (inspireStatus.value.active) {
-    alert('鼓舞效果正在生效中，无法叠加使用！')
+    showMessage('鼓舞效果正在生效中，无法叠加使用！', 'info')
     return
   }
   if (inspireStatus.value.inspire_pill_count <= 0) {
-    alert('鼓舞丹不足！可通过开启钛金宝箱、秘银宝箱获得，或在商城购买。')
+    showMessage('鼓舞丹不足！可通过开启钛金宝箱、秘银宝箱获得，或在商城购买。', 'error')
     return
   }
   
   try {
     const res = await http.post('/tower/inspire/use')
     if (res.data.ok) {
-      alert(res.data.message)
+      showMessage(res.data.message, 'success')
       loadInspireStatus()
     } else {
-      alert(res.data.error)
+      showMessage(res.data.error, 'error')
     }
   } catch (e) {
     console.error('使用鼓舞丹失败', e)
@@ -198,13 +201,18 @@ const handleLink = (name) => {
   } else if (routes[name]) {
     router.push(routes[name])
   } else {
-    alert(`点击了: ${name}`)
+    showMessage(`点击了: ${name}`, 'info')
   }
 }
 </script>
 
 <template>
   <div class="tower-page">
+    <!-- 消息提示 -->
+    <div v-if="message" class="message" :class="messageType">
+      {{ message }}
+    </div>
+
     <!-- 标题 -->
     <div class="section title">
       【勇闯重塔】 <a class="link" @click="handleLink('简介')">简介</a>
@@ -324,7 +332,7 @@ const handleLink = (name) => {
 
 <style scoped>
 .tower-page {
-  background: #FFF8DC;
+  background: #ffffff;
   min-height: 100vh;
   padding: 8px 12px;
   font-size: 13px;
@@ -390,4 +398,32 @@ const handleLink = (name) => {
 .green {
   color: #009900;
 }
+
+/* 消息提示样式 */
+.message {
+  padding: 12px;
+  margin: 12px 0;
+  border-radius: 4px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.message.success {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.message.error {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.message.info {
+  background: #d1ecf1;
+  color: #0c5460;
+  border: 1px solid #bee5eb;
+}
+
 </style>

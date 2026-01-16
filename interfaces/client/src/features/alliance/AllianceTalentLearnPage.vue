@@ -50,13 +50,36 @@ const confirmLearn = async () => {
   try {
     const res = await http.post('/alliance/talent/learn', { talent_key: talentKey.value })
     if (res.data.ok) {
-      alert('学习成功，天赋等级+1')
-      await fetchOverview()
+      // 跳转到成功页面
+      router.push({
+        path: '/alliance/talent/learn-result',
+        query: {
+          success: 'true',
+          message: '学习成功，天赋等级+1',
+          talent_key: talentKey.value
+        }
+      })
     } else {
-      alert(res.data.error || '学习失败')
+      // 跳转到失败页面
+      router.push({
+        path: '/alliance/talent/learn-result',
+        query: {
+          success: 'false',
+          message: res.data.error || '学习失败',
+          talent_key: talentKey.value
+        }
+      })
     }
   } catch (e) {
-    alert(e.response?.data?.error || '学习失败')
+    // 跳转到失败页面
+    router.push({
+      path: '/alliance/talent/learn-result',
+      query: {
+        success: 'false',
+        message: e.response?.data?.error || '学习失败',
+        talent_key: talentKey.value
+      }
+    })
   } finally {
     submitting.value = false
   }
@@ -112,10 +135,10 @@ onMounted(() => {
 
 <style scoped>
 .talent-detail-page {
-  background: #fff8dc;
+  background: #ffffff;
   min-height: 100vh;
   padding: 12px 18px;
-  font-size: 13px;
+  font-size: 16px;
   line-height: 1.8;
   font-family: SimSun, '宋体', serif;
 }

@@ -1,4 +1,4 @@
-# interfaces/web_api/bootstrap.py
+﻿# interfaces/web_api/bootstrap.py
 """
 服务依赖初始化（依赖注入容器）
 所有服务实例在此创建，供路由模块使用
@@ -23,6 +23,7 @@ from infrastructure.db.spirit_repo_mysql import MySQLSpiritRepo
 from infrastructure.db.spirit_account_repo_mysql import MySQLSpiritAccountRepo
 from infrastructure.db.mosoul_repo_mysql import MySQLMoSoulRepo, MySQLBeastMoSoulRepo
 from infrastructure.db.alliance_repo_mysql import MySQLAllianceRepo
+from infrastructure.db.competition_repo_mysql import MySQLCompetitionRepo
 from infrastructure.db.task_reward_repo_mysql import MySQLTaskRewardRepo
 from infrastructure.db.daily_activity_repo_mysql import MySQLDailyActivityRepo
 from infrastructure.db.manor_repo_mysql import MySQLManorRepo
@@ -51,6 +52,7 @@ from application.services.battlefield_service import BattlefieldService
 from application.services.beast_pvp_service import BeastPvpService
 from application.services.alliance_service import AllianceService
 from application.services.alliance_battle_service import AllianceBattleService
+from application.services.competition_service import CompetitionService
 from application.services.task_reward_service import TaskRewardService
 from application.services.daily_activity_service import DailyActivityService
 from application.services.activity_gift_service import ActivityGiftService
@@ -108,6 +110,7 @@ class ServiceContainer:
 
         # 联盟仓库
         self.alliance_repo = MySQLAllianceRepo()
+        self.competition_repo = MySQLCompetitionRepo()
 
         # 魔魂仓库
         self.mosoul_repo = MySQLMoSoulRepo()
@@ -275,6 +278,13 @@ class ServiceContainer:
         self.world_chat_service = WorldChatService(
             player_repo=self.player_repo,
             inventory_service=self.inventory_service,
+        )
+        
+        # 联盟争霸赛服务
+        self.competition_service = CompetitionService(
+            competition_repo=self.competition_repo,
+            alliance_repo=self.alliance_repo,
+            player_repo=self.player_repo,
         )
 
 

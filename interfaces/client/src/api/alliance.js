@@ -1,6 +1,15 @@
 import http from '@/services/http'
 
 /**
+ * 获取盟战土地列表及其占领联盟信息
+ * @returns {Promise<object>} API 响应数据
+ */
+export async function fetchWarTargets() {
+  const res = await http.get('/alliance/war/targets')
+  return res.data
+}
+
+/**
  * 获取土地详情与报名联盟名单
  * @param {number} landId
  * @returns {Promise<object>} API 响应数据

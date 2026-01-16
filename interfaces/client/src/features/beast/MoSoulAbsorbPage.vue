@@ -337,10 +337,10 @@ const getGradeColor = (grade) => {
 
 <style scoped>
 .absorb-page {
-  background: #FFF8DC;
+  background: #ffffff;
   min-height: 100vh;
   padding: 8px 12px;
-  font-size: 13px;
+  font-size: 16px;
   line-height: 1.6;
   font-family: SimSun, "宋体", serif;
 }
@@ -356,7 +356,7 @@ const getGradeColor = (grade) => {
 
 .separator {
   height: 1px;
-  background: #CCCCCC;
+  background: #ffffffCCC;
   margin: 10px 0;
 }
 
@@ -394,7 +394,7 @@ const getGradeColor = (grade) => {
 
 .exp-hint {
   color: #999;
-  font-size: 12px;
+  font-size: 18px;
   margin-right: 4px;
 }
 
@@ -413,6 +413,6 @@ const getGradeColor = (grade) => {
 }
 
 .small {
-  font-size: 11px;
+  font-size: 17px;
 }
 </style>

@@ -145,6 +145,16 @@ class MySQLPlayerRepo(IPlayerRepo):
     
     def save(self, player: Player) -> None:
         """保存玩家信息"""
+        # 获取保存前的等级，用于检查是否升级
+        old_level = None
+        try:
+            old_player = self.get_by_id(player.user_id)
+            if old_player:
+                old_level = old_player.level
+        except Exception:
+            pass  # 如果获取失败，忽略，不影响保存
+        
+        # 兼容老库：last_signin_date / consecutive_signin_days 字段可能不存在
         sql = """
             UPDATE player 
             SET nickname = %s, level = %s, exp = %s, gold = %s, silver_diamond = %s, 
@@ -167,7 +177,70 @@ class MySQLPlayerRepo(IPlayerRepo):
             player.cultivation_area, player.cultivation_dungeon,
             player.user_id
         )
-        execute_update(sql, params)
+        saved = False
+        try:
+            execute_update(sql, params)
+            saved = True
+        except Exception:
+            # 再兜底：可能既没有 last_signin_date，也没有 copper
+            sql = """
+                UPDATE player 
+                SET nickname = %s, level = %s, exp = %s, gold = %s, copper = %s, silver_diamond = %s, yuanbao = %s, dice = %s, enhancement_stone = %s, energy = %s, prestige = %s, crystal_tower = %s, charm = %s, location = %s, vip_level = %s, vip_exp = %s, last_energy_recovery_time = %s,
+                    cultivation_start_time = %s, cultivation_duration = %s, cultivation_area = %s, cultivation_dungeon = %s
+                WHERE user_id = %s
+            """
+            params = (
+                player.nickname, player.level, player.exp, player.gold, player.copper, player.silver_diamond, player.yuanbao, player.dice, player.enhancement_stone,
+                player.energy, player.prestige, player.crystal_tower, player.charm, player.location, player.vip_level, player.vip_exp, player.last_energy_recovery_time,
+                player.cultivation_start_time, player.cultivation_duration, player.cultivation_area, player.cultivation_dungeon,
+                player.user_id
+            )
+            try:
+                execute_update(sql, params)
+                saved = True
+            except Exception:
+                sql = """
+                    UPDATE player 
+                    SET nickname = %s, level = %s, exp = %s, gold = %s, silver_diamond = %s, yuanbao = %s, dice = %s, enhancement_stone = %s, energy = %s, prestige = %s, crystal_tower = %s, charm = %s, location = %s, vip_level = %s, vip_exp = %s, last_energy_recovery_time = %s,
+                        cultivation_start_time = %s, cultivation_duration = %s, cultivation_area = %s, cultivation_dungeon = %s
+                    WHERE user_id = %s
+                """
+                params = (
+                    player.nickname, player.level, player.exp, player.gold, player.silver_diamond, player.yuanbao, player.dice, player.enhancement_stone,
+                    player.energy, player.prestige, player.crystal_tower, player.charm, player.location, player.vip_level, player.vip_exp, player.last_energy_recovery_time,
+                    player.cultivation_start_time, player.cultivation_duration, player.cultivation_area, player.cultivation_dungeon,
+                    player.user_id
+                )
+                execute_update(sql, params)
+                saved = True
+        
+        # 如果保存成功且等级发生变化，同步联盟军队类型
+        if saved and old_level is not None and player.level is not None and old_level != player.level:
+            self._sync_alliance_army_on_level_change(player.user_id, old_level, player.level)
+    
+    def _sync_alliance_army_on_level_change(self, user_id: int, old_level: int, new_level: int) -> None:
+        """当玩家等级变化时，同步联盟军队类型"""
+        # 使用延迟导入避免循环依赖
+        try:
+            # 检查是否需要重新分配军队（40级及以下伏虎军，40级以上飞龙军）
+            old_army_type = 1 if old_level > 40 else 2  # 1=飞龙军, 2=伏虎军
+            new_army_type = 1 if new_level > 40 else 2
+            
+            # 如果军队类型发生变化，同步到数据库
+            if old_army_type != new_army_type:
+                # 延迟导入 services 避免循环依赖
+                import sys
+                from pathlib import Path
+                project_root = Path(__file__).resolve().parent.parent.parent
+                if str(project_root) not in sys.path:
+                    sys.path.insert(0, str(project_root))
+                
+                from interfaces.web_api.bootstrap import services
+                # 调用联盟服务的同步方法
+                services.alliance_service.sync_member_army_by_user_id(user_id)
+        except Exception:
+            # 如果同步失败，不影响玩家保存，只记录错误
+            pass
     
     def create(self, player: Player) -> None:
         """创建新玩家"""

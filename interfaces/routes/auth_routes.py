@@ -19,8 +19,8 @@ def get_current_user_id() -> int:
 def login():
     """登录"""
     data = request.get_json() or {}
-    username = data.get("username", "")
-    password = data.get("password", "")
+    username = data.get("username", "").strip()  # 去除首尾空格
+    password = data.get("password", "").strip()  # 去除首尾空格
     
     result = services.auth_service.login(username, password)
     

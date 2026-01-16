@@ -44,14 +44,33 @@ const confirmUpdate = async () => {
   try {
     const res = await http.post('/alliance/notice', { notice: content })
     if (res.data.ok) {
-      noticeData.value.notice = content
-      alert('公告更新成功')
-      router.push('/alliance')
+      // 跳转到成功页面
+      router.push({
+        path: '/alliance/notice/update-result',
+        query: {
+          success: 'true',
+          message: res.data.message || '公告更新成功'
+        }
+      })
     } else {
-      alert(res.data.error || '修改失败')
+      // 跳转到失败页面
+      router.push({
+        path: '/alliance/notice/update-result',
+        query: {
+          success: 'false',
+          message: res.data.error || '修改失败'
+        }
+      })
     }
   } catch (e) {
-    alert(e.response?.data?.error || '修改失败')
+    // 跳转到失败页面
+    router.push({
+      path: '/alliance/notice/update-result',
+      query: {
+        success: 'false',
+        message: e.response?.data?.error || '修改失败，请稍后再试'
+      }
+    })
   } finally {
     submitting.value = false
   }
@@ -108,10 +127,10 @@ onMounted(() => {
 
 <style scoped>
 .alliance-notice-page {
-  background: #fff8dc;
+  background: #ffffff;
   min-height: 100vh;
   padding: 12px 16px;
-  font-size: 14px;
+  font-size: 17px;
   line-height: 1.8;
   font-family: SimSun, '宋体', serif;
 }
@@ -144,7 +163,7 @@ onMounted(() => {
   flex: 1;
   border: 1px solid #ccc;
   padding: 6px 8px;
-  font-size: 14px;
+  font-size: 17px;
   font-family: inherit;
 }
 
@@ -163,7 +182,7 @@ onMounted(() => {
 
 .tip {
   color: #666;
-  font-size: 13px;
+  font-size: 16px;
 }
 
 .link {

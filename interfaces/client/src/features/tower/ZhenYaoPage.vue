@@ -1,4 +1,5 @@
 <script setup>
+import { useMessage } from '@/composables/useMessage'
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import http from '@/services/http'
@@ -7,6 +8,8 @@ const router = useRouter()
 const route = useRoute()
 
 // 加载状态
+const { message, messageType, showMessage } = useMessage()
+
 const loading = ref(true)
 const error = ref('')
 
@@ -166,14 +169,14 @@ const occupyFloor = async (floor) => {
   try {
     const res = await http.post('/zhenyao/occupy', { floor: floor.floor })
     if (res.data.ok) {
-      alert(res.data.message)
+      showMessage(res.data.message, 'success')
       loadFloors()  // 刷新列表
     } else {
-      alert(res.data.error)
+      showMessage(res.data.error, 'error')
     }
   } catch (e) {
     console.error('占领失败', e)
-    alert('占领失败')
+    showMessage('占领失败', 'error')
   }
 }
 
@@ -188,11 +191,11 @@ const challengeFloor = async (floor) => {
         query: { id: res.data.battle_id }
       })
     } else {
-      alert(res.data.error)
+      showMessage(res.data.error, 'error')
     }
   } catch (e) {
     console.error('挑战失败', e)
-    alert('挑战失败')
+    showMessage('挑战失败', 'error')
   }
 }
 
@@ -247,17 +250,22 @@ const handleLink = (name) => {
   if (routes[name]) {
     router.push(routes[name])
   } else if (name === '简介') {
-    alert('镇妖简介')
+    showMessage('镇妖简介', 'info')
   } else if (name === '刷新结算') {
     refreshSettlement()
   } else {
-    alert(`点击了: ${name}`)
+    showMessage(`点击了: ${name}`, 'info')
   }
 }
 </script>
 
 <template>
   <div class="zhenyao-page">
+    <!-- 消息提示 -->
+    <div v-if="message" class="message" :class="messageType">
+      {{ message }}
+    </div>
+
     <!-- 标题 -->
     <div class="section title">
       【镇妖】 <a class="link" @click="handleLink('简介')">简介</a> |<a class="link" @click="handleLink('刷新结算')">刷新结算</a>
@@ -377,7 +385,7 @@ const handleLink = (name) => {
 
 <style scoped>
 .zhenyao-page {
-  background: #FFF8DC;
+  background: #ffffff;
   min-height: 100vh;
   padding: 8px 12px;
   font-size: 13px;
@@ -474,4 +482,32 @@ const handleLink = (name) => {
   padding-top: 10px;
   border-top: 1px solid #CCCCCC;
 }
+
+/* 消息提示样式 */
+.message {
+  padding: 12px;
+  margin: 12px 0;
+  border-radius: 4px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.message.success {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.message.error {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.message.info {
+  background: #d1ecf1;
+  color: #0c5460;
+  border: 1px solid #bee5eb;
+}
+
 </style>

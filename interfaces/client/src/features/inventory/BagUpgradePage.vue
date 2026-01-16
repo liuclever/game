@@ -1,9 +1,12 @@
 <script setup>
+import { useMessage } from '@/composables/useMessage'
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import http from '@/services/http'
 
 const router = useRouter()
+
+const { message, messageType, showMessage } = useMessage()
 
 const upgradeInfo = ref(null)
 const loading = ref(true)
@@ -30,14 +33,14 @@ const doUpgrade = async () => {
   try {
     const res = await http.post('/inventory/upgrade')
     if (res.data.ok) {
-      alert(res.data.message)
+      showMessage(res.data.message, 'success')
       loadUpgradeInfo()
     } else {
-      alert(res.data.error)
+      showMessage(res.data.error, 'error')
     }
   } catch (e) {
     console.error('升级失败', e)
-    alert('升级失败')
+    showMessage('升级失败', 'error')
   } finally {
     upgrading.value = false
   }
@@ -53,6 +56,11 @@ onMounted(() => {
 
 <template>
   <div class="upgrade-page">
+    <!-- 消息提示 -->
+    <div v-if="message" class="message" :class="messageType">
+      {{ message }}
+    </div>
+
     <div v-if="loading">加载中...</div>
     <template v-else-if="upgradeInfo">
       <!-- 已达最高等级 -->
@@ -91,7 +99,7 @@ onMounted(() => {
 
 <style scoped>
 .upgrade-page {
-  background: #FFF8DC;
+  background: #ffffff;
   min-height: 100vh;
   padding: 10px 12px;
   font-size: 14px;
@@ -130,4 +138,32 @@ onMounted(() => {
 .small {
   font-size: 11px;
 }
+
+/* 消息提示样式 */
+.message {
+  padding: 12px;
+  margin: 12px 0;
+  border-radius: 4px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.message.success {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.message.error {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.message.info {
+  background: #d1ecf1;
+  color: #0c5460;
+  border: 1px solid #bee5eb;
+}
+
 </style>

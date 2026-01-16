@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from typing import Optional, List, Dict, Tuple, Any
 from collections import defaultdict
 from domain.entities.alliance import (
@@ -29,47 +29,76 @@ from application.services.inventory_service import InventoryService, InventoryEr
 from domain.rules.alliance_rules import AllianceRules
 
 class AllianceService:
-    WAR_START_WEEKDAYS = (2, 5)  # Wednesday=2, Saturday=5
-    WAR_START_HOUR = 20
-    WAR_START_MINUTE = 0
+    # 盟战时间规则
+    # 第一次：周一0:00-周三24:00（报名签到：周一0:00-周三20:00，对战：周三20:00-22:00，结果展示：周三22:00-24:00）
+    # 第二次：周四0:00-周六24:00（报名签到：周四0:00-周六20:00，对战：周六20:00-22:00，结果展示：周六22:00-24:00）
+    # 周日休战
+    WAR_FIRST_START_WEEKDAY = 0  # 周一
+    WAR_FIRST_END_WEEKDAY = 2    # 周三
+    WAR_SECOND_START_WEEKDAY = 3  # 周四
+    WAR_SECOND_END_WEEKDAY = 5    # 周六
+    WAR_BATTLE_START_HOUR = 20
+    WAR_BATTLE_END_HOUR = 22
+    WAR_RESULT_END_HOUR = 24
 
-    ARMY_LEVEL_THRESHOLD = 40
+    ARMY_LEVEL_THRESHOLD = 40  # 40级以上飞龙军，40级及以下伏虎军
     ARMY_DRAGON = 1
     ARMY_TIGER = 2
-    DRAGON_ONLY_LANDS = {1, 2}
-    TIGER_ONLY_LANDS = {3, 4}
+    # 飞龙军只能选择土地，伏虎军只能选择据点
+    DRAGON_ONLY_LANDS = {1, 2}  # 土地：迷雾城1号土地、飞龙港1号土地
+    TIGER_ONLY_LANDS = {3, 4}   # 据点：幻灵镇1号据点、定老城1号据点
     HONOR_EFFECT_DURATION_HOURS = 24
     WAR_LANDS = {
         1: {
-            "land_name": "林中空地1号土地",
+            "land_name": "迷雾城1号土地",
+            "land_type": "land",  # 土地
+            "daily_reward_copper": 10000,  # 联盟占领后，盟员每天可获得10000铜钱
             "buffs": [
-                "属性：林间祝福提升飞龙军参战成员攻击力5%，守望之力令守军生命提升3%",
+                "联盟成员修行经验加成9%",
+                "联盟火修焚火晶加成40%"
             ],
         },
         2: {
-            "land_name": "幻灵镇1号土地",
+            "land_name": "飞龙港1号土地",
+            "land_type": "land",  # 土地
+            "daily_reward_copper": 10000,  # 联盟占领后，盟员每天可获得10000铜钱
             "buffs": [
-                "属性：联盟成员修行经验加成12%，联盟火修焚火晶加成40%",
+                "联盟成员修行经验加成9%",
+                "联盟火修焚火晶加成40%"
             ],
         },
         3: {
             "land_name": "幻灵镇1号据点",
+            "land_type": "stronghold",  # 据点
+            "daily_reward_copper": 5000,  # 联盟占领后，盟员每天可获得5000铜钱
             "buffs": [
-                "属性：幻灵守护令伏虎军参战成员防御提升4%",
+                "联盟成员修行经验加成5%",
+                "联盟火修焚火晶加成20%"
             ],
         },
         4: {
-            "land_name": "林中空地1号据点",
+            "land_name": "定老城1号据点",
+            "land_type": "stronghold",  # 据点
+            "daily_reward_copper": 5000,  # 联盟占领后，盟员每天可获得5000铜钱
             "buffs": [
-                "属性：联盟成员修行经验加成3%，联盟火修焚火晶加成20%",
+                "联盟成员修行经验加成5%",
+                "联盟火修焚火晶加成20%"
             ],
         },
-        5: {
-            "land_name": "幻灵镇1号据点",
-            "buffs": [
-                "属性：联盟成员修行经验加成4%，联盟火修焚火晶加成20%",
-            ],
-        },
+    }
+    # 盟战签到奖励
+    WAR_CHECKIN_REWARD_COPPER = 30000  # 签到获得30000铜钱
+    # 战功兑换规则
+    WAR_HONOR_EXCHANGE_RULES = {
+        "fire_crystal": {"honor": 2, "item_id": 1004, "item_name": "焚火晶", "quantity": 1, "type": "item"},  # 2战功=1焚火晶
+        "gold_bag": {"honor": 4, "item_id": 6005, "item_name": "金袋", "quantity": 1, "type": "item"},  # 4战功=1金袋
+        "prosperity": {"honor": 6, "prosperity": 1000, "item_name": "繁荣度", "quantity": 1000, "type": "prosperity"},  # 6战功=1000繁荣度
+    }
+    # 赛季奖励
+    SEASON_REWARD_RULES = {
+        1: {"copper": 1_000_000, "items": [{"item_id": 6019, "item_name": "追魂法宝", "quantity": 1}]},  # 第一名：100w铜钱，1追魂法宝
+        2: {"copper": 700_000, "items": []},  # 第二名：70w铜钱
+        3: {"copper": 400_000, "items": []},  # 第三名：40w铜钱
     }
     def __init__(
         self,
@@ -228,12 +257,18 @@ class AllianceService:
         if member_count >= capacity:
             return {"ok": False, "error": "联盟成员已满"}
 
+        # 根据等级自动分配军队：40级以上飞龙军，40级及以下伏虎军
+        army_type = self._determine_army_type(player.level or 0)
+        
         member = AllianceMember(
             alliance_id=alliance_id,
             user_id=user_id,
             role=AllianceRules.ROLE_MEMBER,
         )
+        member.army_type = army_type
         self.alliance_repo.add_member(member)
+        # 更新军队类型
+        self.alliance_repo.update_member_army(user_id, army_type)
 
         self._record_activity(
             alliance_id=alliance_id,
@@ -254,14 +289,26 @@ class AllianceService:
         if not alliance:
             return {"ok": False, "error": "联盟数据异常"}
         
+        # 同步当前成员的军队类型（如果等级变化导致军队类型变化）
+        player = self.player_repo.get_by_id(user_id)
+        if player:
+            self._sync_member_army(member, player.level or 0)
+        
         members = self.alliance_repo.get_alliance_members(alliance.id)
         member_capacity = AllianceRules.member_capacity(alliance.level or 1)
+        
+        # 检查火能原石领取状态
+        fire_ore_claimed_today = self.alliance_repo.has_claimed_fire_ore_today(user_id)
+        # 确保返回布尔值
+        fire_ore_claimed_today = bool(fire_ore_claimed_today)
+        
         return {
             "ok": True,
             "alliance": alliance,
             "member_info": member,
             "member_count": len(members),
             "member_capacity": member_capacity,
+            "fire_ore_claimed_today": fire_ore_claimed_today,
         }
 
     def get_alliance_notice(self, user_id: int) -> dict:
@@ -368,6 +415,13 @@ class AllianceService:
             return {"ok": False, "error": "联盟数据异常"}
 
         members = self.alliance_repo.get_alliance_members(member.alliance_id)
+        
+        # 同步成员军队类型（如果等级变化导致军队类型变化）
+        for m in members:
+            player = self.player_repo.get_by_id(m.user_id)
+            if player:
+                self._sync_member_army(m, player.level or 0)
+        
         sort_key = self._get_sort_key(sort)
         sorted_members = sorted(members, key=sort_key)
 
@@ -450,16 +504,39 @@ class AllianceService:
         if not self._can_kick(actor, target):
             return {"ok": False, "error": "无权踢出该成员"}
 
+        alliance_id = actor.alliance_id
+        target_name = self._member_display_name(target)
         self.alliance_repo.remove_member(target_user_id)
         self._record_activity(
-            alliance_id=actor.alliance_id,
+            alliance_id=alliance_id,
             event_type="kick",
             actor_user_id=user_id,
             actor_name=self._member_display_name(actor),
             target_user_id=target.user_id,
-            target_name=self._member_display_name(target),
+            target_name=target_name,
         )
         return {"ok": True}
+
+    def quit_alliance(self, user_id: int) -> dict:
+        """退出联盟"""
+        member = self.alliance_repo.get_member(user_id)
+        if not member:
+            return {"ok": False, "error": "未加入联盟"}
+
+        # 如果是盟主，不能直接退出，需要先转让或解散
+        if member.role == AllianceRules.ROLE_LEADER:
+            return {"ok": False, "error": "盟主不能直接退出联盟，请先转让盟主职位或解散联盟"}
+
+        alliance_id = member.alliance_id
+        member_name = self._member_display_name(member)
+        self.alliance_repo.remove_member(user_id)
+        self._record_activity(
+            alliance_id=alliance_id,
+            event_type="leave",
+            actor_user_id=user_id,
+            actor_name=member_name,
+        )
+        return {"ok": True, "message": "已退出联盟"}
 
     def get_alliance_talent_info(self, user_id: int) -> dict:
         member = self.alliance_repo.get_member(user_id)
@@ -1733,11 +1810,23 @@ class AllianceService:
 
         for idx, room in enumerate(rooms, start=1):
             participants = self.alliance_repo.get_training_participants(room.id)
+            
+            # 确保 status 字段存在，默认为 "ongoing"
+            room_status = getattr(room, 'status', None) or "ongoing"
+            
+            # 如果房间是等待状态且满足2人，自动开始
+            if room_status == "waiting" and len(participants) >= AllianceRules.MIN_TRAINING_PARTICIPANTS:
+                self.alliance_repo.update_training_room_status(room.id, "ongoing")
+                room_status = "ongoing"
+                room.status = "ongoing"
+            
             end_time = self._get_room_end_time(room)
-            finished = self._is_room_finished(room, now)
-            if finished and room.status != "completed":
-                self.alliance_repo.update_training_room_status(room.id, "completed")
-                room.status = "completed"
+            finished = self._is_room_finished(room, now) if room_status == "ongoing" else False
+            
+            # 不自动标记为完成，需要手动结束
+            # if finished and room.status != "completed":
+            #     self.alliance_repo.update_training_room_status(room.id, "completed")
+            #     room.status = "completed"
 
             participant_rows = []
             self_participant = None
@@ -1761,27 +1850,57 @@ class AllianceService:
             is_full = len(participants) >= (room.max_participants or 4)
             can_join = (
                 not has_joined_today
-                and not finished
+                and room_status == "waiting"  # 只能加入等待中的房间
                 and not is_full
                 and self_participant is None
             )
+            can_end = (
+                room_status == "ongoing"
+                and finished
+                and self_participant is not None
+            )
+            
+            # 状态标签
+            if room_status == "completed":
+                status_label = "已结束"
+            elif room_status == "ongoing":
+                status_label = "修行中" if not finished else "可结束"
+            else:
+                status_label = "等待中"
+            
             room_list.append({
                 "roomId": room.id,
                 "index": idx,
                 "title": room.title,
-                "status": "completed" if finished else "ongoing",
-                "statusLabel": "已结束" if finished else "进行中",
+                "status": room_status,
+                "statusLabel": status_label,
                 "createdAt": self._format_datetime(room.created_at),
-                "endsAt": self._format_datetime(end_time),
+                "endsAt": self._format_datetime(end_time) if end_time else None,
                 "maxParticipants": room.max_participants or 4,
                 "participantCount": len(participants),
                 "participants": participant_rows,
                 "isFull": is_full,
                 "canJoin": can_join,
+                "canEnd": can_end,
+                "isFinished": finished,
                 "selfParticipantId": self_participant.id if self_participant else None,
             })
 
-        any_ongoing = any(room["status"] == "ongoing" for room in room_list)
+        # 检查是否有火能原石
+        fire_ore_count = self.inventory_service.get_item_count(user_id, AllianceRules.FIRE_ORE_ITEM_ID)
+        has_fire_ore = fire_ore_count > 0
+        
+        # 检查今日是否已领取火能原石
+        has_claimed_fire_ore_today = self.alliance_repo.has_claimed_fire_ore_today(user_id)
+        
+        # 获取焚火炉等级
+        furnace_building = self.alliance_repo.get_alliance_building(alliance.id, "furnace")
+        furnace_level = furnace_building.level if furnace_building else 1
+        expected_reward = AllianceRules.training_crystal_reward(furnace_level)
+        
+        any_ongoing = any(room.get("status") == "ongoing" for room in room_list)
+        any_waiting = any(room.get("status") == "waiting" for room in room_list)
+        
         return {
             "ok": True,
             "allianceLevel": alliance.level or 1,
@@ -1790,7 +1909,14 @@ class AllianceService:
             "trainingDurationMinutes": AllianceRules.TRAINING_DURATION_MINUTES,
             "dailyLimit": AllianceRules.TRAINING_DAILY_LIMIT,
             "rooms": room_list,
-            "practiceStatus": "进行中" if any_ongoing else "已结束",
+            "practiceStatus": "进行中" if any_ongoing else ("等待中" if any_waiting else "已结束"),
+            "hasFireOre": has_fire_ore,
+            "fireOreCount": fire_ore_count,
+            "hasClaimedFireOreToday": has_claimed_fire_ore_today,
+            "furnaceLevel": furnace_level,
+            "expectedReward": expected_reward,
+            "minParticipants": AllianceRules.MIN_TRAINING_PARTICIPANTS,
+            "contributionCost": AllianceRules.FIRE_ORE_CONTRIBUTION_COST,
         }
 
     def create_training_room(self, user_id: int, title: Optional[str] = None) -> dict:
@@ -1801,13 +1927,24 @@ class AllianceService:
         if self._has_joined_training_today(alliance.id, user_id):
             return {"ok": False, "error": "今日已参与修行，无法再次创建"}
 
+        # 检查是否有火能原石
+        fire_ore_count = self.inventory_service.get_item_count(user_id, AllianceRules.FIRE_ORE_ITEM_ID)
+        if fire_ore_count < 1:
+            return {"ok": False, "error": "需要火能原石才能进行修行，请先领取火能原石"}
+
+        # 消耗火能原石
+        try:
+            self.inventory_service.remove_item(user_id, AllianceRules.FIRE_ORE_ITEM_ID, 1)
+        except InventoryError as exc:
+            return {"ok": False, "error": f"消耗火能原石失败：{str(exc)}"}
+
         room_title = (title or "焚天炉").strip()[:20] or "焚天炉"
         room = AllianceTrainingRoom(
             id=None,
             alliance_id=alliance.id,
             creator_user_id=user_id,
             title=room_title,
-            status="ongoing",
+            status="waiting",  # 初始状态为等待中，满足2人后自动开始
             max_participants=4,
         )
         room_id = self.alliance_repo.create_training_room(room)
@@ -1817,6 +1954,13 @@ class AllianceService:
             user_id=user_id,
         )
         self.alliance_repo.add_training_participant(participant)
+        
+        # 检查是否满足开始条件（至少2人）
+        participants = self.alliance_repo.get_training_participants(room_id)
+        if len(participants) >= AllianceRules.MIN_TRAINING_PARTICIPANTS:
+            # 自动开始修行
+            self.alliance_repo.update_training_room_status(room_id, "ongoing")
+        
         return {"ok": True, "roomId": room_id}
 
     def join_training_room(self, user_id: int, room_id: int) -> dict:
@@ -1834,8 +1978,9 @@ class AllianceService:
         if self._has_joined_training_today(alliance.id, user_id):
             return {"ok": False, "error": "今日已参与修行，无法加入其他房间"}
 
-        if self._is_room_finished(room):
-            return {"ok": False, "error": "修行已结束，无法加入"}
+        # 如果房间已经开始或已结束，不能加入
+        if room.status == "ongoing" or room.status == "completed":
+            return {"ok": False, "error": "修行已开始或已结束，无法加入"}
 
         existing = self.alliance_repo.get_training_participant_by_room(room_id, user_id)
         if existing:
@@ -1845,12 +1990,30 @@ class AllianceService:
         if len(participants) >= (room.max_participants or 4):
             return {"ok": False, "error": "修行房间已满"}
 
+        # 检查是否有火能原石
+        fire_ore_count = self.inventory_service.get_item_count(user_id, AllianceRules.FIRE_ORE_ITEM_ID)
+        if fire_ore_count < 1:
+            return {"ok": False, "error": "需要火能原石才能进行修行，请先领取火能原石"}
+
+        # 消耗火能原石
+        try:
+            self.inventory_service.remove_item(user_id, AllianceRules.FIRE_ORE_ITEM_ID, 1)
+        except InventoryError as exc:
+            return {"ok": False, "error": f"消耗火能原石失败：{str(exc)}"}
+
         participant = AllianceTrainingParticipant(
             id=None,
             room_id=room_id,
             user_id=user_id,
         )
         self.alliance_repo.add_training_participant(participant)
+        
+        # 检查是否满足开始条件（至少2人）
+        participants = self.alliance_repo.get_training_participants(room_id)
+        if len(participants) >= AllianceRules.MIN_TRAINING_PARTICIPANTS and room.status == "waiting":
+            # 自动开始修行
+            self.alliance_repo.update_training_room_status(room_id, "ongoing")
+        
         return {"ok": True}
 
     def claim_training_reward(self, user_id: int, participant_id: int) -> dict:
@@ -1894,12 +2057,92 @@ class AllianceService:
             "totalCrystals": total_crystals,
         }
 
-    # === 联盟兵营 / 盟战 ===
-    def get_war_ranking(self, user_id: int, page: int = 1, size: int = 10) -> dict:
+    def claim_fire_ore(self, user_id: int) -> dict:
+        """领取火能原石（需要消耗5贡献值）"""
+        # 检查联盟成员身份
         member, alliance, error = self._get_alliance_context(user_id)
         if error:
             return error
 
+        # 检查今日是否已领取
+        if self.alliance_repo.has_claimed_fire_ore_today(user_id):
+            return {"ok": False, "error": "今日已领取过火能原石"}
+
+        # 检查贡献值是否足够
+        if member.contribution < AllianceRules.FIRE_ORE_CONTRIBUTION_COST:
+            return {"ok": False, "error": f"贡献值不足，需要{AllianceRules.FIRE_ORE_CONTRIBUTION_COST}点贡献值"}
+
+        # 扣除贡献值
+        self.alliance_repo.update_member_contribution(user_id, -AllianceRules.FIRE_ORE_CONTRIBUTION_COST)
+        member.contribution = member.contribution - AllianceRules.FIRE_ORE_CONTRIBUTION_COST
+
+        # 发放火能原石
+        try:
+            self.inventory_service.add_item(user_id, AllianceRules.FIRE_ORE_ITEM_ID, 1)
+        except InventoryError as exc:
+            # 如果发放失败，回滚贡献值
+            self.alliance_repo.update_member_contribution(user_id, AllianceRules.FIRE_ORE_CONTRIBUTION_COST)
+            return {"ok": False, "error": f"发放火能原石失败：{str(exc)}"}
+
+        # 发放成功后，记录领取日期
+        self.alliance_repo.record_fire_ore_claim(user_id)
+
+        # 记录动态
+        self._record_activity(
+            alliance_id=alliance.id,
+            event_type="claim_fire_ore",
+            actor_user_id=user_id,
+            actor_name=self._member_display_name(member),
+        )
+
+        # 获取物品名称用于提示
+        item = self.inventory_service.item_repo.get_by_id(AllianceRules.FIRE_ORE_ITEM_ID)
+        item_name = item.name if item else "火能原石"
+
+        return {
+            "ok": True,
+            "message": f"领取成功！消耗{AllianceRules.FIRE_ORE_CONTRIBUTION_COST}贡献值，获得{item_name}×1",
+            "item_id": AllianceRules.FIRE_ORE_ITEM_ID,
+            "item_name": item_name,
+            "contribution_cost": AllianceRules.FIRE_ORE_CONTRIBUTION_COST,
+            "remaining_contribution": member.contribution,
+        }
+
+    # === 联盟兵营 / 盟战 ===
+    def get_top3_alliances(self) -> dict:
+        """获取盟战排行榜前三名联盟信息（用于首页显示）
+        基于alliances表的war_honor字段，与联盟内战功显示保持一致
+        """
+        season_start = datetime.utcnow().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        
+        try:
+            rows = self.alliance_repo.list_alliance_war_leaderboard(season_start, limit=3, offset=0)
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            rows = []
+        
+        top3 = []
+        for idx, row in enumerate(rows):
+            alliance_id = row["alliance_id"]
+            alliance = self.alliance_repo.get_alliance_by_id(alliance_id)
+            top3.append({
+                "rank": idx + 1,
+                "allianceId": alliance_id,
+                "allianceName": row["alliance_name"],
+                "allianceLevel": alliance.level if alliance else 1,
+                "score": row["score"],
+            })
+        
+        return {
+            "ok": True,
+            "data": {
+                "top3": top3,
+            },
+        }
+    
+    def get_war_ranking(self, user_id: int, page: int = 1, size: int = 10) -> dict:
+        # 排行榜对所有用户可见，不要求必须加入联盟
         try:
             page = int(page)
         except (TypeError, ValueError):
@@ -1916,8 +2159,16 @@ class AllianceService:
         season_key = datetime.utcnow().strftime("%Y-%m")
         season_start = datetime.strptime(season_key, "%Y-%m")
 
-        rows = self.alliance_repo.list_alliance_war_leaderboard(season_start, size, offset)
-        total = self.alliance_repo.count_alliance_war_leaderboard(season_start)
+        try:
+            rows = self.alliance_repo.list_alliance_war_leaderboard(season_start, size, offset)
+            total = self.alliance_repo.count_alliance_war_leaderboard(season_start)
+        except Exception as e:
+            # 如果查询失败，返回空列表而不是错误
+            import traceback
+            traceback.print_exc()
+            rows = []
+            total = 0
+
         ranking = [
             {
                 "rank": offset + idx + 1,
@@ -1928,22 +2179,40 @@ class AllianceService:
             for idx, row in enumerate(rows)
         ]
 
+        # 获取用户所在联盟的排名（如果用户有联盟）
         my_rank = None
-        if alliance:
-            entry = self.alliance_repo.get_alliance_war_leaderboard_entry(alliance.id, season_start)
-            if entry:
-                my_rank = {
-                    "rank": entry["rank"],
-                    "allianceId": entry["alliance_id"],
-                    "allianceName": entry["alliance_name"],
-                    "score": entry["score"],
-                }
+        my_alliance_id = None
+        try:
+            member = self.alliance_repo.get_member(user_id)
+            if member:
+                alliance = self.alliance_repo.get_alliance_by_id(member.alliance_id)
+                if alliance:
+                    my_alliance_id = alliance.id
+                    entry = self.alliance_repo.get_alliance_war_leaderboard_entry(alliance.id, season_start)
+                    if entry:
+                        my_rank = {
+                            "rank": entry["rank"],
+                            "allianceId": entry["alliance_id"],
+                            "allianceName": entry["alliance_name"],
+                            "score": entry["score"],
+                        }
+                    else:
+                        # 即使 entry 为 None，也尝试从当前页的 ranking 中查找
+                        # 这样可以处理分页的情况
+                        for rank_item in ranking:
+                            if rank_item["allianceId"] == alliance.id:
+                                my_rank = rank_item
+                                break
+        except Exception:
+            # 获取用户排名失败不影响整体返回
+            pass
 
         return {
             "ok": True,
             "data": {
                 "ranking": ranking,
                 "myRank": my_rank,
+                "myAllianceId": my_alliance_id,  # 返回用户的联盟ID，方便前端判断
                 "page": page,
                 "size": size,
                 "total": total,
@@ -1992,8 +2261,14 @@ class AllianceService:
         if error:
             return error
 
-        if member.role != AllianceRules.ROLE_LEADER:
-            return {"ok": False, "error": "只有盟主可以报名土地"}
+        if member.role not in (AllianceRules.ROLE_LEADER, AllianceRules.ROLE_VICE_LEADER):
+            return {"ok": False, "error": "只有盟主或副盟主可以报名"}
+
+        # 检查是否在报名时间内
+        now = datetime.utcnow()
+        is_war, phase, status = self._is_war_time(now)
+        if not is_war or status != "signup":
+            return {"ok": False, "error": "当前不在盟战报名时间内"}
 
         player = self.player_repo.get_by_id(user_id)
         if not player:
@@ -2005,9 +2280,9 @@ class AllianceService:
         )
         if land_id not in allowed_land_ids:
             msg = (
-                "飞龙军仅能报名前两块土地"
+                "飞龙军只能选择土地报名（迷雾城1号土地或飞龙港1号土地）"
                 if normalized_army == AllianceRules.ARMY_DRAGON
-                else "伏虎军仅能报名后两个据点"
+                else "伏虎军只能选择据点报名（幻灵镇1号据点或定老城1号据点）"
             )
             return {"ok": False, "error": msg}
 
@@ -2015,11 +2290,16 @@ class AllianceService:
             alliance.id, list(allowed_land_ids)
         )
         if existing_same_army and existing_same_army.land_id != land_id:
-            msg = (
-                "飞龙军只能选择土地1或2中的一个"
-                if normalized_army == AllianceRules.ARMY_DRAGON
-                else "伏虎军只能选择据点3或4中的一个"
-            )
+            land_names = {
+                1: "迷雾城1号土地",
+                2: "飞龙港1号土地",
+                3: "幻灵镇1号据点",
+                4: "定老城1号据点"
+            }
+            if normalized_army == AllianceRules.ARMY_DRAGON:
+                msg = f"飞龙军只能选择一个土地报名（{land_names[1]}或{land_names[2]}）"
+            else:
+                msg = f"伏虎军只能选择一个据点报名（{land_names[3]}或{land_names[4]}）"
             return {"ok": False, "error": msg}
 
         registration = self.alliance_repo.get_land_registration(alliance.id, land_id)
@@ -2082,21 +2362,39 @@ class AllianceService:
             if reg.alliance_id in seen_ids:
                 continue
             alliance = self.alliance_repo.get_alliance_by_id(reg.alliance_id)
-            alliances.append(
-                {
-                    "alliance_id": reg.alliance_id,
-                    "name": alliance.name if alliance else f"联盟{reg.alliance_id}",
-                }
-            )
+            # 只添加存在的联盟
+            if alliance:
+                alliances.append(
+                    {
+                        "alliance_id": reg.alliance_id,
+                        "name": alliance.name,
+                    }
+                )
             seen_ids.add(reg.alliance_id)
 
         data = {
             "land_id": land_id,
             "land_name": land_meta["land_name"],
-            "buffs": land_meta["buffs"],
+            "buffs": land_meta.get("buffs", []),  # 安全获取buffs字段，如果不存在则返回空列表
             "alliances": alliances,
         }
         return {"ok": True, "data": data}
+
+    def list_war_lands(self) -> dict:
+        """获取所有盟战土地列表及其占领联盟信息（只显示通过对战获胜占领的联盟）"""
+        lands = []
+        for land_id, land_meta in self.WAR_LANDS.items():
+            # 获取占领信息（只返回通过对战获胜的联盟，使用INNER JOIN确保联盟存在）
+            occupation = self.alliance_repo.get_land_occupation(land_id)
+            owner_name = occupation.get("alliance_name") if occupation else None
+            
+            lands.append({
+                "id": land_id,
+                "label": land_meta["land_name"],
+                "owner": owner_name if owner_name else "无",
+            })
+        
+        return {"ok": True, "data": {"lands": lands}}
 
     def get_alliance_barracks(self, user_id: int) -> dict:
         member, alliance, error = self._get_alliance_context(user_id)
@@ -2114,20 +2412,61 @@ class AllianceService:
         }
 
     def get_war_info(self, user_id: int) -> dict:
-        member, alliance, error = self._get_alliance_context(user_id)
-        if error:
-            return error
-
+        """获取盟战信息（允许未加入联盟的用户查看）"""
         player = self.player_repo.get_by_id(user_id)
         if not player:
             return {"ok": False, "error": "玩家不存在"}
 
-       
+        # 尝试获取联盟信息，但不强制要求
+        member = self.alliance_repo.get_member(user_id)
+        alliance = None
+        if member:
+            alliance = self.alliance_repo.get_alliance_by_id(member.alliance_id)
 
-        dragon, tiger = self._fetch_army_members(alliance.id)
+        # 构建基础数据
         recommended_army = self._determine_army_type(player.level or 0)
-        assigned_army = member.army_type or 0
-        signed_up = assigned_army != 0
+        assigned_army = 0
+        signed_up = False
+        dragon_count = 0
+        tiger_count = 0
+        total_signed = 0
+        dragon_members = []
+        tiger_members = []
+
+        checked_in = False
+        dragon_reg = None
+        tiger_reg = None
+        
+        if alliance and member:
+            dragon, tiger = self._fetch_army_members(alliance.id)
+            assigned_army = member.army_type or 0
+            signed_up = assigned_army != 0
+            dragon_count = len(dragon)
+            tiger_count = len(tiger)
+            total_signed = len(dragon) + len(tiger)
+            dragon_members = [self._member_army_row(m) for m in dragon]
+            tiger_members = [self._member_army_row(m) for m in tiger]
+            
+            # 检查是否已签到
+            if signed_up:
+                now = datetime.utcnow()
+                is_war, phase, status = self._is_war_time(now)
+                if is_war and status == "signup":
+                    weekday = now.weekday()
+                    checkin_date = now.date()
+                    checked_in = self.alliance_repo.has_war_checkin(alliance.id, user_id, phase, weekday, checkin_date)
+            
+            # 获取攻城目标信息
+            for land_id in self.DRAGON_ONLY_LANDS:
+                reg = self.alliance_repo.get_land_registration(alliance.id, land_id)
+                if reg and reg.is_active():
+                    dragon_reg = {"land_id": land_id, "land_name": self.WAR_LANDS.get(land_id, {}).get("land_name", f"土地{land_id}")}
+                    break
+            for land_id in self.TIGER_ONLY_LANDS:
+                reg = self.alliance_repo.get_land_registration(alliance.id, land_id)
+                if reg and reg.is_active():
+                    tiger_reg = {"land_id": land_id, "land_name": self.WAR_LANDS.get(land_id, {}).get("land_name", f"据点{land_id}")}
+                    break
 
         schedule_payload = self._build_war_schedule_payload()
 
@@ -2136,25 +2475,30 @@ class AllianceService:
             "data": {
                 "personal": {
                     "user_id": user_id,
-                    "nickname": player.nickname,
+                    "nickname": player.nickname or f"玩家{user_id}",
                     "level": player.level or 1,
                     "signed_up": signed_up,
+                    "checked_in": checked_in,
                     "current_army": assigned_army,
-                    "current_army_label": self._army_label(assigned_army),
+                    "current_army_label": self._army_label(assigned_army) if assigned_army else "未报名",
                     "recommended_army": recommended_army,
                     "recommended_army_label": self._army_label(recommended_army),
                 },
                 "statistics": {
-                    "dragon_count": len(dragon),
-                    "tiger_count": len(tiger),
-                    "total_signed": len(dragon) + len(tiger),
+                    "dragon_count": dragon_count,
+                    "tiger_count": tiger_count,
+                    "total_signed": total_signed,
                     "threshold_level": self.ARMY_LEVEL_THRESHOLD,
                 },
                 "armies": {
-                    "dragon": [self._member_army_row(m) for m in dragon],
-                    "tiger": [self._member_army_row(m) for m in tiger],
+                    "dragon": dragon_members,
+                    "tiger": tiger_members,
                 },
                 "schedule": schedule_payload,
+                "targets": {
+                    "dragon_registration": dragon_reg,
+                    "tiger_registration": tiger_reg,
+                },
             },
         }
 
@@ -2353,7 +2697,7 @@ class AllianceService:
                     "user_id": m.user_id,
                     "nickname": m.nickname or f"玩家{m.user_id}",
                     "content": m.content,
-                    "created_at": m.created_at.strftime("%H:%M:%S") if m.created_at else ""
+                    "created_at": m.created_at.isoformat() if m.created_at else ""
                 }
                 for m in messages
             ]
@@ -2443,17 +2787,28 @@ class AllianceService:
             data.setdefault(key, 1)
         return data
 
-    def _get_room_end_time(self, room: AllianceTrainingRoom) -> datetime:
+    def _get_room_end_time(self, room: AllianceTrainingRoom) -> Optional[datetime]:
+        # 如果房间是等待状态，返回None（还未开始）
+        room_status = getattr(room, 'status', None) or "ongoing"
+        if room_status == "waiting":
+            return None
+        # 如果房间已开始，从创建时间计算（如果房间状态是ongoing，使用创建时间）
         if not room.created_at:
             return datetime.utcnow()
+        # 如果房间状态是ongoing，从创建时间计算（因为创建时如果满足2人会自动开始）
         return room.created_at + timedelta(minutes=AllianceRules.TRAINING_DURATION_MINUTES)
 
     def _is_room_finished(self, room: AllianceTrainingRoom, now: Optional[datetime] = None) -> bool:
-        if room.status == "completed":
+        room_status = getattr(room, 'status', None) or "ongoing"
+        if room_status == "completed":
             return True
+        if room_status == "waiting":
+            return False
         if not now:
             now = datetime.utcnow()
         end_time = self._get_room_end_time(room)
+        if end_time is None:
+            return False
         return now >= end_time
 
     def _format_datetime(self, value: Optional[datetime]) -> str:
@@ -2466,16 +2821,18 @@ class AllianceService:
     def _next_war_start(self, now: Optional[datetime] = None) -> datetime:
         if not now:
             now = datetime.utcnow()
+        # 盟战开始时间：周三20:00和周六20:00
+        war_weekdays = {self.WAR_FIRST_END_WEEKDAY, self.WAR_SECOND_END_WEEKDAY}  # 周三和周六
         base_today = datetime(
             now.year,
             now.month,
             now.day,
-            self.WAR_START_HOUR,
-            self.WAR_START_MINUTE,
+            self.WAR_BATTLE_START_HOUR,
+            0,
         )
         for day_offset in range(0, 8):
             candidate = base_today + timedelta(days=day_offset)
-            if candidate.weekday() not in self.WAR_START_WEEKDAYS:
+            if candidate.weekday() not in war_weekdays:
                 continue
             if candidate <= now:
                 continue
@@ -2487,22 +2844,24 @@ class AllianceService:
             now = datetime.utcnow()
         next_start = self._next_war_start(now)
         countdown_seconds = max(0, int((next_start - now).total_seconds()))
+        # 盟战开始时间：周三20:00和周六20:00
+        war_weekdays = [self.WAR_FIRST_END_WEEKDAY, self.WAR_SECOND_END_WEEKDAY]  # 周三和周六
         detail = [
             {
                 "weekday": day,
                 "label": self._weekday_label(day),
-                "hour": self.WAR_START_HOUR,
-                "minute": self.WAR_START_MINUTE,
+                "hour": self.WAR_BATTLE_START_HOUR,
+                "minute": 0,
             }
-            for day in self.WAR_START_WEEKDAYS
+            for day in war_weekdays
         ]
         return {
             "nextWarTime": next_start.replace(microsecond=0).isoformat() + "Z",
             "countdownSeconds": countdown_seconds,
-            "weekdays": list(self.WAR_START_WEEKDAYS),
+            "weekdays": war_weekdays,
             "weekdaysDetail": detail,
-            "startHour": self.WAR_START_HOUR,
-            "startMinute": self.WAR_START_MINUTE,
+            "startHour": self.WAR_BATTLE_START_HOUR,
+            "startMinute": 0,
         }
 
     def _weekday_label(self, weekday: int) -> str:
@@ -2510,9 +2869,152 @@ class AllianceService:
         return labels[weekday % 7]
 
     def _determine_army_type(self, level: int) -> int:
+        """根据等级确定军队类型：40级以上飞龙军，40级及以下伏虎军"""
         if level > self.ARMY_LEVEL_THRESHOLD:
             return self.ARMY_DRAGON
         return self.ARMY_TIGER
+
+    def _is_war_time(self, now: Optional[datetime] = None) -> tuple:
+        """检查当前是否在盟战时间范围内
+        返回: (is_war_period, phase, status)
+        phase: 'first' 或 'second' 或 None
+        status: 'signup' (报名签到), 'battle' (对战), 'result' (结果展示), 'rest' (休战)
+        """
+        if now is None:
+            now = datetime.utcnow()
+        weekday = now.weekday()  # 0=周一, 6=周日
+        hour = now.hour
+
+        # 周日休战
+        if weekday == 6:
+            return (False, None, "rest")
+
+        # 第一次盟战：周一0:00-周三24:00
+        if weekday == self.WAR_FIRST_START_WEEKDAY:  # 周一
+            if hour < self.WAR_BATTLE_START_HOUR:
+                return (True, "first", "signup")
+            elif hour < self.WAR_BATTLE_END_HOUR:
+                return (True, "first", "battle")
+            elif hour < self.WAR_RESULT_END_HOUR:
+                return (True, "first", "result")
+            else:
+                return (True, "first", "signup")  # 跨天
+        elif weekday == self.WAR_FIRST_START_WEEKDAY + 1:  # 周二
+            if hour < self.WAR_BATTLE_START_HOUR:
+                return (True, "first", "signup")
+            elif hour < self.WAR_BATTLE_END_HOUR:
+                return (True, "first", "battle")
+            elif hour < self.WAR_RESULT_END_HOUR:
+                return (True, "first", "result")
+            else:
+                return (True, "first", "signup")
+        elif weekday == self.WAR_FIRST_END_WEEKDAY:  # 周三
+            if hour < self.WAR_BATTLE_START_HOUR:
+                return (True, "first", "signup")
+            elif hour < self.WAR_BATTLE_END_HOUR:
+                return (True, "first", "battle")
+            elif hour < self.WAR_RESULT_END_HOUR:
+                return (True, "first", "result")
+            else:
+                return (False, None, "rest")  # 周三24:00后进入休战
+
+        # 第二次盟战：周四0:00-周六24:00
+        elif weekday == self.WAR_SECOND_START_WEEKDAY:  # 周四
+            if hour < self.WAR_BATTLE_START_HOUR:
+                return (True, "second", "signup")
+            elif hour < self.WAR_BATTLE_END_HOUR:
+                return (True, "second", "battle")
+            elif hour < self.WAR_RESULT_END_HOUR:
+                return (True, "second", "result")
+            else:
+                return (True, "second", "signup")
+        elif weekday == self.WAR_SECOND_START_WEEKDAY + 1:  # 周五
+            if hour < self.WAR_BATTLE_START_HOUR:
+                return (True, "second", "signup")
+            elif hour < self.WAR_BATTLE_END_HOUR:
+                return (True, "second", "battle")
+            elif hour < self.WAR_RESULT_END_HOUR:
+                return (True, "second", "result")
+            else:
+                return (True, "second", "signup")
+        elif weekday == self.WAR_SECOND_END_WEEKDAY:  # 周六
+            if hour < self.WAR_BATTLE_START_HOUR:
+                return (True, "second", "signup")
+            elif hour < self.WAR_BATTLE_END_HOUR:
+                return (True, "second", "battle")
+            elif hour < self.WAR_RESULT_END_HOUR:
+                return (True, "second", "result")
+            else:
+                return (False, None, "rest")  # 周六24:00后进入休战
+
+        return (False, None, "rest")
+
+    def war_checkin(self, user_id: int) -> dict:
+        """盟战签到：在签到时间内签到，获得30000铜钱"""
+        member, alliance, error = self._get_alliance_context(user_id)
+        if error:
+            return error
+
+        now = datetime.utcnow()
+        is_war, phase, status = self._is_war_time(now)
+        if not is_war or status != "signup":
+            return {"ok": False, "error": "当前不在盟战签到时间内"}
+
+        # 检查联盟是否已报名土地或据点
+        all_land_ids = list(self.DRAGON_ONLY_LANDS) + list(self.TIGER_ONLY_LANDS)
+        has_registration = False
+        for land_id in all_land_ids:
+            reg = self.alliance_repo.get_land_registration(alliance.id, land_id)
+            if reg and reg.is_active():
+                has_registration = True
+                break
+        
+        if not has_registration:
+            return {"ok": False, "error": "联盟尚未报名土地或据点，请先由盟主或副盟主报名"}
+
+        # 检查玩家是否已报名军队
+        if not member.army_type:
+            return {"ok": False, "error": "请先报名加入军队"}
+
+        # 检查是否已签到
+        weekday = now.weekday()
+        checkin_date = now.date()
+        if self.alliance_repo.has_war_checkin(alliance.id, user_id, phase, weekday, checkin_date):
+            return {"ok": False, "error": "本次盟战已签到"}
+
+        # 发放奖励
+        player = self.player_repo.get_by_id(user_id)
+        if not player:
+            return {"ok": False, "error": "玩家不存在"}
+
+        # 增加铜钱（兼容新旧字段）
+        current_copper = getattr(player, "copper", 0) or 0
+        current_gold = getattr(player, "gold", 0) or 0
+        new_copper = current_copper + self.WAR_CHECKIN_REWARD_COPPER
+        player.copper = new_copper
+        player.gold = current_gold + self.WAR_CHECKIN_REWARD_COPPER  # 兼容旧字段
+        self.player_repo.save(player)
+
+        # 记录签到
+        self.alliance_repo.add_war_checkin(
+            alliance.id, user_id, phase, weekday, checkin_date, self.WAR_CHECKIN_REWARD_COPPER
+        )
+
+        self._record_activity(
+            alliance_id=alliance.id,
+            event_type="war_checkin",
+            actor_user_id=user_id,
+            actor_name=self._member_display_name(member),
+            item_name="铜钱",
+            item_quantity=self.WAR_CHECKIN_REWARD_COPPER,
+        )
+
+        return {
+            "ok": True,
+            "message": f"签到成功，获得{self.WAR_CHECKIN_REWARD_COPPER}铜钱",
+            "copper_gained": self.WAR_CHECKIN_REWARD_COPPER,
+            "total_copper": new_copper,
+        }
 
     def _normalize_army_choice(self, army: Optional[str], player_level: int) -> str:
         if isinstance(army, str):
@@ -2551,10 +3053,23 @@ class AllianceService:
         return dragon, tiger
 
     def _sync_member_army(self, member: AllianceMember, level: int) -> None:
+        """同步成员军队类型：根据等级自动分配（40级及以下伏虎军，40级以上飞龙军）"""
         expected = self._determine_army_type(level)
         if member.army_type != expected:
             self.alliance_repo.update_member_army(member.user_id, expected)
             member.army_type = expected
+    
+    def sync_member_army_by_user_id(self, user_id: int) -> None:
+        """根据用户ID同步军队类型（用于玩家升级后自动同步）"""
+        member = self.alliance_repo.get_member(user_id)
+        if not member:
+            return  # 未加入联盟，无需同步
+        
+        player = self.player_repo.get_by_id(user_id)
+        if not player:
+            return  # 玩家不存在
+        
+        self._sync_member_army(member, player.level or 0)
 
     def _get_cached_registration(
         self, registration_id: Optional[int], cache: Dict[int, AllianceRegistration]
@@ -2650,3 +3165,244 @@ class AllianceService:
         nickname = getattr(player, "nickname", None)
         user_id = getattr(player, "user_id", None) or getattr(player, "id", None)
         return nickname or (user_id and f"玩家{user_id}") or ""
+
+    def exchange_war_honor_item(self, user_id: int, exchange_type: str) -> dict:
+        """战功兑换物品：盟主或副盟主可以将盟战战功兑换为相应的奖品（2战功=1焚火晶，4战功=1金袋，6战功=1000繁荣度）"""
+        member, alliance, error = self._get_alliance_context(user_id)
+        if error:
+            return error
+
+        if member.role not in (AllianceRules.ROLE_LEADER, AllianceRules.ROLE_VICE_LEADER):
+            return {"ok": False, "error": "只有盟主或副盟主可以兑换战功"}
+
+        # 获取兑换规则
+        rule = self.WAR_HONOR_EXCHANGE_RULES.get(exchange_type)
+        if not rule:
+            return {"ok": False, "error": "无效的兑换类型"}
+
+        # 获取当前战功
+        current_honor, _ = self.alliance_repo.get_alliance_war_points(alliance.id)
+        
+        # 检查战功是否足够
+        if current_honor < rule["honor"]:
+            return {"ok": False, "error": f"战功不足，需要{rule['honor']}战功"}
+
+        # 扣除战功
+        new_honor = current_honor - rule["honor"]
+        from infrastructure.db.connection import execute_update
+        update_sql = "UPDATE alliances SET war_honor = %s WHERE id = %s"
+        
+        exchange_type_internal = rule.get("type", "item")
+        
+        # 根据兑换类型处理
+        if exchange_type_internal == "prosperity":
+            # 兑换繁荣度
+            prosperity_delta = rule.get("prosperity", 0)
+            self.alliance_repo.update_alliance_resources(alliance.id, funds_delta=0, prosperity_delta=prosperity_delta)
+            execute_update(update_sql, (new_honor, alliance.id))
+            
+            # 记录兑换（繁荣度使用item_id=0表示）
+            self.alliance_repo.add_war_honor_exchange(
+                alliance.id, user_id, exchange_type, rule["honor"],
+                0, rule["item_name"], rule["quantity"]
+            )
+            
+            self._record_activity(
+                alliance_id=alliance.id,
+                event_type="war_honor_exchange",
+                actor_user_id=user_id,
+                actor_name=self._member_display_name(member),
+                item_name=rule["item_name"],
+                item_quantity=rule["quantity"],
+            )
+            
+            return {
+                "ok": True,
+                "message": f"兑换成功，联盟获得{rule['quantity']}{rule['item_name']}",
+                "honor_cost": rule["honor"],
+                "remaining_honor": new_honor,
+                "prosperity": prosperity_delta,
+            }
+        else:
+            # 兑换物品
+            self.alliance_repo.update_alliance_resources(alliance.id, funds_delta=0, prosperity_delta=0)
+            execute_update(update_sql, (new_honor, alliance.id))
+
+            # 发放物品
+            try:
+                self.inventory_service.add_item(user_id, rule["item_id"], rule["quantity"])
+            except Exception as e:
+                # 如果发放失败，回滚战功
+                execute_update(update_sql, (current_honor, alliance.id))
+                return {"ok": False, "error": f"发放物品失败：{str(e)}"}
+
+            # 记录兑换
+            self.alliance_repo.add_war_honor_exchange(
+                alliance.id, user_id, exchange_type, rule["honor"],
+                rule["item_id"], rule["item_name"], rule["quantity"]
+            )
+
+            self._record_activity(
+                alliance_id=alliance.id,
+                event_type="war_honor_exchange",
+                actor_user_id=user_id,
+                actor_name=self._member_display_name(member),
+                item_name=rule["item_name"],
+                item_quantity=rule["quantity"],
+            )
+
+            return {
+                "ok": True,
+                "message": f"兑换成功，获得{rule['quantity']}x{rule['item_name']}",
+                "honor_cost": rule["honor"],
+                "remaining_honor": new_honor,
+                "item": {
+                    "id": rule["item_id"],
+                    "name": rule["item_name"],
+                    "quantity": rule["quantity"],
+                },
+            }
+
+    def get_war_battle_records(self, user_id: int, limit: int = 50) -> dict:
+        """获取联盟战绩：查看每次盟战联盟与其他联盟的对战情况"""
+        member, alliance, error = self._get_alliance_context(user_id)
+        if error:
+            return error
+
+        try:
+            limit = int(limit)
+            limit = max(1, min(limit, 100))
+        except (TypeError, ValueError):
+            limit = 50
+
+        records = self.alliance_repo.list_war_battle_records(alliance.id, limit)
+        
+        return {
+            "ok": True,
+            "records": records,
+            "total": len(records),
+        }
+
+    def get_war_status(self, user_id: int) -> dict:
+        """获取盟战状态信息"""
+        member, alliance, error = self._get_alliance_context(user_id)
+        if error:
+            return error
+
+        now = datetime.utcnow()
+        is_war, phase, status = self._is_war_time(now)
+        weekday = now.weekday()
+        checkin_date = now.date()
+
+        # 检查是否已签到
+        has_checkin = False
+        if is_war and phase:
+            has_checkin = self.alliance_repo.has_war_checkin(alliance.id, user_id, phase, weekday, checkin_date)
+
+        # 获取报名情况
+        dragon_reg = None
+        tiger_reg = None
+        for land_id in self.DRAGON_ONLY_LANDS:
+            reg = self.alliance_repo.get_land_registration(alliance.id, land_id)
+            if reg and reg.is_active():
+                dragon_reg = {"land_id": land_id, "land_name": self.WAR_LANDS.get(land_id, {}).get("land_name", f"土地{land_id}")}
+                break
+        for land_id in self.TIGER_ONLY_LANDS:
+            reg = self.alliance_repo.get_land_registration(alliance.id, land_id)
+            if reg and reg.is_active():
+                tiger_reg = {"land_id": land_id, "land_name": self.WAR_LANDS.get(land_id, {}).get("land_name", f"据点{land_id}")}
+                break
+
+        # 获取联盟战功
+        current_honor, historical_honor = self.alliance_repo.get_alliance_war_points(alliance.id)
+        
+        return {
+            "ok": True,
+            "is_war_time": is_war,
+            "phase": phase,
+            "status": status,
+            "has_checkin": has_checkin,
+            "can_checkin": is_war and status == "signup" and not has_checkin and member.army_type,
+            "dragon_registration": dragon_reg,
+            "tiger_registration": tiger_reg,
+            "current_honor": current_honor,
+            "war_honor_history": historical_honor,
+        }
+
+    def distribute_season_rewards(self, season_key: Optional[str] = None) -> dict:
+        """发放赛季奖励（管理员功能）"""
+        if season_key is None:
+            now = datetime.utcnow()
+            # 获取上个月的赛季
+            if now.month == 1:
+                season_key = f"{now.year - 1}-12"
+            else:
+                season_key = f"{now.year}-{now.month - 1:02d}"
+
+        # 获取前三名并记录奖励
+        distributed_records = self.alliance_repo.distribute_season_rewards(season_key)
+        
+        # 实际发放奖励给联盟成员
+        distributed = []
+        for record in distributed_records:
+            alliance_id = record["alliance_id"]
+            rank = record["rank"]
+            copper_reward = record["copper_reward"]
+            items = record["items"]
+            
+            # 获取联盟所有成员
+            members = self.alliance_repo.get_alliance_members(alliance_id)
+            if not members:
+                continue
+            
+            # 给每个成员发放奖励
+            member_count = 0
+            success_count = 0
+            for member in members:
+                member_count += 1
+                try:
+                    player = self.player_repo.get_by_id(member.user_id)
+                    if not player:
+                        continue
+                    
+                    # 发放铜钱
+                    current_copper = getattr(player, "copper", 0) or 0
+                    current_gold = getattr(player, "gold", 0) or 0
+                    player.copper = current_copper + copper_reward
+                    player.gold = current_gold + copper_reward  # 兼容旧字段
+                    self.player_repo.save(player)
+                    
+                    # 发放物品
+                    for item in items:
+                        item_id = item.get("item_id")
+                        quantity = item.get("quantity", 1)
+                        if item_id:
+                            try:
+                                self.inventory_service.add_item(member.user_id, item_id, quantity)
+                            except Exception as e:
+                                # 记录错误但不中断流程
+                                import traceback
+                                traceback.print_exc()
+                    
+                    success_count += 1
+                except Exception as e:
+                    # 记录错误但不中断流程
+                    import traceback
+                    traceback.print_exc()
+            
+            distributed.append({
+                "alliance_id": alliance_id,
+                "alliance_name": record["alliance_name"],
+                "rank": rank,
+                "copper_reward": copper_reward,
+                "items": items,
+                "member_count": member_count,
+                "success_count": success_count,
+            })
+        
+        return {
+            "ok": True,
+            "season_key": season_key,
+            "distributed": distributed,
+            "count": len(distributed),
+        }

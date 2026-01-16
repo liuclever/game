@@ -9,6 +9,7 @@ const route = useRoute()
 const loading = ref(true)
 const player = ref(null)
 const currentUserId = ref(null)
+const isBlocked = ref(false)
 
 const isOtherPlayer = computed(() => {
   // 如果没有加载到玩家信息，返回 false
@@ -130,6 +131,8 @@ const loadPlayerInfo = async () => {
         })),
       }
       await loadPrestigeRequirement()
+      // 检查拉黑状态
+      await checkBlockStatus()
     } else {
       player.value = null
       alert(res.data?.error || '加载失败')
@@ -141,6 +144,21 @@ const loadPlayerInfo = async () => {
     alert(msg)
   } finally {
     loading.value = false
+  }
+}
+
+// 检查拉黑状态
+const checkBlockStatus = async () => {
+  if (!player.value?.id || !currentUserId.value) return
+  if (player.value.id === currentUserId.value) return
+  
+  try {
+    const res = await http.get(`/mail/block/check?target_id=${player.value.id}`)
+    if (res.data.ok) {
+      isBlocked.value = res.data.is_blocked || false
+    }
+  } catch (e) {
+    console.error('检查拉黑状态失败', e)
   }
 }
 
@@ -175,9 +193,28 @@ const addFriend = async () => {
   }
 }
 
-// 拉黑
+// 拉黑/解除拉黑
 const blockPlayer = () => {
-  alert('拉黑玩家')
+  if (!player.value?.id) return
+  if (isBlocked.value) {
+    // 已拉黑，跳转到解除拉黑确认页面
+    router.push({
+      path: '/block/unblock',
+      query: {
+        target_id: player.value.id,
+        target_name: player.value.nickname || '该玩家'
+      }
+    })
+  } else {
+    // 未拉黑，跳转到拉黑确认页面
+    router.push({
+      path: '/block/confirm',
+      query: {
+        target_id: player.value.id,
+        target_name: player.value.nickname || '该玩家'
+      }
+    })
+  }
 }
 
 // 灌注
@@ -281,8 +318,12 @@ const loadCurrentUser = async () => {
 }
 
 onMounted(async () => {
-  await loadCurrentUser()
-  await loadVipConfig()
+  // 并行加载不依赖的数据，提升加载速度
+  await Promise.all([
+    loadCurrentUser(),
+    loadVipConfig()
+  ])
+  // 然后加载玩家信息（依赖当前用户ID）
   loadPlayerInfo()
 })
 </script>
@@ -300,7 +341,7 @@ onMounted(async () => {
       <div class="section">
         <a class="link" @click="sendMessage">写信</a> 
         <a class="link" @click="addFriend">{{ addingFriend ? '发送中...' : '加为好友' }}</a> 
-        <a class="link" @click="blockPlayer">拉黑</a>
+        <a class="link" @click="blockPlayer">{{ isBlocked ? '已拉黑' : '拉黑' }}</a>
       </div>
 
       <!-- 基本信息 -->
@@ -356,10 +397,10 @@ onMounted(async () => {
 
 <style scoped>
 .player-detail-page {
-  background: #FFF8DC;
+  background: #ffffff;
   min-height: 100vh;
   padding: 10px 12px;
-  font-size: 14px;
+  font-size: 17px;
   line-height: 1.8;
   font-family: SimSun, "宋体", serif;
 }
@@ -414,6 +455,6 @@ onMounted(async () => {
 }
 
 .small {
-  font-size: 11px;
+  font-size: 17px;
 }
 </style>

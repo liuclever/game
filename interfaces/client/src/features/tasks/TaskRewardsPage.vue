@@ -118,7 +118,7 @@ onMounted(loadRewards)
 .link {
   color: #1b4b91;
   text-decoration: none;
-  font-size: 14px;
+  font-size: 17px;
 }
 
 .status {
@@ -164,7 +164,7 @@ onMounted(loadRewards)
 }
 
 .reward-desc {
-  font-size: 14px;
+  font-size: 17px;
   color: #666;
 }
 
@@ -181,7 +181,7 @@ onMounted(loadRewards)
 }
 
 .claim-btn:disabled {
-  background: #e0e0e0;
+  background: #ffffff;
   color: #777;
   cursor: not-allowed;
 }

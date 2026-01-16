@@ -7,7 +7,9 @@ const router = useRouter()
 
 const loading = ref(false)
 const signupLoading = ref(false)
+const checkinLoading = ref(false)
 const errorMessage = ref('')
+const hasAlliance = ref(true)
 const defaultStatistics = {
   dragon_count: 0,
   tiger_count: 0,
@@ -21,6 +23,10 @@ const warInfo = ref({
   personal: null,
   statistics: { ...defaultStatistics },
   schedule: null,
+  targets: {
+    dragon_registration: null,
+    tiger_registration: null,
+  },
 })
 const scheduleInfo = ref(null)
 const countdownSeconds = ref(0)
@@ -30,6 +36,15 @@ const fetchWarInfo = async () => {
   loading.value = true
   errorMessage.value = ''
   try {
+    // 先检查是否加入联盟
+    const allianceRes = await http.get('/alliance/my')
+    if (!allianceRes.data?.ok) {
+      hasAlliance.value = false
+      loading.value = false
+      return
+    }
+    hasAlliance.value = true
+
     const res = await http.get('/alliance/war/info')
     if (res.data?.ok && res.data.data) {
       const data = res.data.data
@@ -39,6 +54,10 @@ const fetchWarInfo = async () => {
         statistics: { ...defaultStatistics, ...(data.statistics || {}) },
         armies: data.armies || { dragon: [], tiger: [] },
         schedule: data.schedule || null,
+        targets: data.targets || {
+          dragon_registration: null,
+          tiger_registration: null,
+        },
       }
       scheduleInfo.value = data.schedule || null
       if (scheduleInfo.value && typeof scheduleInfo.value.countdownSeconds === 'number') {
@@ -51,7 +70,12 @@ const fetchWarInfo = async () => {
     }
   } catch (err) {
     console.error('加载盟战信息失败', err)
-    errorMessage.value = '加载盟战信息失败'
+    // 如果是因为未加入联盟导致的错误，设置为未加入状态
+    if (err.response?.data?.error?.includes('未加入联盟') || err.response?.data?.error?.includes('请先加入联盟')) {
+      hasAlliance.value = false
+    } else {
+      errorMessage.value = '加载盟战信息失败'
+    }
   } finally {
     loading.value = false
   }
@@ -67,6 +91,14 @@ const goAlliance = () => {
 
 const goHome = () => {
   router.push('/')
+}
+
+const goToHall = () => {
+  router.push('/alliance/hall')
+}
+
+const goToCreateAlliance = () => {
+  router.push('/alliance')
 }
 
 const goToDragonSignup = () => {
@@ -98,6 +130,10 @@ const handleQuickLink = (type) => {
     router.push('/alliance/barracks')
     return
   }
+  if (type === 'record') {
+    router.push('/alliance/war/battle-records')
+    return
+  }
   console.log(`Alliance war quick link clicked: ${type}`)
 }
 
@@ -111,8 +147,13 @@ const handleSignup = async () => {
   try {
     const res = await http.post('/alliance/war/signup')
     if (res.data?.ok && res.data.data) {
-      alert(`报名成功，你被分配至${res.data.data.army_label}`)
-      await fetchWarInfo()
+      // 跳转到报名成功页面
+      router.push({
+        path: '/alliance/war/signup-success',
+        query: {
+          army_label: res.data.data.army_label
+        }
+      })
     } else {
       alert(res.data?.error || '报名失败')
     }
@@ -121,6 +162,44 @@ const handleSignup = async () => {
     alert(err.response?.data?.error || '报名失败')
   } finally {
     signupLoading.value = false
+  }
+}
+
+const handleCheckin = async () => {
+  if (checkinLoading.value) {
+    return
+  }
+  checkinLoading.value = true
+  try {
+    const res = await http.post('/alliance/war/checkin')
+    if (res.data?.ok) {
+      router.push({
+        path: '/alliance/war/checkin-result',
+        query: {
+          success: 'true',
+          message: res.data.message || '签到成功，获得30000铜钱'
+        }
+      })
+    } else {
+      router.push({
+        path: '/alliance/war/checkin-result',
+        query: {
+          success: 'false',
+          message: res.data?.error || '签到失败'
+        }
+      })
+    }
+  } catch (err) {
+    console.error('盟战签到失败', err)
+    router.push({
+      path: '/alliance/war/checkin-result',
+      query: {
+        success: 'false',
+        message: err.response?.data?.error || '签到失败'
+      }
+    })
+  } finally {
+    checkinLoading.value = false
   }
 }
 
@@ -217,9 +296,19 @@ const formatCountdown = (seconds) => {
     </div>
 
     <div v-if="loading" class="section">加载中...</div>
+    <div v-else-if="!hasAlliance" class="section">
+      <div class="section">你还没有加入任何联盟</div>
+      <div class="section">
+        <button class="btn" @click="goToCreateAlliance">创建联盟</button>
+        <button class="btn" @click="goToHall">寻找联盟</button>
+      </div>
+      <div class="section requirement">
+        创建条件：玩家拥有1个盟主证明，玩家等级达到30级或以上
+      </div>
+    </div>
     <div v-else-if="errorMessage" class="section red">{{ errorMessage }}</div>
 
-    <template v-else>
+    <template v-else-if="hasAlliance">
       <div class="section-group">
         <div class="group-title">
           联盟备战
@@ -267,7 +356,12 @@ const formatCountdown = (seconds) => {
           <div>
             个人签到：
             <span class="orange">
-              {{ warInfo.personal?.signed_up ? warInfo.personal.current_army_label : '未报名' }}
+              <template v-if="warInfo.personal?.signed_up">
+                {{ warInfo.personal.current_army_label }}（{{ warInfo.personal?.checked_in ? '已签到' : '未签到' }}）
+              </template>
+              <template v-else>
+                未报名
+              </template>
             </span>
             <a
               v-if="!warInfo.personal?.signed_up"
@@ -275,6 +369,12 @@ const formatCountdown = (seconds) => {
               :class="{ disabled: signupDisabled }"
               @click.prevent="handleSignup"
             >{{ signupLoading ? '报名中...' : '报名' }}</a>
+            <a
+              v-else-if="warInfo.personal?.signed_up && !warInfo.personal?.checked_in"
+              class="link"
+              :class="{ disabled: checkinLoading }"
+              @click.prevent="handleCheckin"
+            >{{ checkinLoading ? '签到中...' : '签到' }}</a>
           </div>
           <div>
             飞龙军签到人数：<span class="blue">{{ warInfo.statistics?.dragon_count ?? 0 }}</span>
@@ -291,7 +391,17 @@ const formatCountdown = (seconds) => {
       <div class="section-group">
         <div class="group-title">【攻城目标】</div>
         <div class="group-content">
-          盟主暂未选择
+          <template v-if="warInfo.targets?.dragon_registration || warInfo.targets?.tiger_registration">
+            <div v-if="warInfo.targets.dragon_registration">
+              飞龙军目标：<span class="blue">{{ warInfo.targets.dragon_registration.land_name }}</span>
+            </div>
+            <div v-if="warInfo.targets.tiger_registration">
+              伏虎军目标：<span class="blue">{{ warInfo.targets.tiger_registration.land_name }}</span>
+            </div>
+          </template>
+          <template v-else>
+            盟主暂未选择
+          </template>
         </div>
       </div>
     </template>
@@ -308,10 +418,10 @@ const formatCountdown = (seconds) => {
 
 <style scoped>
 .war-page {
-  background: #FFF8DC;
+  background: #ffffff;
   min-height: 100vh;
   padding: 12px 16px 20px;
-  font-size: 13px;
+  font-size: 16px;
   line-height: 1.5;
   font-family: 'SimSun', '宋体', serif;
   color: #000;
@@ -327,7 +437,7 @@ const formatCountdown = (seconds) => {
 
 .title-row {
   font-weight: bold;
-  font-size: 15px;
+  font-size: 18px;
 }
 
 .intro {
@@ -335,7 +445,7 @@ const formatCountdown = (seconds) => {
 }
 
 .nav-links {
-  font-size: 12px;
+  font-size: 18px;
 }
 
 .link {
@@ -387,7 +497,7 @@ const formatCountdown = (seconds) => {
 }
 
 .small {
-  font-size: 11px;
+  font-size: 17px;
 }
 
 .footer {
@@ -396,5 +506,22 @@ const formatCountdown = (seconds) => {
 
 .spacer {
   margin-top: 12px;
+}
+
+.btn {
+  padding: 4px 12px;
+  margin-right: 8px;
+  cursor: pointer;
+  border: 1px solid #CCC;
+  background: #f7f7f7;
+}
+
+.btn:hover {
+  background: #eeeeee;
+}
+
+.requirement {
+  font-size: 16px;
+  color: #CC3300;
 }
 </style>

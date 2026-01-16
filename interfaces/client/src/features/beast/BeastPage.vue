@@ -370,10 +370,10 @@ const handleLink = (name) => {
 
 <style scoped>
 .beast-page {
-  background: #FFF8DC;
+  background: #ffffff;
   min-height: 100vh;
   padding: 8px 12px;
-  font-size: 13px;
+  font-size: 16px;
   line-height: 1.6;
   font-family: SimSun, "宋体", serif;
 }
@@ -425,26 +425,26 @@ const handleLink = (name) => {
 }
 
 .small {
-  font-size: 11px;
+  font-size: 17px;
 }
 
 .page-input {
   width: 40px;
-  font-size: 12px;
+  font-size: 18px;
   border: 1px solid #CCCCCC;
   padding: 1px 4px;
 }
 
 .page-btn {
-  font-size: 12px;
+  font-size: 18px;
   padding: 1px 8px;
-  background: #F0F0F0;
+  background: #ffffff;
   border: 1px solid #CCCCCC;
   cursor: pointer;
 }
 
 .page-btn:hover {
-  background: #E0E0E0;
+  background: #ffffff;
 }
 
 .footer {
@@ -488,7 +488,7 @@ const handleLink = (name) => {
   background: transparent;
   color: #805A08;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 16px;
 }
 
 .storage-body {
@@ -498,7 +498,7 @@ const handleLink = (name) => {
 }
 
 .storage-summary {
-  font-size: 12px;
+  font-size: 18px;
   margin-bottom: 8px;
   color: #8B4513;
 }
@@ -535,7 +535,7 @@ const handleLink = (name) => {
 }
 
 .storage-meta {
-  font-size: 12px;
+  font-size: 18px;
   color: #7A6A53;
 }
 
@@ -553,7 +553,7 @@ const handleLink = (name) => {
   background: none;
   color: #0066CC;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 16px;
 }
 
 .storage-status {

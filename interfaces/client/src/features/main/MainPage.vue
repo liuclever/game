@@ -95,6 +95,9 @@ const currentLocation = ref('林中空地')
 const moving = ref(false)
 const movingTo = ref('')
 const remainingSeconds = ref(0)
+
+// 联盟战功排行（前三名）
+const allianceTop3 = ref([])
 const DUNGEONS = [
   // 林中空地
   { name: '森林入口', level_range: '1-2级', city: '林中空地' },
@@ -136,25 +139,27 @@ let moveTimer = null
 const checkAuth = async () => {
   try {
     const res = await http.get('/auth/status')
-    if (res.data.logged_in) {
+    console.log('登录状态检查响应:', res.data)
+    if (res.data && res.data.logged_in) {
       isLoggedIn.value = true
-        currentUser.value = {
-          id: res.data.user_id,
-          nickname: res.data.nickname,
-          level: res.data.level,
-          rank_name: res.data.rank_name,
-          gold: res.data.gold, // 兼容旧字段（不要在 UI 里当“铜钱”展示）
-          copper: res.data.copper, // 铜钱
-          exp: res.data.exp,
-          battle_power: res.data.battle_power,
-          prestige: res.data.prestige,
-          energy: res.data.energy,
-          max_energy: res.data.max_energy,
-          vip_level: res.data.vip_level,
-          crystal_tower: res.data.crystal_tower,
-          yuanbao: res.data.yuanbao,
-          last_signin_date: res.data.last_signin_date,
-        }
+      currentUser.value = {
+        id: res.data.user_id,
+        nickname: res.data.nickname,
+        level: res.data.level,
+        rank_name: res.data.rank_name,
+        gold: res.data.gold, // 兼容旧字段（不要在 UI 里当"铜钱"展示）
+        copper: res.data.copper, // 铜钱
+        exp: res.data.exp,
+        battle_power: res.data.battle_power,
+        prestige: res.data.prestige,
+        energy: res.data.energy,
+        max_energy: res.data.max_energy,
+        vip_level: res.data.vip_level,
+        crystal_tower: res.data.crystal_tower,
+        yuanbao: res.data.yuanbao,
+        last_signin_date: res.data.last_signin_date,
+      }
+      console.log('用户信息已加载:', currentUser.value)
       // 获取修行状态
       loadCultivationStatus()
       // 获取当前位置
@@ -162,11 +167,40 @@ const checkAuth = async () => {
     } else {
       isLoggedIn.value = false
       currentUser.value = null
+      console.log('用户未登录')
     }
   } catch (e) {
     console.error('检查登录状态失败', e)
+    console.error('错误详情:', e.response?.data || e.message)
+    // 如果请求失败，尝试从 localStorage 读取基本信息（作为降级方案）
+    const userId = localStorage.getItem('user_id')
+    if (userId) {
+      console.warn('使用 localStorage 降级方案')
+      isLoggedIn.value = true
+      currentUser.value = {
+        id: parseInt(userId),
+        nickname: localStorage.getItem('nickname') || '未知',
+        level: parseInt(localStorage.getItem('level') || '0'),
+      }
+    } else {
+      isLoggedIn.value = false
+      currentUser.value = null
+    }
   } finally {
     loading.value = false
+  }
+}
+
+// 加载联盟战功排行（前三名）
+const loadAllianceTop3 = async () => {
+  try {
+    const res = await http.get('/alliance/war/top3')
+    if (res.data.ok && res.data.data) {
+      allianceTop3.value = res.data.data.top3 || []
+    }
+  } catch (e) {
+    console.error('加载联盟排行失败', e)
+    allianceTop3.value = []
   }
 }
 
@@ -409,6 +443,7 @@ const doLevelup = async () => {
 
 onMounted(() => {
   checkAuth()
+  loadAllianceTop3()
   loadAnnouncements()
 })
 
@@ -565,7 +600,7 @@ const handleLink = (name) => {
       '召唤之王挑战赛': '/king',
       '商城': '/shop',
       '战场': '/battlefield',
-      '竞技': '/arena/index',
+      '竞技': '/arena/streak',
       '礼包': '/gifts',
         '任务': '/tasks/rewards',
         '查看': '/tasks/daily',
@@ -641,6 +676,17 @@ const handleLink = (name) => {
 
     <div class="section">
       开启新城市地图[<a class="link" @click="handleLink('定老城')">定老城</a>]<a class="link" @click="handleLink('移动')">移动</a>
+    </div>
+
+    <!-- 联盟战功排行 -->
+    <div class="section title">【联盟战功排行】</div>
+    <template v-if="allianceTop3.length > 0">
+      <div class="section indent" v-for="alliance in allianceTop3" :key="alliance.allianceId">
+        第{{ alliance.rank }}名：{{ alliance.allianceName }}({{ alliance.allianceLevel }}级)
+      </div>
+    </template>
+    <div class="section indent gray" v-else>
+      暂无排名
     </div>
 
     <!-- 常用功能 -->
@@ -876,7 +922,7 @@ const handleLink = (name) => {
 }
 
 .small {
-  font-size: 11px;
+  font-size: 17px;
 }
 
 .chat-box {
@@ -888,7 +934,7 @@ const handleLink = (name) => {
 
 .chat-msg {
   margin: 2px 0;
-  font-size: 12px;
+  font-size: 18px;
 }
 
 .footer {
@@ -898,7 +944,7 @@ const handleLink = (name) => {
 }
 
 .cultivation-options {
-  background: #FFFACD;
+  background: #ffffff;
   border: 1px solid #DDD;
   padding: 4px 8px;
   margin: 4px 0;

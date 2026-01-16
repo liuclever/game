@@ -114,7 +114,7 @@ onMounted(() => {
   background: #fff;
   min-height: 100vh;
   padding: 12px 18px;
-  font-size: 14px;
+  font-size: 17px;
   line-height: 1.8;
   font-family: 'Microsoft YaHei', '微软雅黑', SimSun, '宋体', sans-serif;
   color: #000;
@@ -161,7 +161,7 @@ onMounted(() => {
 .footer {
   margin-top: 12px;
   color: #5a6785;
-  font-size: 12px;
+  font-size: 18px;
   border-top: 1px solid #dfe4ea;
   padding-top: 8px;
 }

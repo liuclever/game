@@ -60,15 +60,21 @@ const goHome = () => {
     </div>
 
     <div class="section">
-      7. 盟主和副盟主可以调整成员的出战顺序
+      7. 盟战所争夺的土地或据点的报名：伏虎军只能选择一个据点报名，飞龙军只能选择一个土地报名，据点和土地包含以下：
+      <div class="indent">
+        据点：幻灵镇1号据点（联盟占领后的奖励：联盟内的盟员每天可获得5000铜钱）<br>
+        定老城1号据点（联盟占领后的奖励：联盟内的盟员每天可获得5000铜钱）<br>
+        土地：迷雾城1号土地（联盟占领后的奖励：联盟内的盟员每天可获得10000铜钱）<br>
+        飞龙港1号土地（联盟占领后的奖励：联盟内的盟员每天可获得10000铜钱）
+      </div>
     </div>
 
     <div class="section">
-      8. 玩家签到盟战即可获得1点个人战功、铜钱3万、随机结晶1个
+      8. 盟主和副盟主可以调整成员的出战顺序
     </div>
 
     <div class="section">
-      9. 每击杀一个对手可获得1点个人战功，战功可用于兑换道具
+      9. 盟战军队报名后，成员签到：每个成员在签到时间内进行签到，签到时获得30000铜钱
     </div>
 
     <div class="section">
@@ -90,10 +96,10 @@ const goHome = () => {
 
 <style scoped>
 .rule-page {
-  background: #fff8dc;
+  background: #ffffff;
   min-height: 100vh;
   padding: 10px 14px 24px;
-  font-size: 13px;
+  font-size: 16px;
   line-height: 1.7;
   font-family: SimSun, '宋体', serif;
 }
@@ -104,7 +110,7 @@ const goHome = () => {
 
 .title-row {
   font-weight: bold;
-  font-size: 15px;
+  font-size: 18px;
 }
 
 .link {
@@ -125,7 +131,7 @@ const goHome = () => {
 }
 
 .small {
-  font-size: 11px;
+  font-size: 17px;
 }
 
 .footer {

@@ -38,10 +38,10 @@ const goHome = () => {
 
 <style scoped>
 .intro-page {
-  background: #FFF8DC;
+  background: #ffffff;
   min-height: 100vh;
   padding: 10px 12px;
-  font-size: 14px;
+  font-size: 17px;
   line-height: 1.8;
   font-family: SimSun, "宋体", serif;
 }
@@ -81,6 +81,6 @@ const goHome = () => {
 }
 
 .small {
-  font-size: 11px;
+  font-size: 17px;
 }
 </style>

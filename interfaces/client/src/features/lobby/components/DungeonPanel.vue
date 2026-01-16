@@ -69,7 +69,7 @@ function toggleExpand(id) {
 }
 
 .region-header:hover {
-  background: #f5f5f5;
+  background: #ffffff;
 }
 
 .arrow {
@@ -97,7 +97,7 @@ function toggleExpand(id) {
 .region-detail {
   margin-left: 16px;
   padding: 4px 0;
-  font-size: 11px;
+  font-size: 17px;
   color: #555;
 }
 

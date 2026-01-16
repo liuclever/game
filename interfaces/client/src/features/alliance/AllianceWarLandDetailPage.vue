@@ -17,7 +17,8 @@ const buffDescription = computed(() => {
   if (!buffs.value.length) {
     return '暂无属性描述'
   }
-  return buffs.value.join(' / ')
+  // 根据图1，每个属性单独一行显示，用换行符分隔
+  return buffs.value.join('\n')
 })
 
 const loadLandDetail = async () => {
@@ -66,10 +67,10 @@ onMounted(() => {
       <div v-if="error" class="section error">{{ error }}</div>
 
       <template v-else>
-        <div class="section header">属性</div>
+        <div class="section header">属性:</div>
         <div class="section buff">{{ buffDescription }}</div>
 
-        <div class="section header">报名联盟</div>
+        <div class="section header">报名联盟:</div>
         <div class="alliances-box">
           <template v-if="alliances.length">
             <div
@@ -77,7 +78,7 @@ onMounted(() => {
               :key="alliance.alliance_id || index"
               class="alliance-row"
             >
-              {{ index + 1 }}.<span class="blue">{{ alliance.name }}</span>
+              <span class="blue">{{ alliance.name }}</span>
             </div>
           </template>
           <div v-else class="empty">暂无报名联盟</div>
@@ -99,7 +100,7 @@ onMounted(() => {
   min-height: 100vh;
   padding: 12px 16px 24px;
   font-family: 'SimSun', '宋体', serif;
-  font-size: 13px;
+  font-size: 16px;
   line-height: 1.6;
   color: #000000;
 }
@@ -118,10 +119,11 @@ onMounted(() => {
 }
 
 .buff {
-  background: #f8f8f8;
+  background: #ffffff;
   border: 1px dashed #ccc;
   padding: 8px;
   word-break: break-all;
+  white-space: pre-line;  /* 支持换行显示 */
 }
 
 .alliances-box {

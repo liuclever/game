@@ -120,7 +120,6 @@ onMounted(() => load())
 <template>
   <div class="handbook-detail">
 
-
     <div class="section" v-if="loading">加载中...</div>
     <div class="section red" v-else-if="errorMsg">{{ errorMsg }}</div>
 

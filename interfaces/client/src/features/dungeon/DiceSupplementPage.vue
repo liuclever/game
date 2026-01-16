@@ -127,14 +127,14 @@ onMounted(() => {
 }
 
 .small {
-  font-size: 13px;
+  font-size: 16px;
 }
 
 .footer {
   margin-top: 40px;
   padding-top: 10px;
   border-top: 1px solid #EEEEEE;
-  background: #F0F0F0;
+  background: #ffffff;
   padding: 10px;
 }
 </style>

@@ -25,26 +25,40 @@ def get_inventory_list():
     # 先执行临时物品转移
     transferred = services.inventory_service.transfer_temp_to_bag(user_id)
     
+    # 清理当前用户数量为0的物品（防止数据异常）
+    try:
+        from infrastructure.db.connection import execute_update
+        execute_update("DELETE FROM player_inventory WHERE user_id = %s AND quantity <= 0", (user_id,))
+    except:
+        pass  # 忽略清理失败的情况
+    
     # 获取正式背包物品（不含临时）
     items = services.inventory_service.get_inventory(user_id, include_temp=False)
     
     # 获取背包信息
     bag_info = services.inventory_service.get_bag_info(user_id)
     
+    result_items = []
+    for item in items:
+        # 再次过滤数量为0的物品（双重保险）
+        if item.inv_item.quantity <= 0:
+            continue
+        can_use, action_name = services.inventory_service.can_use_or_open_item(item.item_info)
+        result_items.append({
+            "id": item.inv_item.id,
+            "item_id": item.item_info.id,
+            "name": item.item_info.name,
+            "type": item.item_info.type,
+            "quantity": item.inv_item.quantity,
+            "description": item.item_info.description,
+            "is_temporary": item.inv_item.is_temporary,
+            "can_use_or_open": can_use,
+            "action_name": action_name,  # "打开" 或 "使用" 或 ""
+        })
+    
     return jsonify({
         "ok": True,
-        "items": [
-            {
-                "id": item.inv_item.id,
-                "item_id": item.item_info.id,
-                "name": item.item_info.name,
-                "type": item.item_info.type,
-                "quantity": item.inv_item.quantity,
-                "description": item.item_info.description,
-                "is_temporary": item.inv_item.is_temporary,
-            }
-            for item in items
-        ],
+        "items": result_items,
         "bag_info": bag_info,
         "transferred": transferred,  # 本次转移的物品
     })
@@ -59,20 +73,27 @@ def get_temp_items():
     
     items = services.inventory_service.get_temp_items(user_id)
     
+    result_items = []
+    for item in items:
+        # 过滤掉数量为0的物品
+        if item.inv_item.quantity <= 0:
+            continue
+        can_use, action_name = services.inventory_service.can_use_or_open_item(item.item_info)
+        result_items.append({
+            "id": item.inv_item.id,
+            "item_id": item.item_info.id,
+            "name": item.item_info.name,
+            "type": item.item_info.type,
+            "quantity": item.inv_item.quantity,
+            "description": item.item_info.description,
+            "created_at": item.inv_item.created_at.strftime("%m-%d %H:%M") if item.inv_item.created_at else "",
+            "can_use_or_open": can_use,
+            "action_name": action_name,
+        })
+    
     return jsonify({
         "ok": True,
-        "items": [
-            {
-                "id": item.inv_item.id,
-                "item_id": item.item_info.id,
-                "name": item.item_info.name,
-                "type": item.item_info.type,
-                "quantity": item.inv_item.quantity,
-                "description": item.item_info.description,
-                "created_at": item.inv_item.created_at.strftime("%m-%d %H:%M") if item.inv_item.created_at else "",
-            }
-            for item in items
-        ],
+        "items": result_items,
     })
 
 
@@ -176,10 +197,11 @@ def use_item():
         return jsonify({"ok": False, "error": "缺少物品ID"})
         
     try:
-        message = services.inventory_service.use_item(user_id, inv_item_id, quantity)
+        result = services.inventory_service.use_item(user_id, inv_item_id, quantity)
         return jsonify({
             "ok": True,
-            "message": message
+            "message": result.get("message", "使用成功"),
+            "rewards": result.get("rewards", {})
         })
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)})
@@ -243,3 +265,100 @@ def get_item_count():
         "count": count,
         "include_temp": include_temp,
     })
+
+
+@inventory_bp.get("/item/detail")
+def get_item_detail():
+    """获取道具详情"""
+    user_id = get_current_user_id()
+    if not user_id:
+        return jsonify({"ok": False, "error": "请先登录"})
+    
+    inv_item_id = request.args.get("id")
+    if not inv_item_id:
+        return jsonify({"ok": False, "error": "缺少道具ID"})
+    
+    try:
+        inv_item_id = int(inv_item_id)
+        items = services.inventory_service.get_inventory(user_id, include_temp=False)
+        found = None
+        for item in items:
+            if item.inv_item.id == inv_item_id:
+                found = item
+                break
+        
+        if not found:
+            return jsonify({"ok": False, "error": "道具不存在"})
+        
+        can_use, action_name = services.inventory_service.can_use_or_open_item(found.item_info)
+        return jsonify({
+            "ok": True,
+            "item": {
+                "id": found.inv_item.id,
+                "item_id": found.item_info.id,
+                "name": found.item_info.name,
+                "type": found.item_info.type,
+                "quantity": found.inv_item.quantity,
+                "description": found.item_info.description,
+                "can_use_or_open": can_use,
+                "action_name": action_name,
+            }
+        })
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)})
+
+
+@inventory_bp.post("/recycle")
+def recycle_item():
+    """回收道具（出售获得铜钱）"""
+    user_id = get_current_user_id()
+    if not user_id:
+        return jsonify({"ok": False, "error": "请先登录"})
+    
+    data = request.get_json() or {}
+    inv_item_id = data.get("id")
+    quantity = int(data.get("quantity", 1))
+    
+    if not inv_item_id:
+        return jsonify({"ok": False, "error": "缺少物品ID"})
+    
+    try:
+        # 获取道具信息
+        inv_item = services.inventory_service.inventory_repo.get_by_id(inv_item_id)
+        if not inv_item or inv_item.user_id != user_id:
+            return jsonify({"ok": False, "error": "道具不存在"})
+        
+        if inv_item.quantity < quantity:
+            return jsonify({"ok": False, "error": "道具数量不足"})
+        
+        # 获取物品模板
+        item_template = services.inventory_service.item_repo.get_by_id(inv_item.item_id)
+        if not item_template:
+            return jsonify({"ok": False, "error": "物品模板不存在"})
+        
+        # 计算回收价格（根据物品类型和ID）
+        recycle_price_per_item = 10  # 默认每个10铜钱
+        if item_template.type == "consumable":
+            recycle_price_per_item = 20
+        elif item_template.type == "material":
+            recycle_price_per_item = 15
+        
+        total_price = recycle_price_per_item * quantity
+        
+        # 扣除道具
+        services.inventory_service._remove_item_from_slot(inv_item_id, quantity)
+        
+        # 增加铜钱
+        if services.inventory_service.player_repo:
+            player = services.inventory_service.player_repo.get_by_id(user_id)
+            if player:
+                player.gold = int(getattr(player, "gold", 0) or 0) + total_price
+                services.inventory_service.player_repo.save(player)
+        
+        return jsonify({
+            "ok": True,
+            "message": f"回收成功，获得铜钱×{total_price}",
+            "gold": total_price
+        })
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)})

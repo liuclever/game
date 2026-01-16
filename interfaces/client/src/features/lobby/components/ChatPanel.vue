@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted, onActivated, onDeactivated } from 'vue'
 import { useRouter } from 'vue-router'
 import http from '@/services/http'
 
@@ -7,6 +7,7 @@ const router = useRouter()
 const messages = ref([])
 const pinnedMessage = ref(null)
 const currentUserId = ref(null)
+let refreshTimer = null
 
 // 加载首页消息（只显示3条普通喊话）
 const loadHomepageMessages = async () => {
@@ -24,6 +25,24 @@ const loadHomepageMessages = async () => {
     }
   } catch (e) {
     console.error('加载首页消息失败', e)
+  }
+}
+
+// 启动定时刷新
+const startRefresh = () => {
+  // 如果已经有定时器，先清除
+  if (refreshTimer) {
+    clearInterval(refreshTimer)
+  }
+  // 每30秒刷新一次消息（降低请求频率）
+  refreshTimer = setInterval(loadHomepageMessages, 30000)
+}
+
+// 停止定时刷新
+const stopRefresh = () => {
+  if (refreshTimer) {
+    clearInterval(refreshTimer)
+    refreshTimer = null
   }
 }
 
@@ -67,8 +86,38 @@ const viewPlayerProfile = (msg) => {
 onMounted(() => {
   loadCurrentUserId()
   loadHomepageMessages()
-  // 每5秒刷新一次消息
-  setInterval(loadHomepageMessages, 5000)
+  startRefresh()
+  
+  // 页面可见性变化时控制刷新
+  const handleVisibilityChange = () => {
+    if (document.hidden) {
+      // 页面不可见时停止刷新
+      stopRefresh()
+    } else {
+      // 页面可见时恢复刷新
+      startRefresh()
+      // 立即刷新一次
+      loadHomepageMessages()
+    }
+  }
+  document.addEventListener('visibilitychange', handleVisibilityChange)
+  
+  // 组件卸载时清理
+  onUnmounted(() => {
+    stopRefresh()
+    document.removeEventListener('visibilitychange', handleVisibilityChange)
+  })
+})
+
+// 当组件被激活时（keep-alive场景）
+onActivated(() => {
+  loadHomepageMessages()
+  startRefresh()
+})
+
+// 当组件被停用时（keep-alive场景）
+onDeactivated(() => {
+  stopRefresh()
 })
 </script>
 
@@ -132,7 +181,7 @@ onMounted(() => {
 }
 
 .msg.pinned {
-  background: #FFFACD;
+  background: #ffffff;
   padding: 4px;
   border-left: 3px solid #FF6600;
   margin-bottom: 4px;
@@ -150,6 +199,6 @@ onMounted(() => {
 }
 
 .msg.clickable:hover {
-  background-color: #f0f0f0;
+  background: #ffffff;
 }
 </style>

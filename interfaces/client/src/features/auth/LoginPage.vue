@@ -44,10 +44,14 @@ const doLogin = async () => {
   error.value = ''
   
   try {
-    const res = await http.post('/auth/login', {
-      username: username.value,
-      password: password.value,
-    })
+    const loginData = {
+      username: username.value.trim(),  // 去除首尾空格
+      password: password.value.trim(),  // 去除首尾空格
+    }
+    console.log('发送登录请求:', { username: loginData.username, password: '***' })
+    
+    const res = await http.post('/auth/login', loginData)
+    console.log('登录响应:', res.data)
     
     if (res.data.ok) {
       // 保存到localStorage
@@ -56,11 +60,13 @@ const doLogin = async () => {
       localStorage.setItem('level', res.data.level)
       router.push('/')
     } else {
-      error.value = res.data.error
+      error.value = res.data.error || '登录失败，请重试'
+      console.error('登录失败:', res.data.error)
     }
   } catch (e) {
-    console.error('登录失败', e)
-    error.value = '登录失败，请重试'
+    console.error('登录异常:', e)
+    console.error('错误详情:', e.response?.data || e.message)
+    error.value = e.response?.data?.error || '登录失败，请重试'
   } finally {
     loading.value = false
   }
@@ -231,7 +237,7 @@ const submit = () => {
 }
 
 .small {
-  font-size: 11px;
+  font-size: 17px;
 }
 
 .form-section {

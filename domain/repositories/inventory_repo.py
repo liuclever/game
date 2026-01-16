@@ -45,3 +45,7 @@ class IInventoryRepo(Protocol):
     def delete_temp_items_before(self, before_time: datetime) -> int:
         """删除指定时间之前的临时物品，返回删除数量"""
         ...
+    
+    def clean_zero_quantity_items(self) -> int:
+        """清理所有数量为0的物品，返回清理的数量"""
+        ...

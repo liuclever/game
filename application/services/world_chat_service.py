@@ -23,7 +23,8 @@ class WorldChatService:
     ):
         self.player_repo = player_repo
         self.inventory_service = inventory_service
-        self.SMALL_HORN_ITEM_ID = 6012  # 小喇叭物品ID
+        # 小喇叭物品ID列表（支持多个ID：4004=喇叭，6012=小喇叭）
+        self.SMALL_HORN_ITEM_IDS = [4004, 6012]
         self.MAX_MESSAGE_LENGTH = 35  # 最大消息长度
     
     def send_message(
@@ -58,19 +59,23 @@ class WorldChatService:
         # 检查是否是召唤之王
         is_summon_king = self._is_summon_king(user_id)
         
+        # 如果用户是召唤之王，自动设置为置顶消息（无论前端传什么类型）
+        if is_summon_king:
+            message_type = 'summon_king'
+        
         # 如果是召唤之王消息，需要验证权限
         if message_type == 'summon_king':
             if not is_summon_king:
                 raise WorldChatError("只有召唤之王才能发布置顶消息")
         else:
-            # 普通消息需要消耗小喇叭
-            horn_count = self.inventory_service.get_item_count(user_id, self.SMALL_HORN_ITEM_ID)
+            # 普通消息需要消耗小喇叭（包含临时背包）
+            horn_count = self.get_horn_count(user_id)
             if horn_count < 1:
                 raise WorldChatError("小喇叭数量不足")
             
-            # 扣除小喇叭
+            # 扣除小喇叭（优先从临时背包扣除，如果临时背包没有则从正式背包扣除）
             try:
-                self.inventory_service.remove_item(user_id, self.SMALL_HORN_ITEM_ID, 1)
+                self._remove_horn_item(user_id, 1)
             except InventoryError as e:
                 raise WorldChatError(f"扣除小喇叭失败：{str(e)}")
         
@@ -206,8 +211,45 @@ class WorldChatService:
         return False
     
     def get_horn_count(self, user_id: int) -> int:
-        """获取玩家小喇叭数量"""
-        return self.inventory_service.get_item_count(user_id, self.SMALL_HORN_ITEM_ID)
+        """获取玩家小喇叭数量（包含临时背包，支持多个小喇叭物品ID）"""
+        total = 0
+        for item_id in self.SMALL_HORN_ITEM_IDS:
+            total += self.inventory_service.get_item_count(user_id, item_id, include_temp=True)
+        return total
+    
+    def _remove_horn_item(self, user_id: int, quantity: int):
+        """扣除小喇叭（优先从临时背包扣除，支持多个小喇叭物品ID）"""
+        remaining = quantity
+        
+        # 先尝试从临时背包扣除（遍历所有小喇叭ID）
+        for item_id in self.SMALL_HORN_ITEM_IDS:
+            if remaining <= 0:
+                break
+            temp_items = self.inventory_service.inventory_repo.find_all_items(
+                user_id, item_id, is_temporary=True
+            )
+            for item in temp_items:
+                if remaining <= 0:
+                    break
+                if item.quantity <= remaining:
+                    # 删除整个临时物品记录
+                    self.inventory_service.inventory_repo.delete(item.id)
+                    remaining -= item.quantity
+                else:
+                    # 减少数量
+                    item.quantity -= remaining
+                    self.inventory_service.inventory_repo.save(item)
+                    remaining = 0
+        
+        # 如果临时背包不够，从正式背包扣除剩余数量（遍历所有小喇叭ID）
+        for item_id in self.SMALL_HORN_ITEM_IDS:
+            if remaining <= 0:
+                break
+            count = self.inventory_service.get_item_count(user_id, item_id, include_temp=False)
+            if count > 0:
+                deduct = min(remaining, count)
+                self.inventory_service.remove_item(user_id, item_id, deduct)
+                remaining -= deduct
     
     def _format_time(self, dt) -> str:
         """格式化时间"""

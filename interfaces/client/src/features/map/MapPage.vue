@@ -310,10 +310,10 @@ onUnmounted(() => {
 
 <style scoped>
 .map-page {
-  background: #FFF8DC;
+  background: #ffffff;
   min-height: 100vh;
   padding: 8px 12px;
-  font-size: 13px;
+  font-size: 16px;
   line-height: 1.8;
   font-family: SimSun, "宋体", serif;
 }
@@ -375,7 +375,7 @@ onUnmounted(() => {
 }
 
 .small {
-  font-size: 11px;
+  font-size: 17px;
 }
 
 .footer {

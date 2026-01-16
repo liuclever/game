@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import http from '@/services/http'
 
@@ -7,27 +7,33 @@ const router = useRouter()
 const messages = ref([])
 const newMessage = ref('')
 const loading = ref(true)
-const chatContainer = ref(null)
-let pollTimer = null
 
-const fetchMessages = async (showLoading = false) => {
-  if (showLoading) loading.value = true
+const formatDate = (dateStr) => {
+  if (!dateStr) return ''
+  try {
+    const date = new Date(dateStr)
+    const month = (date.getMonth() + 1).toString().padStart(2, '0')
+    const day = date.getDate().toString().padStart(2, '0')
+    const hours = date.getHours().toString().padStart(2, '0')
+    const minutes = date.getMinutes().toString().padStart(2, '0')
+    return `(${month}.${day} ${hours}:${minutes})`
+  } catch (e) {
+    return dateStr
+  }
+}
+
+const fetchMessages = async () => {
+  loading.value = true
   try {
     const res = await http.get('/alliance/chat/messages')
     if (res.data.ok) {
-      const oldLength = messages.value.length
-      messages.value = res.data.messages
-      
-      // 如果有新消息，滚动到底部
-      if (messages.value.length > oldLength) {
-        await nextTick()
-        scrollToBottom()
-      }
+      messages.value = res.data.messages || []
     }
   } catch (e) {
     console.error('获取联盟消息失败', e)
+    messages.value = []
   } finally {
-    if (showLoading) loading.value = false
+    loading.value = false
   }
 }
 
@@ -49,142 +55,131 @@ const sendMessage = async () => {
   }
 }
 
-const scrollToBottom = () => {
-  if (chatContainer.value) {
-    chatContainer.value.scrollTop = chatContainer.value.scrollHeight
-  }
+const refresh = () => {
+  fetchMessages()
 }
 
 const goBack = () => {
-  router.back()
+  router.push('/alliance')
+}
+
+const goHome = () => {
+  router.push('/')
 }
 
 onMounted(() => {
-  fetchMessages(true)
-  // 3秒轮询
-  pollTimer = setInterval(() => {
-    fetchMessages()
-  }, 3000)
-})
-
-onUnmounted(() => {
-  if (pollTimer) clearInterval(pollTimer)
+  fetchMessages()
 })
 </script>
 
 <template>
-  <div class="alliance-chat-page">
-    <div class="header">
-      <span class="title">联盟聊天室</span>
-      <a class="link-back" @click="goBack">回联盟</a>
+  <div class="chat-page">
+    <div class="section title">
+      【聊天室】
+      <a class="link" @click="refresh">刷新</a>
     </div>
 
-    <div v-if="loading" class="loading">加载中...</div>
-    
-    <div v-else class="chat-container" ref="chatContainer">
-      <div v-if="messages.length === 0" class="empty-tip">暂无消息，快来聊聊吧！</div>
-      <div v-for="msg in messages" :key="msg.id" class="message-item">
-        <span class="time">[{{ msg.created_at }}]</span>
-        <span class="nickname">{{ msg.nickname }}:</span>
-        <span class="content">{{ msg.content }}</span>
-      </div>
-    </div>
-
-    <div class="input-area">
+    <div class="section input-area">
       <input 
         v-model="newMessage" 
         type="text" 
-        class="chat-input" 
-        placeholder="说点什么..." 
+        class="input" 
+        placeholder="说点什么..."
         @keyup.enter="sendMessage"
       />
-      <button class="send-btn" @click="sendMessage">发送</button>
+      <button class="btn" @click="sendMessage">发送</button>
+      <button class="btn">表情</button>
+    </div>
+
+    <div v-if="loading" class="section">加载中...</div>
+    <div v-else-if="messages.length === 0" class="section">暂无消息,快来聊聊吧!</div>
+    <div v-else class="section messages">
+      <div v-for="msg in messages" :key="msg.id" class="message-item">
+        {{ formatDate(msg.created_at) }} {{ msg.nickname }}: {{ msg.content }}
+      </div>
+    </div>
+
+    <div class="section footer-links">
+      <a class="link" @click="goBack">返回联盟</a>
+      <a class="link" @click="goHome">返回游戏首页</a>
     </div>
   </div>
 </template>
 
 <style scoped>
-.alliance-chat-page {
-  background: #FFF8DC;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
+.chat-page {
+  background: #ffffff;
+  min-height: 100vh;
+  padding: 8px 12px;
+  font-size: 16px;
+  line-height: 1.6;
   font-family: SimSun, "宋体", serif;
-  font-size: 13px;
 }
 
-.header {
-  background: #DEB887;
-  padding: 8px 12px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid #8B4513;
+.section {
+  margin: 6px 0;
 }
 
 .title {
   font-weight: bold;
-  color: #8B4513;
 }
 
-.link-back {
+.link {
   color: #0066CC;
   cursor: pointer;
   text-decoration: none;
+  margin-left: 8px;
 }
 
-.chat-container {
-  flex: 1;
-  overflow-y: auto;
-  padding: 10px;
-  background: rgba(255, 255, 255, 0.3);
+.link:hover:not(.disabled) {
+  text-decoration: underline;
 }
 
-.message-item {
-  margin-bottom: 6px;
-  line-height: 1.4;
-}
-
-.time {
-  color: #666;
-  margin-right: 4px;
-}
-
-.nickname {
-  color: #0066CC;
-  font-weight: bold;
-  margin-right: 4px;
-}
-
-.content {
-  color: #333;
-  word-break: break-all;
+.link.disabled {
+  color: #999;
+  cursor: not-allowed;
 }
 
 .input-area {
-  padding: 10px;
-  background: #DEB887;
   display: flex;
   gap: 8px;
+  align-items: center;
 }
 
-.chat-input {
+.input {
   flex: 1;
-  padding: 6px;
-  border: 1px solid #8B4513;
+  padding: 4px 8px;
+  border: 1px solid #ccc;
+  font-family: inherit;
+  font-size: inherit;
 }
 
-.send-btn {
-  padding: 6px 15px;
-  background: #8B4513;
-  color: white;
-  border: none;
+.btn {
+  padding: 4px 12px;
+  border: 1px solid #ccc;
+  background: #fff;
   cursor: pointer;
+  font-family: inherit;
+  font-size: inherit;
 }
 
-.loading, .empty-tip {
-  text-align: center;
-  padding: 20px;
-  color: #666;
+.btn:hover {
+  background: #ffffff;
+}
+
+.messages {
+  min-height: 200px;
+}
+
+.message-item {
+  margin: 2px 0;
+}
+
+.footer-links {
+  margin-top: 16px;
+}
+
+.footer-links .link {
+  margin-right: 12px;
 }
 </style>

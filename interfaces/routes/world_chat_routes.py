@@ -62,15 +62,29 @@ def get_messages():
 @world_chat_bp.get('/homepage')
 def get_homepage_messages():
     """获取首页显示的喊话消息（最多3条）"""
-    messages = services.world_chat_service.get_homepage_messages(limit=3)
-    return jsonify({"ok": True, "messages": messages})
+    try:
+        messages = services.world_chat_service.get_homepage_messages(limit=3)
+        return jsonify({"ok": True, "messages": messages})
+    except Exception as e:
+        # 记录错误但不中断服务
+        import traceback
+        print(f"获取首页消息失败: {e}")
+        print(traceback.format_exc())
+        return jsonify({"ok": True, "messages": []})
 
 
 @world_chat_bp.get('/pinned')
 def get_pinned_message():
     """获取置顶的召唤之王消息"""
-    message = services.world_chat_service.get_pinned_message()
-    return jsonify({"ok": True, "message": message})
+    try:
+        message = services.world_chat_service.get_pinned_message()
+        return jsonify({"ok": True, "message": message})
+    except Exception as e:
+        # 记录错误但不中断服务
+        import traceback
+        print(f"获取置顶消息失败: {e}")
+        print(traceback.format_exc())
+        return jsonify({"ok": True, "message": None})
 
 
 @world_chat_bp.get('/horn-count')

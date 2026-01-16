@@ -38,11 +38,11 @@ const goHome = () => {
 
 <style scoped>
 .training-intro-page {
-  background: #fff8dc;
+  background: #ffffff;
   min-height: 100vh;
   padding: 12px 16px;
   font-family: SimSun, '宋体', serif;
-  font-size: 14px;
+  font-size: 17px;
   line-height: 1.8;
   color: #333;
 }
@@ -81,12 +81,12 @@ const goHome = () => {
 }
 
 .meta {
-  font-size: 12px;
+  font-size: 18px;
   color: #555;
   line-height: 1.6;
 }
 
 .links {
-  font-size: 13px;
+  font-size: 16px;
 }
 </style>

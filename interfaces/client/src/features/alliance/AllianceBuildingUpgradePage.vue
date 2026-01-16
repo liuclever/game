@@ -11,6 +11,9 @@ const upgradeInfo = ref(null)
 const errorMsg = ref('')
 const successMsg = ref('')
 
+const member = ref(null)
+const isLeader = computed(() => member.value?.role === 1)
+
 const fetchBuildings = async () => {
   loading.value = true
   errorMsg.value = ''
@@ -19,7 +22,12 @@ const fetchBuildings = async () => {
     const res = await http.get('/alliance/buildings')
     if (res.data.ok) {
       alliance.value = res.data.alliance
-      buildings.value = res.data.buildings || []
+      member.value = res.data.member
+      // 只显示可升级的建筑：议事厅、焚火炉、幻兽室、寄存仓库
+      const upgradableBuildings = ['council', 'furnace', 'beast', 'warehouse']
+      buildings.value = (res.data.buildings || []).filter(b => 
+        upgradableBuildings.includes(b.key)
+      )
       upgradeInfo.value = res.data.councilUpgrade || null
     } else {
       errorMsg.value = res.data.error || '获取建筑信息失败'
@@ -80,6 +88,10 @@ onMounted(() => {
     <template v-else-if="alliance">
             <div class="section title">联盟建筑升级</div>
 
+      <div v-if="!isLeader" class="section error">
+        只有盟主可以在议事厅中选择升级各类建筑
+      </div>
+      
       <div class="section building-list">
         <div
           v-for="building in buildings"
@@ -87,48 +99,37 @@ onMounted(() => {
           class="building-item"
         >
           <span class="name">{{ building.name }} ({{ building.level }}级)</span>
-          <a
-            v-if="building.key === 'council'"
-            class="link"
-            @click.prevent="goCouncilUpgrade"
-          >
-            升级
-          </a>
-          <a
-            v-else-if="building.key === 'furnace'"
-            class="link"
-            @click.prevent="goFurnaceUpgrade"
-          >
-            升级
-          </a>
-          <a
-            v-else-if="building.key === 'talent'"
-            class="link"
-            @click.prevent="goTalentUpgrade"
-          >
-            升级
-          </a>
-          <a
-            v-else-if="building.key === 'beast'"
-            class="link"
-            @click.prevent="goBeastUpgrade"
-          >
-            升级
-          </a>
-          <a
-            v-else-if="building.key === 'warehouse'"
-            class="link"
-            @click.prevent="goItemUpgrade"
-          >
-            升级
-          </a>
-          <a
-            v-else
-            class="link"
-            @click.prevent="showComingSoon(building)"
-          >
-            升级
-          </a>
+          <template v-if="isLeader">
+            <a
+              v-if="building.key === 'council'"
+              class="link"
+              @click.prevent="goCouncilUpgrade"
+            >
+              升级
+            </a>
+            <a
+              v-else-if="building.key === 'furnace'"
+              class="link"
+              @click.prevent="goFurnaceUpgrade"
+            >
+              升级
+            </a>
+            <a
+              v-else-if="building.key === 'beast'"
+              class="link"
+              @click.prevent="goBeastUpgrade"
+            >
+              升级
+            </a>
+            <a
+              v-else-if="building.key === 'warehouse'"
+              class="link"
+              @click.prevent="goItemUpgrade"
+            >
+              升级
+            </a>
+          </template>
+          <span v-else class="disabled-text">仅盟主可升级</span>
         </div>
       </div>
 
@@ -159,7 +160,7 @@ onMounted(() => {
   background: #ffffff;
   min-height: 100vh;
   padding: 12px 18px;
-  font-size: 14px;
+  font-size: 17px;
   line-height: 1.7;
   font-family: 'Microsoft YaHei', '微软雅黑', SimSun, '宋体', sans-serif;
   color: #000;
@@ -206,10 +207,15 @@ onMounted(() => {
   text-decoration: none;
 }
 
+.disabled-text {
+  color: #999;
+  font-size: 18px;
+}
+
 .info-block {
   border: 1px solid #c3c3c3;
   padding: 6px 10px;
-  background: #f5f6f8;
+  background: #ffffff;
 }
 
 .success {
@@ -223,7 +229,7 @@ onMounted(() => {
 .footer-info {
   margin-top: 16px;
   color: #53627a;
-  font-size: 12px;
+  font-size: 18px;
   border-top: 1px solid #dfe4ea;
   padding-top: 8px;
 }

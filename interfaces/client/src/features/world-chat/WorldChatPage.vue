@@ -55,15 +55,27 @@ const checkIsSummonKing = async () => {
 const sendMessage = async () => {
   if (!messageInput.value.trim()) { toast.error('请输入消息内容'); return }
   if (messageInput.value.length > 35) { toast.error('消息长度不能超过35个字符'); return }
-  if (hornCount.value < 1) { toast.error('小喇叭数量不足'); return }
+  
+  // 如果是召唤之王，发送置顶消息（不消耗小喇叭）
+  // 否则发送普通消息（需要小喇叭）
+  const messageType = isSummonKing.value ? 'summon_king' : 'normal'
+  
+  if (messageType === 'normal' && hornCount.value < 1) {
+    toast.error('小喇叭数量不足')
+    return
+  }
   
   sending.value = true
   try {
-    const res = await http.post('/world-chat/send', { content: messageInput.value.trim(), message_type: 'normal' })
+    const res = await http.post('/world-chat/send', { 
+      content: messageInput.value.trim(), 
+      message_type: messageType 
+    })
     if (res.data.ok) {
       messageInput.value = ''
       await loadHornCount()
       await loadMessages(1)
+      await loadPinnedMessage()  // 重新加载置顶消息（召唤之王发送新消息后会更新置顶）
     } else toast.error(res.data.error || '发送失败')
   } catch (e) { toast.error(e.response?.data?.error || '发送失败') }
   finally { sending.value = false }
@@ -112,18 +124,18 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-.world-chat-page { background: #FFF8DC; min-height: 100vh; padding: 8px 12px; font-size: 13px; line-height: 1.6; font-family: SimSun, "宋体", serif; }
+.world-chat-page { background: #ffffff; min-height: 100vh; padding: 8px 12px; font-size: 16px; line-height: 1.6; font-family: SimSun, "宋体", serif; }
 .section { margin: 4px 0; }
 .input-section { display: flex; gap: 4px; align-items: center; }
-.message-input { flex: 1; padding: 4px 8px; border: 1px solid #ccc; font-size: 13px; }
-.btn { padding: 4px 12px; background: #0066CC; color: white; border: 1px solid #0066CC; cursor: pointer; font-size: 13px; }
+.message-input { flex: 1; padding: 4px 8px; border: 1px solid #ccc; font-size: 16px; }
+.btn { padding: 4px 12px; background: #0066CC; color: white; border: 1px solid #0066CC; cursor: pointer; font-size: 16px; }
 .btn:hover { background: #0052A3; }
-.btn:disabled { background: #ccc; cursor: not-allowed; }
+.btn:disabled { background: #ffffff; cursor: not-allowed; }
 .messages-section { border: 1px solid #ddd; padding: 8px; min-height: 200px; max-height: 400px; overflow-y: auto; }
 .msg { margin: 2px 0; padding: 2px 0; }
-.msg.pinned { background: #FFFACD; padding: 6px 8px; border: 1px solid #FF6600; border-left: 4px solid #FF6600; font-weight: bold; }
+.msg.pinned { background: #ffffff; padding: 6px 8px; border: 1px solid #FF6600; border-left: 4px solid #FF6600; font-weight: bold; }
 .msg.clickable { cursor: pointer; padding: 2px 4px; border-radius: 2px; }
-.msg.clickable:hover { background-color: #f0f0f0; }
+.msg.clickable:hover { background: #ffffff; }
 .gray { color: #666; }
 .pager { display: flex; gap: 8px; align-items: center; }
 .page-input { width: 50px; padding: 2px 4px; border: 1px solid #ccc; text-align: center; }

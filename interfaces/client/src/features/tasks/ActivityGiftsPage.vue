@@ -130,7 +130,7 @@ onMounted(fetchActivity)
   min-height: 100vh;
   padding: 10px;
   color: #000;
-  font-size: 14px;
+  font-size: 17px;
   line-height: 1.6;
 }
 

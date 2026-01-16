@@ -178,7 +178,7 @@ const goHome = () => {
 
 <style scoped>
 .battle-page {
-  background: #FFF8DC;
+  background: #ffffff;
   min-height: 100vh;
   padding: 8px 12px;
   font-size: 13px;
@@ -247,7 +247,7 @@ const goHome = () => {
 .summary {
   margin-top: 12px;
   padding: 8px;
-  background: #FFFACD;
+  background: #ffffff;
   border: 1px solid #DDD;
 }
 

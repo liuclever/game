@@ -52,7 +52,7 @@
 
     <!-- 返回链接 -->
     <div class="section">
-      <a class="link" @click="router.push('/arena/index')">返回前页</a>
+      <a class="link" @click="router.push('/arena/streak')">返回连胜竞技场</a>
     </div>
 
     <div class="section">
@@ -142,7 +142,7 @@ export default {
 
 <style scoped>
 .battle-page {
-  background: #FFF8DC;
+  background: #ffffff;
   min-height: 100vh;
   padding: 8px 12px;
   font-size: 13px;

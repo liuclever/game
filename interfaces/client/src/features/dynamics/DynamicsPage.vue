@@ -94,7 +94,7 @@ onMounted(() => { loadDynamics(1) })
 </template>
 
 <style scoped>
-.dynamics-page { background: #FFF8DC; min-height: 100vh; padding: 8px 12px; font-size: 13px; line-height: 1.6; font-family: SimSun, "宋体", serif; }
+.dynamics-page { background: #ffffff; min-height: 100vh; padding: 8px 12px; font-size: 16px; line-height: 1.6; font-family: SimSun, "宋体", serif; }
 .section { margin: 4px 0; }
 .title { font-weight: bold; margin-bottom: 8px; }
 .dynamics-list { border: 1px solid #ddd; padding: 8px; min-height: 200px; }
@@ -102,7 +102,7 @@ onMounted(() => { loadDynamics(1) })
 .gray { color: #666; }
 .pager { display: flex; gap: 8px; align-items: center; }
 .page-input { width: 50px; padding: 2px 4px; border: 1px solid #ccc; text-align: center; }
-.btn { padding: 4px 12px; background: #0066CC; color: white; border: 1px solid #0066CC; cursor: pointer; font-size: 13px; }
+.btn { padding: 4px 12px; background: #0066CC; color: white; border: 1px solid #0066CC; cursor: pointer; font-size: 16px; }
 .link { color: #0066CC; cursor: pointer; text-decoration: underline; }
 .link:hover { text-decoration: underline; }
 .player-name { color: #0066CC; }

@@ -106,10 +106,10 @@ onMounted(() => {
 
 <style scoped>
 .alliance-talent-page {
-  background: #fff8dc;
+  background: #ffffff;
   min-height: 100vh;
   padding: 12px 16px;
-  font-size: 13px;
+  font-size: 16px;
   line-height: 1.8;
   font-family: SimSun, '宋体', serif;
 }
@@ -120,7 +120,7 @@ onMounted(() => {
 
 .title {
   font-weight: bold;
-  font-size: 15px;
+  font-size: 18px;
 }
 
 .talent-item {
@@ -138,18 +138,18 @@ onMounted(() => {
 
 .cost {
   color: #8b5e00;
-  font-size: 12px;
+  font-size: 18px;
 }
 
 .tip {
   color: #555;
-  font-size: 12px;
+  font-size: 18px;
   margin-left: 6px;
 }
 
 .cost-tip {
   color: #8a5c00;
-  font-size: 12px;
+  font-size: 18px;
 }
 
 .divider {
@@ -174,13 +174,13 @@ onMounted(() => {
 
 .muted {
   color: #999;
-  font-size: 12px;
+  font-size: 18px;
 }
 
 .footer-info {
   margin-top: 16px;
   color: #777;
-  font-size: 11px;
+  font-size: 17px;
   border-top: 1px solid #eee;
   padding-top: 8px;
 }

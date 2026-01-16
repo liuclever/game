@@ -153,7 +153,7 @@ onMounted(() => {
 .ranking-page {
   padding: 10px;
   font-size: 14px;
-  background: #f5f5dc;
+  background: #FFFFFF;
   min-height: 100vh;
 }
 

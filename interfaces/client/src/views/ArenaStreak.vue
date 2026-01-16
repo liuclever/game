@@ -11,7 +11,7 @@
     <template v-else>
       <!-- 当前连胜王 -->
       <div class="section">
-        当前连胜王: {{ streakKing.nickname }} - {{ streakKing.streak }}连胜
+        当前连胜王: <a class="link username" @click="viewPlayer(streakKing.user_id)" v-if="streakKing.user_id">{{ streakKing.nickname }}</a><span v-else>{{ streakKing.nickname }}</span> - {{ streakKing.streak }}连胜
       </div>
 
       <!-- 我的连胜 -->
@@ -23,7 +23,7 @@
       <div class="section">
         <div class="section indent">
           <span v-for="(opp, idx) in opponents" :key="opp.user_id">
-            {{ opp.nickname }} ({{ opp.level }}级). <a class="link" @click="battle(opp.user_id)">切磋</a>
+            <a class="link username" @click="viewPlayer(opp.user_id)">{{ opp.nickname }}</a> ({{ opp.level }}级). <a class="link" @click="battle(opp.user_id)">切磋</a>
             <span v-if="idx < opponents.length - 1"> / </span>
           </span>
         </div>
@@ -55,7 +55,7 @@
       </div>
       <div class="section indent" v-if="showRanking">
         <div v-for="(r, idx) in ranking" :key="idx">
-          {{ idx + 1 }}. {{ r.nickname }} - {{ r.streak }}连胜
+          {{ idx + 1 }}. <a class="link username" @click="viewPlayer(r.user_id)" v-if="r.user_id">{{ r.nickname }}</a><span v-else>{{ r.nickname }}</span> - {{ r.streak }}连胜
         </div>
       </div>
 
@@ -65,7 +65,7 @@
       </div>
       <div class="section indent" v-if="showHistory">
         <div v-for="h in history" :key="h.date">
-          {{ h.date }} - {{ h.nickname }} ({{ h.streak }}连胜)
+          {{ h.date }} - <a class="link username" @click="viewPlayer(h.user_id)" v-if="h.user_id">{{ h.nickname }}</a><span v-else>{{ h.nickname }}</span> ({{ h.streak }}连胜)
         </div>
       </div>
     </template>
@@ -156,8 +156,8 @@ export default {
         console.log('收到响应:', res.data);
         
         if (res.data.ok) {
-          // 存储战报数据到 sessionStorage
-          sessionStorage.setItem('arena_streak_battle_data', JSON.stringify(res.data));
+          // 存储战报数据到 sessionStorage（注意：战报数据在 battle 字段中）
+          sessionStorage.setItem('arena_streak_battle_data', JSON.stringify(res.data.battle));
           
           console.log('跳转到战报页面...');
           // 跳转到战报页面
@@ -187,13 +187,40 @@ export default {
     },
     
     async refresh() {
+      // 清除之前的消息
+      this.battleResult = null;
+      
       try {
         const res = await axios.post('/api/arena-streak/refresh');
         if (res.data.ok) {
+          // 显示成功消息
+          this.battleResult = {
+            victory: true,
+            message: res.data.message || '刷新成功！'
+          };
+          // 重新加载信息（包括新的对手列表和刷新倒计时）
           await this.loadInfo();
+          // 重置倒计时为300秒
+          this.refreshSeconds = 300;
+          
+          // 3秒后自动清除消息
+          setTimeout(() => {
+            this.battleResult = null;
+          }, 3000);
+        } else {
+          // 显示错误消息
+          this.battleResult = {
+            victory: false,
+            message: res.data.error || '刷新失败'
+          };
         }
       } catch (err) {
         console.error('刷新失败', err);
+        // 显示错误消息
+        this.battleResult = {
+          victory: false,
+          message: err.response?.data?.error || '刷新失败，请稍后重试'
+        };
       }
     },
     
@@ -263,6 +290,12 @@ export default {
         6: '铜钱15万+重生丹2+神·逆鳞碎片1'
       };
       return rewards[level] || '';
+    },
+    
+    viewPlayer(userId) {
+      if (userId) {
+        this.router.push({ path: '/player/detail', query: { id: userId } });
+      }
     }
   }
 };
@@ -270,7 +303,7 @@ export default {
 
 <style scoped>
 .arena-streak-page {
-  background: #FFF8DC;
+  background: #ffffff;
   min-height: 100vh;
   padding: 8px 12px;
   font-size: 13px;
@@ -299,5 +332,10 @@ export default {
 
 .link:hover {
   text-decoration: underline;
+}
+
+.link.username {
+  color: #CC3300;
+  font-weight: bold;
 }
 </style>

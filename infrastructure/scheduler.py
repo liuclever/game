@@ -23,8 +23,11 @@ from infrastructure.db.player_beast_repo_mysql import MySQLPlayerBeastRepo
 from infrastructure.db.immortalize_pool_repo_mysql import MySQLImmortalizePoolRepo
 
 from infrastructure.db.battlefield_repo_mysql import MySQLBattlefieldBattleRepo
+from infrastructure.db.alliance_repo_mysql import MySQLAllianceRepo
 from application.services.battlefield_service import BattlefieldService
 from application.services.immortalize_pool_service import ImmortalizePoolService
+from application.services.alliance_service import AllianceService
+from application.services.inventory_service import InventoryService
 from domain.services.king_final_service import (
     reset_weekly_registration,
     advance_to_finals,
@@ -187,6 +190,129 @@ def _run_king_final_stage(stage: str):
         logger.exception(f"[Scheduler] 召唤之王{stage}强赛失败: {e}")
 
 
+def _run_alliance_season_rewards():
+    """每月最后一天23:59发放盟战赛季奖励"""
+    logger.info("[Scheduler] 开始执行盟战赛季奖励发放任务")
+    try:
+        from datetime import datetime
+        now = datetime.utcnow()
+        # 获取当月的赛季（在最后一天发放当月的奖励）
+        season_key = f"{now.year}-{now.month:02d}"
+        
+        # 初始化服务
+        alliance_repo = MySQLAllianceRepo()
+        player_repo = MySQLPlayerRepo()
+        from infrastructure.db.inventory_repo_mysql import MySQLInventoryRepo
+        from infrastructure.config.item_repo_from_config import ConfigItemRepo
+        inventory_repo = MySQLInventoryRepo()
+        item_repo = ConfigItemRepo()
+        inventory_service = InventoryService(item_repo=item_repo, inventory_repo=inventory_repo)
+        from infrastructure.db.player_beast_repo_mysql import MySQLPlayerBeastRepo
+        beast_repo = MySQLPlayerBeastRepo()
+        
+        alliance_service = AllianceService(
+            alliance_repo=alliance_repo,
+            player_repo=player_repo,
+            inventory_service=inventory_service,
+            beast_repo=beast_repo,
+        )
+        
+        result = alliance_service.distribute_season_rewards(season_key)
+        if result.get("ok"):
+            logger.info(
+                f"[Scheduler] 盟战赛季奖励发放成功，赛季={season_key}, "
+                f"发放联盟数={result.get('count', 0)}"
+            )
+            for dist in result.get("distributed", []):
+                logger.info(
+                    f"[Scheduler] 联盟{dist.get('alliance_name')}（第{dist.get('rank')}名）"
+                    f"奖励已发放给{dist.get('success_count', 0)}/{dist.get('member_count', 0)}名成员"
+                )
+        else:
+            logger.warning(f"[Scheduler] 盟战赛季奖励发放失败: {result.get('error')}")
+    except Exception as e:
+        logger.exception(f"[Scheduler] 盟战赛季奖励发放异常: {e}")
+    
+    logger.info("[Scheduler] 盟战赛季奖励发放任务完成")
+
+
+def _run_alliance_war_battle():
+    """每周三和周六20:00自动执行盟战对战"""
+    logger.info("[Scheduler] 开始执行盟战自动对战任务")
+    try:
+        from infrastructure.db.alliance_repo_mysql import MySQLAllianceRepo
+        from infrastructure.db.player_repo_mysql import MySQLPlayerRepo
+        from infrastructure.db.player_beast_repo_mysql import MySQLPlayerBeastRepo
+        from application.services.alliance_battle_service import AllianceBattleService
+        from application.services.beast_pvp_service import BeastPvpService
+        
+        alliance_repo = MySQLAllianceRepo()
+        player_repo = MySQLPlayerRepo()
+        player_beast_repo = MySQLPlayerBeastRepo()
+        beast_pvp_service = BeastPvpService()
+        
+        battle_service = AllianceBattleService(
+            alliance_repo=alliance_repo,
+            player_repo=player_repo,
+            player_beast_repo=player_beast_repo,
+            beast_pvp_service=beast_pvp_service,
+        )
+        
+        # 所有土地ID（1-4）
+        land_ids = [1, 2, 3, 4]
+        total_battles = 0
+        success_count = 0
+        
+        for land_id in land_ids:
+            try:
+                # 配对联盟
+                pair_result = battle_service.lock_and_pair_land(land_id)
+                if not pair_result.get("ok"):
+                    error = pair_result.get("error", "未知错误")
+                    if "至少需要两个联盟报名" not in error:
+                        logger.warning(f"[Scheduler] 土地 {land_id} 配对失败: {error}")
+                    continue
+                
+                battles = pair_result.get("battles", [])
+                if not battles:
+                    continue
+                
+                total_battles += len(battles)
+                
+                # 执行每场对战的所有回合
+                for battle_info in battles:
+                    battle_id = battle_info["battle_id"]
+                    left_alliance_id = battle_info["left_alliance_id"]
+                    right_alliance_id = battle_info["right_alliance_id"]
+                    
+                    # 循环推进回合直到战斗结束
+                    while True:
+                        advance_result = battle_service.advance_round(battle_id)
+                        if not advance_result.get("ok"):
+                            logger.warning(
+                                f"[Scheduler] 土地 {land_id} 对战 {battle_id} 推进失败: {advance_result.get('error')}"
+                            )
+                            break
+                        
+                        if advance_result.get("battle_finished"):
+                            success_count += 1
+                            logger.info(
+                                f"[Scheduler] 土地 {land_id} 对战 {battle_id} 完成: "
+                                f"联盟 {left_alliance_id} vs 联盟 {right_alliance_id}"
+                            )
+                            break
+                
+            except Exception as e:
+                logger.exception(f"[Scheduler] 土地 {land_id} 对战执行异常: {e}")
+        
+        logger.info(
+            f"[Scheduler] 盟战自动对战任务完成，共执行 {total_battles} 场对战，"
+            f"成功完成 {success_count} 场"
+        )
+    except Exception as e:
+        logger.exception(f"[Scheduler] 盟战自动对战任务异常: {e}")
+
+
 def start_scheduler():
     """启动后台调度器（应在应用启动时调用一次）"""
     global _scheduler
@@ -253,8 +379,42 @@ def start_scheduler():
             replace_existing=True,
         )
     
+    # ===== 盟战赛季奖励定时任务 =====
+    # 每月最后一天 23:59 - 发放赛季奖励
+    _scheduler.add_job(
+        _run_alliance_season_rewards,
+        trigger="cron",
+        day="last",
+        hour=23,
+        minute=59,
+        id="alliance_season_rewards",
+        replace_existing=True,
+    )
+    
+    # ===== 盟战自动对战定时任务 =====
+    # 周三 20:00 - 第一次盟战自动对战
+    _scheduler.add_job(
+        _run_alliance_war_battle,
+        trigger="cron",
+        day_of_week="wed",
+        hour=20,
+        minute=0,
+        id="alliance_war_battle_wed",
+        replace_existing=True,
+    )
+    # 周六 20:00 - 第二次盟战自动对战
+    _scheduler.add_job(
+        _run_alliance_war_battle,
+        trigger="cron",
+        day_of_week="sat",
+        hour=20,
+        minute=0,
+        id="alliance_war_battle_sat",
+        replace_existing=True,
+    )
+    
     _scheduler.start()
-    logger.info("[Scheduler] 后台调度器已启动，包含召唤之王定时任务")
+    logger.info("[Scheduler] 后台调度器已启动，包含召唤之王定时任务、盟战赛季奖励任务和盟战自动对战任务")
 
 
 def shutdown_scheduler():

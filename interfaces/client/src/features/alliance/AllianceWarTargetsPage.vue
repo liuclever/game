@@ -1,8 +1,13 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { fetchWarTargets } from '@/api/alliance'
 
 const router = useRouter()
+
+const landTargets = ref([])
+const loading = ref(true)
+const error = ref('')
 
 const goAlliance = () => {
   router.push('/alliance')
@@ -16,12 +21,26 @@ const goDetail = (landId) => {
   router.push(`/alliance/war/land/${landId}`)
 }
 
-const landTargets = ref([
-  { id: 1, label: '林中空地1号土地', owner: 'ぜ紫月遮天づ' },
-  { id: 2, label: '幻灵镇1号土地', owner: '蹲街_浅/唱_季`沫✨' },
-  { id: 4, label: '林中空地1号据点', owner: '无' },
-  { id: 5, label: '幻灵镇1号据点', owner: '明月' },
-])
+const loadWarTargets = async () => {
+  loading.value = true
+  error.value = ''
+  try {
+    const res = await fetchWarTargets()
+    if (res?.ok && res.data?.lands) {
+      landTargets.value = res.data.lands
+    } else {
+      error.value = res?.error || '获取土地列表失败'
+    }
+  } catch (err) {
+    error.value = err?.response?.data?.error || '网络异常，稍后重试'
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(() => {
+  loadWarTargets()
+})
 </script>
 
 <template>
@@ -29,14 +48,18 @@ const landTargets = ref([
     <div class="section title">【土地详情】</div>
     <div class="section header">序号.土地.占领联盟</div>
 
-    <div
-      v-for="(land, index) in landTargets"
-      :key="land.id"
-      class="section row clickable"
-      @click="goDetail(land.id)"
-    >
-      {{ index + 1 }}.<span class="blue">{{ land.label }}.</span> {{ land.owner }}
-    </div>
+    <div v-if="loading" class="section status">加载中...</div>
+    <div v-else-if="error" class="section error">{{ error }}</div>
+    <template v-else>
+      <div
+        v-for="(land, index) in landTargets"
+        :key="land.id"
+        class="section row clickable"
+        @click="goDetail(land.id)"
+      >
+        {{ index + 1 }}.<span class="blue">{{ land.label }}.</span> {{ land.owner }}
+      </div>
+    </template>
 
     <div class="section footer-links">
       <div @click="goAlliance" class="link">返回联盟</div>
@@ -51,7 +74,7 @@ const landTargets = ref([
   min-height: 100vh;
   padding: 12px 16px 24px;
   font-family: 'SimSun', '宋体', serif;
-  font-size: 13px;
+  font-size: 16px;
   line-height: 1.6;
   color: #000000;
 }

@@ -64,87 +64,38 @@ onMounted(() => {
 
 <template>
   <div class="warehouse-page">
-    <div v-if="loading" class="section">加载中...</div>
-    <div v-else-if="errorMsg" class="section error">{{ errorMsg }}</div>
+    <div v-if="loading">加载中...</div>
+    <div v-else-if="errorMsg">{{ errorMsg }}</div>
     <template v-else-if="allianceData">
-      <div class="section title">【联盟仓库】</div>
-      <div class="section donate">
-        <a class="link" @click="donateResources">捐赠物资>></a>
+      <div>【联盟仓库】</div>
+      <div><a class="link" @click="donateResources">捐赠物资>></a></div>
+      <div v-for="item in statList" :key="item.label">
+        {{ item.label }}：{{ item.value }}
       </div>
-      <div class="section stats">
-        <div v-for="item in statList" :key="item.label" class="stat-item">
-          {{ item.label }}：{{ item.value }}
-        </div>
-      </div>
-
-      <div class="section nav">
-        <a class="link" @click="goToItemStorage">进入寄存仓库</a><br />
-        <a class="link" @click="goBackAlliance">返回联盟</a><br />
-        <a class="link" @click="goHome">返回游戏首页</a>
-      </div>
-
+      <div><a class="link" @click="goBackAlliance">返回联盟</a></div>
+      <div><a class="link" @click="goHome">返回游戏首页</a></div>
     </template>
-    <div v-else class="section">尚未加入联盟，无法查看仓库</div>
+    <div v-else>尚未加入联盟，无法查看仓库</div>
   </div>
 </template>
 
 <style scoped>
 .warehouse-page {
-  background: #fffef6;
+  background: #ffffff;
   min-height: 100vh;
-  padding: 10px 18px;
-  font-size: 13px;
-  line-height: 1.7;
-  font-family: SimSun, '宋体', serif;
-}
-
-.section {
-  margin: 8px 0;
-}
-
-.title {
-  font-size: 16px;
-  font-weight: bold;
-  color: #4a2b05;
-}
-
-.donate {
-  color: #7a4e12;
-}
-
-.stats {
-  border: 1px solid #e2d3aa;
   padding: 8px 12px;
-  background: #fffaf0;
-  border-radius: 4px;
-}
-
-.stat-item + .stat-item {
-  margin-top: 4px;
-}
-
-.nav {
-  margin-top: 12px;
-}
-
-.footer-info {
-  margin-top: 18px;
-  font-size: 11px;
-  color: #777;
-  border-top: 1px solid #ddd;
-  padding-top: 8px;
+  font-size: 16px;
+  line-height: 1.6;
+  font-family: SimSun, "宋体", serif;
 }
 
 .link {
-  color: #0066cc;
+  color: #0066CC;
   cursor: pointer;
+  text-decoration: none;
 }
 
 .link:hover {
   text-decoration: underline;
-}
-
-.error {
-  color: #c0392b;
 }
 </style>

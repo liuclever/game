@@ -14,6 +14,12 @@ const signinInfo = ref({
   signinDays: [] // 本月已签到的日期
 })
 
+const rewardStatus = ref({
+  7: { claimed: false, canClaim: false },
+  15: { claimed: false, canClaim: false },
+  30: { claimed: false, canClaim: false }
+})
+
 const loadSigninInfo = async () => {
   loading.value = true
   try {
@@ -27,12 +33,33 @@ const loadSigninInfo = async () => {
         currentYear: res.data.currentYear || 0,
         signinDays: res.data.signinDays || []
       }
+      
+      // 加载各个奖励的状态
+      await loadRewardStatus()
     }
   } catch (e) {
     console.error('加载签到信息失败', e)
   } finally {
     loading.value = false
   }
+}
+
+const loadRewardStatus = async () => {
+  for (const days of [7, 15, 30]) {
+    try {
+      const res = await http.get(`/signin/reward/${days}`)
+      console.log(`${days}天奖励状态:`, res.data)
+      if (res.data.ok) {
+        rewardStatus.value[days] = {
+          claimed: res.data.claimed || false,
+          canClaim: res.data.canClaim || false
+        }
+      }
+    } catch (e) {
+      console.error(`加载${days}天奖励状态失败`, e)
+    }
+  }
+  console.log('最终奖励状态:', rewardStatus.value)
 }
 
 const doSignin = async () => {
@@ -97,19 +124,22 @@ onMounted(() => {
       <!-- 礼包信息 -->
       <div class="section">
         <a class="link" @click="goReward(7)">7天礼包</a>. 
-        <span v-if="signinInfo.consecutiveDays >= 7">已领取</span>
+        <span v-if="rewardStatus[7].claimed">已领取</span>
+        <span v-else-if="rewardStatus[7].canClaim">可领取</span>
         <span v-else>未满足</span>
       </div>
       
       <div class="section">
         <a class="link" @click="goReward(15)">15天礼包</a>. 
-        <span v-if="signinInfo.consecutiveDays >= 15">已领取</span>
+        <span v-if="rewardStatus[15].claimed">已领取</span>
+        <span v-else-if="rewardStatus[15].canClaim">可领取</span>
         <span v-else>未满足</span>
       </div>
       
       <div class="section">
         <a class="link" @click="goReward(30)">30天礼包</a>. 
-        <span v-if="signinInfo.consecutiveDays >= 30">已领取</span>
+        <span v-if="rewardStatus[30].claimed">已领取</span>
+        <span v-else-if="rewardStatus[30].canClaim">可领取</span>
         <span v-else>未满足</span>
       </div>
       
@@ -128,7 +158,7 @@ onMounted(() => {
 
 <style scoped>
 .signin-page {
-  background: #FFF8DC;
+  background: #ffffff;
   min-height: 100vh;
   padding: 8px 12px;
   font-size: 13px;

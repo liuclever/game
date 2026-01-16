@@ -1,9 +1,10 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed, onMounted, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import http from '@/services/http'
 
 const router = useRouter()
+const route = useRoute()
 const loading = ref(true)
 const info = ref(null)
 const activeCategory = ref('道具')
@@ -46,13 +47,53 @@ const depositItem = async (itemId, quantity) => {
       quantity: quantity
     })
     if (res.data?.ok) {
-      await fetchStorageInfo()
+      // 跳转到成功页面
+      const item = bagItems.value.find(i => i.itemId === itemId)
+      router.push({
+        path: '/alliance/item-storage/result',
+        query: {
+          success: 'true',
+          message: res.data.message || '寄存成功',
+          operation: 'deposit',
+          itemName: item ? `${item.name} × ${quantity}` : ''
+        }
+      })
     } else {
-      alert(res.data?.error || '寄存失败')
+      // 跳转到失败页面
+      router.push({
+        path: '/alliance/item-storage/result',
+        query: {
+          success: 'false',
+          message: res.data?.error || '寄存失败',
+          operation: 'deposit'
+        }
+      })
     }
   } catch (err) {
     console.error('deposit item failed', err)
-    alert(err.response?.data?.error || '寄存失败')
+    // 检查是否有响应数据（即使状态码是400，axios也会抛出异常，但response.data可能包含错误信息）
+    const errorData = err.response?.data
+    if (errorData && typeof errorData === 'object') {
+      // 如果响应中有数据，使用响应中的错误信息
+      router.push({
+        path: '/alliance/item-storage/result',
+        query: {
+          success: 'false',
+          message: errorData.error || '寄存失败',
+          operation: 'deposit'
+        }
+      })
+    } else {
+      // 网络错误或其他异常
+      router.push({
+        path: '/alliance/item-storage/result',
+        query: {
+          success: 'false',
+          message: '寄存失败，请稍后再试',
+          operation: 'deposit'
+        }
+      })
+    }
   }
 }
 
@@ -63,17 +104,64 @@ const withdrawItem = async (storageId, quantity) => {
       quantity: quantity
     })
     if (res.data?.ok) {
-      await fetchStorageInfo()
+      // 跳转到成功页面
+      const item = storageItems.value.find(i => i.storageId === storageId)
+      router.push({
+        path: '/alliance/item-storage/result',
+        query: {
+          success: 'true',
+          message: res.data.message || '取出成功',
+          operation: 'withdraw',
+          itemName: item ? `${item.name} × ${quantity}` : ''
+        }
+      })
     } else {
-      alert(res.data?.error || '取出失败')
+      // 跳转到失败页面
+      router.push({
+        path: '/alliance/item-storage/result',
+        query: {
+          success: 'false',
+          message: res.data?.error || '取出失败',
+          operation: 'withdraw'
+        }
+      })
     }
   } catch (err) {
     console.error('withdraw item failed', err)
-    alert(err.response?.data?.error || '取出失败')
+    // 检查是否有响应数据（即使状态码是400，axios也会抛出异常，但response.data可能包含错误信息）
+    const errorData = err.response?.data
+    if (errorData && typeof errorData === 'object') {
+      // 如果响应中有数据，使用响应中的错误信息
+      router.push({
+        path: '/alliance/item-storage/result',
+        query: {
+          success: 'false',
+          message: errorData.error || '取出失败',
+          operation: 'withdraw'
+        }
+      })
+    } else {
+      // 网络错误或其他异常
+      router.push({
+        path: '/alliance/item-storage/result',
+        query: {
+          success: 'false',
+          message: '取出失败，请稍后再试',
+          operation: 'withdraw'
+        }
+      })
+    }
   }
 }
 
 onMounted(fetchStorageInfo)
+
+// 监听路由变化，如果从结果页面返回则刷新数据
+watch(() => route.query.refresh, (newVal) => {
+  if (newVal === '1') {
+    fetchStorageInfo()
+  }
+})
 
 const storageLevel = computed(() => info.value?.storage?.level || 1)
 const storageCapacity = computed(() => {
@@ -243,13 +331,13 @@ const goHome = () => router.push('/')
 <style scoped>
 div {
   font-family: SimSun, "宋体", serif;
-  font-size: 13px;
+  font-size: 16px;
   line-height: 1.6;
 }
 
 h1 {
   margin: 10px 0;
-  font-size: 13px;
+  font-size: 16px;
   font-weight: bold;
 }
 

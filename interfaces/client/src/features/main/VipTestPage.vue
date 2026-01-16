@@ -180,9 +180,9 @@ onMounted(() => {
 <style scoped>
 .test-page {
   min-height: 100vh;
-  background: #f5f5dc;
+  background: #FFFFFF;
   padding: 10px 15px;
-  font-size: 14px;
+  font-size: 17px;
   color: #333;
   font-family: 'SimSun', '宋体', serif;
   line-height: 1.8;
@@ -194,5 +194,5 @@ onMounted(() => {
 .msg { color: #006600; background: #e6ffe6; padding: 4px 8px; }
 .input-sm { width: 50px; margin: 0 4px; }
 .input-md { width: 80px; margin: 0 4px; }
-.hint { font-size: 12px; color: #666; }
+.hint { font-size: 18px; color: #666; }
 </style>

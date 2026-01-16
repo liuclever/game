@@ -240,10 +240,10 @@ const handleGoQuest = () => {
 
 <style scoped>
 .refine-aptitude-page {
-  background: #fff8dc;
+  background: #ffffff;
   min-height: 100vh;
   font-family: SimSun, '宋体', serif;
-  font-size: 13px;
+  font-size: 16px;
   line-height: 1.6;
   padding: 8px 12px 40px;
   color: #000;
@@ -262,7 +262,7 @@ const handleGoQuest = () => {
 }
 
 .note {
-  font-size: 12px;
+  font-size: 18px;
   color: #333;
 }
 
@@ -304,7 +304,7 @@ const handleGoQuest = () => {
   margin-top: 16px;
   padding-top: 8px;
   border-top: 1px solid rgba(0, 0, 0, 0.1);
-  font-size: 12px;
+  font-size: 18px;
   color: #333;
 }
 </style>

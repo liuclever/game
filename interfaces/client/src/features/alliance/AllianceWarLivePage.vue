@@ -39,11 +39,26 @@ onMounted(() => {
 const gotoLandDetail = (landId) => {
   router.push(`/alliance/war/land/${landId}`)
 }
+
+const goWar = () => {
+  router.push('/alliance/war')
+}
+
+const goAlliance = () => {
+  router.push('/alliance')
+}
+
+const goHome = () => {
+  router.push('/')
+}
 </script>
 
 <template>
   <div class="live-page">
-    <div class="section title-row">盟战直播</div>
+    <div class="section title-row">
+      盟战直播
+      <a class="link" @click.prevent="goWar">返回</a>
+    </div>
     <div class="section intro">实时查看本联盟正在进行的土地战斗</div>
 
     <div v-if="loading" class="section">加载中...</div>
@@ -75,6 +90,16 @@ const gotoLandDetail = (landId) => {
       </template>
       <div v-else class="empty">暂无对战记录</div>
     </div>
+
+    <div class="section spacer">
+      <a class="link" @click.prevent="goWar">返回盟战</a>
+    </div>
+    <div class="section">
+      <a class="link" @click.prevent="goAlliance">返回联盟</a>
+    </div>
+    <div class="section">
+      <a class="link" @click.prevent="goHome">返回游戏首页</a>
+    </div>
   </div>
 </template>
 
@@ -83,7 +108,7 @@ const gotoLandDetail = (landId) => {
   background: #ffffff;
   min-height: 100vh;
   padding: 12px 16px 20px;
-  font-size: 13px;
+  font-size: 16px;
   line-height: 1.5;
   font-family: 'SimSun', '宋体', serif;
   color: #000;
@@ -96,10 +121,27 @@ const gotoLandDetail = (landId) => {
 .title-row {
   font-weight: bold;
   font-size: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .intro {
   color: #555;
+}
+
+.link {
+  color: #0066cc;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+.spacer {
+  margin-top: 16px;
 }
 
 .battles {
@@ -124,7 +166,7 @@ const gotoLandDetail = (landId) => {
 }
 
 .land-name {
-  font-size: 14px;
+  font-size: 17px;
 }
 
 .result {

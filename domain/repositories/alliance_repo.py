@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from datetime import datetime
+from datetime import datetime, date
 from typing import Optional, List, Dict, Tuple
 from domain.entities.alliance import (
     Alliance,
@@ -300,6 +300,66 @@ class IAllianceRepo(ABC):
         """获取指定联盟在战功榜中的数据及排名"""
         pass
 
+    # === 盟战签到 ===
+    @abstractmethod
+    def has_war_checkin(self, alliance_id: int, user_id: int, war_phase: str, war_weekday: int, checkin_date: date) -> bool:
+        """检查是否已签到"""
+        pass
+
+    @abstractmethod
+    def add_war_checkin(self, alliance_id: int, user_id: int, war_phase: str, war_weekday: int, checkin_date: date, copper_reward: int) -> int:
+        """添加盟战签到记录"""
+        pass
+
+    # === 盟战战绩 ===
+    @abstractmethod
+    def add_war_battle_record(self, alliance_id: int, opponent_alliance_id: int, land_id: int, army_type: str, war_phase: str, war_date: date, battle_result: str, honor_gained: int, battle_id: Optional[int] = None) -> int:
+        """添加盟战战绩记录"""
+        pass
+
+    @abstractmethod
+    def list_war_battle_records(self, alliance_id: int, limit: int = 50) -> List[Dict]:
+        """获取联盟战绩列表"""
+        pass
+
+    # === 战功兑换 ===
+    @abstractmethod
+    def add_war_honor_exchange(self, alliance_id: int, user_id: int, exchange_type: str, honor_cost: int, item_id: int, item_name: str, item_quantity: int) -> int:
+        """添加战功兑换记录"""
+        pass
+
+    @abstractmethod
+    def list_war_honor_exchanges(self, alliance_id: int, limit: int = 50) -> List[Dict]:
+        """获取战功兑换记录列表"""
+        pass
+
+    # === 赛季奖励 ===
+    @abstractmethod
+    def get_season_reward(self, alliance_id: int, season_key: str) -> Optional[Dict]:
+        """获取赛季奖励记录"""
+        pass
+
+    @abstractmethod
+    def add_season_reward(self, alliance_id: int, season_key: str, rank: int, copper_reward: int, items_json: str) -> int:
+        """添加赛季奖励记录"""
+        pass
+
+    @abstractmethod
+    def distribute_season_rewards(self, season_key: str) -> List[Dict]:
+        """发放赛季奖励（返回发放记录）"""
+        pass
+
+    # === 土地占领 ===
+    @abstractmethod
+    def get_land_occupation(self, land_id: int) -> Optional[Dict]:
+        """获取土地占领情况"""
+        pass
+
+    @abstractmethod
+    def set_land_occupation(self, land_id: int, alliance_id: int, war_phase: str, war_date: date) -> int:
+        """设置土地占领"""
+        pass
+
     # === 土地报名 ===
     @abstractmethod
     def get_land_registration(self, alliance_id: int, land_id: int) -> Optional[AllianceRegistration]:
@@ -471,4 +531,14 @@ class IAllianceRepo(ABC):
     @abstractmethod
     def update_training_room_status(self, room_id: int, status: str) -> None:
         """更新修行房间状态"""
+        pass
+
+    @abstractmethod
+    def has_claimed_fire_ore_today(self, user_id: int) -> bool:
+        """检查玩家今日是否已领取火能原石"""
+        pass
+
+    @abstractmethod
+    def record_fire_ore_claim(self, user_id: int) -> None:
+        """记录火能原石领取"""
         pass

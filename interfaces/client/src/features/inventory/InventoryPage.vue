@@ -1,4 +1,5 @@
 <script setup>
+import { useMessage } from '@/composables/useMessage'
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import http from '@/services/http'
@@ -7,6 +8,8 @@ const route = useRoute()
 const router = useRouter()
 
 // 背包数据
+const { message, messageType, showMessage } = useMessage()
+
 const items = ref([])
 const tempItems = ref([])  // 临时背包
 const loading = ref(true)
@@ -47,7 +50,7 @@ const loadInventory = async () => {
       // 如果有转移的物品，显示提示
       if (transferred.value.length > 0) {
         const names = transferred.value.map(t => `${t.name}x${t.quantity}`).join('、')
-        alert(`临时背包物品已自动转入背包：${names}`)
+        showMessage(`临时背包物品已自动转入背包：${names}`, 'success')
       }
     }
   } catch (e) {
@@ -103,6 +106,9 @@ onMounted(() => {
 // 过滤后的物品
 const filteredItems = computed(() => {
   let result = items.value
+  
+  // 过滤掉数量为0的物品
+  result = result.filter(item => item.quantity > 0)
   
   // 按类型筛选
   if (currentCategory.value !== 'all') {
@@ -179,36 +185,23 @@ const goToPage = () => {
   }
 }
 
-// 使用物品
-const useItem = async (item) => {
-  const isPrestigeStone = item.item_id === 12001
-  if (item.type !== 'consumable' && !isPrestigeStone) {
-    alert('该物品不可直接使用')
-    return
-  }
+// 跳转到道具详情页
+const viewItemDetail = (item) => {
+  router.push({ path: '/inventory/item/detail', query: { id: item.id } })
+}
 
-  const isSummonBall = item.name.includes('召唤球')
-  const actionName = isSummonBall ? '开启' : '使用'
+import { getItemUseRoute } from '@/utils/itemUseRoutes'
 
-  if (!confirm(`确定要${actionName} ${item.name} 吗？`)) {
-    return
-  }
-
-  try {
-    const res = await http.post('/inventory/use', {
-      id: item.id,
-      quantity: 1
-    })
-
-    if (res.data.ok) {
-      alert(res.data.message || `${actionName}成功！`)
-      loadInventory() // 刷新背包
-    } else {
-      alert(`使用失败: ${res.data.error || '未知错误'}`)
-    }
-  } catch (e) {
-    console.error('使用物品失败', e)
-    alert('请求失败，请稍后再试')
+// 跳转到使用选择页或特殊使用窗口
+const openUseSelect = (item) => {
+  // 检查是否有特殊的使用路由
+  const useRoute = getItemUseRoute(item.item_id, item.name)
+  if (useRoute) {
+    // 直接跳转到对应的使用窗口
+    router.push(useRoute)
+  } else {
+    // 没有特殊路由的道具，跳转到使用选择页
+    router.push({ path: '/inventory/item/use', query: { id: item.id } })
   }
 }
 
@@ -216,7 +209,7 @@ const DRAGONPALACE_EXPLORE_GIFT_ITEM_ID = 93001
 
 const openTempGift = (item) => {
   if (!item || item.item_id !== DRAGONPALACE_EXPLORE_GIFT_ITEM_ID) {
-    alert('该物品暂不支持在此打开')
+    showMessage('该物品暂不支持在此打开', 'info')
     return
   }
   router.push({ path: '/dragonpalace/gift-open', query: { inv_item_id: item.id } })
@@ -254,13 +247,18 @@ const handleLink = (name) => {
   if (routes[name]) {
     router.push(routes[name])
   } else {
-    alert(`点击了: ${name}`)
+    showMessage(`点击了: ${name}`, 'info')
   }
 }
 </script>
 
 <template>
   <div class="inventory-page">
+    <!-- 消息提示 -->
+    <div v-if="message" class="message" :class="messageType">
+      {{ message }}
+    </div>
+
     <!-- 背包标题 -->
     <div class="section title">
       【{{ bagInfo.bag_name || '背包' }}({{ bagInfo.used_slots }}/{{ bagInfo.capacity }})】 <a class="link" @click="handleLink('升级')">升级</a>
@@ -327,7 +325,12 @@ const handleLink = (name) => {
         背包空空如也...
       </div>
       <div v-for="item in pagedItems" :key="item.id" class="section">
-        <a class="link" @click="useItem(item)">{{ item.name }}</a>×{{ item.quantity }}
+        <a class="link" @click="viewItemDetail(item)">{{ item.name }}</a>×{{ item.quantity }}
+        <a 
+          v-if="item.can_use_or_open && item.action_name" 
+          class="link action-link" 
+          @click.stop="openUseSelect(item)"
+        >{{ item.action_name }}</a>
       </div>
     </div>
 
@@ -338,11 +341,16 @@ const handleLink = (name) => {
         临时背包为空
       </div>
       <div v-for="item in tempItems" :key="item.id" class="section">
-        <a class="link">{{ item.name }}</a>×{{ item.quantity }}
+        <a class="link" @click="viewItemDetail(item)">{{ item.name }}</a>×{{ item.quantity }}
         <a
-          v-if="item.item_id === DRAGONPALACE_EXPLORE_GIFT_ITEM_ID"
-          class="link"
-          @click="openTempGift(item)"
+          v-if="item.can_use_or_open && item.action_name"
+          class="link action-link"
+          @click.stop="openUseSelect(item)"
+        >{{ item.action_name }}</a>
+        <a
+          v-else-if="item.item_id === DRAGONPALACE_EXPLORE_GIFT_ITEM_ID"
+          class="link action-link"
+          @click.stop="openTempGift(item)"
         >打开</a>
         <span class="gray small"> ({{ item.created_at }})</span>
       </div>
@@ -429,8 +437,8 @@ const handleLink = (name) => {
 .inventory-page {
   background: #ffffff;
   min-height: 100vh;
-  padding: 12px 16px;
-  font-size: 16px;
+  padding: 8px 12px;
+  font-size: 17px;
   line-height: 1.8;
   font-family: SimSun, "宋体", serif;
 }
@@ -510,4 +518,38 @@ const handleLink = (name) => {
   padding-top: 10px;
   border-top: 1px solid #CCCCCC;
 }
+
+/* 消息提示样式 */
+.message {
+  padding: 12px;
+  margin: 12px 0;
+  border-radius: 4px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.message.success {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.message.error {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.message.info {
+  background: #d1ecf1;
+  color: #0c5460;
+  border: 1px solid #bee5eb;
+}
+
+.action-link {
+  margin-left: 8px;
+  color: #CC3300;
+  font-weight: bold;
+}
+
 </style>

@@ -923,10 +923,10 @@ onUnmounted(() => {
 
 <style scoped>
 .dungeon-page {
-  background: #FFF8DC;
+  background: #ffffff;
   min-height: 100vh;
   padding: 8px 12px;
-  font-size: 13px;
+  font-size: 16px;
   line-height: 1.6;
   font-family: SimSun, "宋体", serif;
 }
@@ -953,7 +953,7 @@ onUnmounted(() => {
   color: #CC0000;
   cursor: pointer;
   text-decoration: none;
-  font-size: 12px;
+  font-size: 18px;
   margin-left: 10px;
   border: 1px solid #CC0000;
   padding: 0 4px;
@@ -974,7 +974,7 @@ onUnmounted(() => {
 }
 
 .small {
-  font-size: 11px;
+  font-size: 17px;
 }
 
 .footer {
@@ -989,13 +989,13 @@ onUnmounted(() => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: #FFF8DC;
+  background: #ffffff;
   z-index: 100;
   padding: 8px 12px;
 }
 
 .modal-content {
-  font-size: 13px;
+  font-size: 16px;
   line-height: 1.6;
   font-family: SimSun, "宋体", serif;
 }
@@ -1048,7 +1048,7 @@ onUnmounted(() => {
 .advance-result {
   margin: 10px 0;
   padding: 8px;
-  background: #f5f5dc;
+  background: #FFFFFF;
   border: 1px solid #ccc;
   border-radius: 4px;
 }
@@ -1092,7 +1092,7 @@ onUnmounted(() => {
 }
 
 .beast-info-modal .modal-content {
-  background: #FFF8DC;
+  background: #ffffff;
   width: 80%;
   max-width: 300px;
   padding: 15px;
@@ -1108,6 +1108,6 @@ onUnmounted(() => {
 
 .beast-exp-item {
   margin-left: 10px;
-  font-size: 12px;
+  font-size: 18px;
 }
 </style>

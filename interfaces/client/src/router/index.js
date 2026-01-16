@@ -23,6 +23,9 @@ import ExchangeBusiniaoPage from '@/features/exchange/ExchangeBusiniaoPage.vue'
 import ExchangeLuoshaPage from '@/features/exchange/ExchangeLuoshaPage.vue'
 import InventoryPage from '@/features/inventory/InventoryPage.vue'
 import BagUpgradePage from '@/features/inventory/BagUpgradePage.vue'
+import ItemUseSelectPage from '@/features/inventory/ItemUseSelectPage.vue'
+import ItemUseResultPage from '@/features/inventory/ItemUseResultPage.vue'
+import ItemDetailPage from '@/features/inventory/ItemDetailPage.vue'
 import TowerPage from '@/features/tower/TowerPage.vue'
 import TowerChallengePage from '@/features/tower/TowerChallengePage.vue'
 import BattleReportPage from '@/features/tower/BattleReportPage.vue'
@@ -67,6 +70,8 @@ import ZhenYaoBattlePage from '@/features/tower/ZhenYaoBattlePage.vue'
 import LoginPage from '@/features/auth/LoginPage.vue'
 import PlayerProfilePage from '@/features/player/PlayerProfilePage.vue'
 import PlayerDetailPage from '@/features/player/PlayerDetailPage.vue'
+import BlockConfirmPage from '@/features/player/BlockConfirmPage.vue'
+import UnblockConfirmPage from '@/features/player/UnblockConfirmPage.vue'
 import MapPage from '@/features/map/MapPage.vue'
 import TeleportPage from '@/features/map/TeleportPage.vue'
 import TeleportSuccessPage from '@/features/map/TeleportSuccessPage.vue'
@@ -107,19 +112,27 @@ import AllianceWarPage from '@/features/alliance/AllianceWarPage.vue'
 import AllianceWarLivePage from '@/features/alliance/AllianceWarLivePage.vue'
 import AllianceWarRulePage from '@/features/alliance/AllianceWarRulePage.vue'
 import AllianceWarHonorPage from '@/features/alliance/AllianceWarHonorPage.vue'
+import AllianceWarHonorExchangeResultPage from '@/features/alliance/AllianceWarHonorExchangeResultPage.vue'
+import AllianceWarCheckinResultPage from '@/features/alliance/AllianceWarCheckinResultPage.vue'
 import AllianceWarRankingPage from '@/features/alliance/AllianceWarRankingPage.vue'
 import AllianceWarLandListPage from '@/features/alliance/AllianceWarTargetsPage.vue'
+import AllianceWarBattleRecordsPage from '@/features/alliance/AllianceWarBattleRecordsPage.vue'
 import AllianceWarLandDetailPage from '@/features/alliance/AllianceWarLandDetailPage.vue'
 import AllianceWarDragonSignupPage from '@/features/alliance/AllianceWarDragonSignupPage.vue'
+import AllianceWarSignupSuccessPage from '@/features/alliance/AllianceWarSignupSuccessPage.vue'
+import AllianceWarLandSignupConfirmPage from '@/features/alliance/AllianceWarLandSignupConfirmPage.vue'
+import AllianceWarLandSignupResultPage from '@/features/alliance/AllianceWarLandSignupResultPage.vue'
 import AllianceBarracksPage from '@/features/alliance/AllianceBarracksPage.vue'
 import AllianceTeamPage from '@/features/alliance/AllianceTeamPage.vue'
 import AllianceSacredBeastPage from '@/features/alliance/AllianceSacredBeastPage.vue'
 import AllianceChatPage from '@/features/alliance/AllianceChatPage.vue'
 import AllianceCouncilPage from '@/features/alliance/AllianceCouncilPage.vue'
 import AllianceNoticePage from '@/features/alliance/AllianceNoticePage.vue'
+import AllianceNoticeUpdateResultPage from '@/features/alliance/AllianceNoticeUpdateResultPage.vue'
 import AllianceMembersPage from '@/features/alliance/AllianceMembersPage.vue'
 import AllianceTalentPage from '@/features/alliance/AllianceTalentPage.vue'
 import AllianceTalentLearnPage from '@/features/alliance/AllianceTalentLearnPage.vue'
+import AllianceTalentLearnResultPage from '@/features/alliance/AllianceTalentLearnResultPage.vue'
 import AllianceTalentResearchPage from '@/features/alliance/AllianceTalentResearchPage.vue'
 import AllianceBuildingUpgradePage from '@/features/alliance/AllianceBuildingUpgradePage.vue'
 import AllianceCouncilUpgradePage from '@/features/alliance/AllianceCouncilUpgradePage.vue'
@@ -129,8 +142,16 @@ import AllianceBeastUpgradePage from '@/features/alliance/AllianceBeastUpgradePa
 import AllianceItemUpgradePage from '@/features/alliance/AllianceItemUpgradePage.vue'
 import AllianceWarehousePage from '@/features/alliance/AllianceWarehousePage.vue'
 import AllianceTrainingGroundPage from '@/features/alliance/AllianceTrainingGroundPage.vue'
+import AllianceTrainingCreateRoomPage from '@/features/alliance/AllianceTrainingCreateRoomPage.vue'
+import FireOreClaimSuccessPage from '@/features/alliance/FireOreClaimSuccessPage.vue'
 import AllianceDonatePage from '@/features/alliance/AllianceDonatePage.vue'
+import AllianceDonateResultPage from '@/features/alliance/AllianceDonateResultPage.vue'
+import AllianceCompetitionPage from '@/features/alliance/AllianceCompetitionPage.vue'
+import AllianceCompetitionRulesPage from '@/features/alliance/AllianceCompetitionRulesPage.vue'
+import AllianceCompetitionTeamRankingPage from '@/features/alliance/AllianceCompetitionTeamRankingPage.vue'
+import AllianceCompetitionSignupResultPage from '@/features/alliance/AllianceCompetitionSignupResultPage.vue'
 import AllianceItemStoragePage from '@/features/alliance/AllianceItemStoragePage.vue'
+import AllianceItemStorageResultPage from '@/features/alliance/AllianceItemStorageResultPage.vue'
 import AllianceBeastStoragePage from '@/features/alliance/AllianceBeastStoragePage.vue'
 import AllianceTrainingIntroPage from '@/features/alliance/AllianceTrainingIntroPage.vue'
 import AllianceRenamePage from '@/features/alliance/AllianceRenamePage.vue'
@@ -157,6 +178,8 @@ import DragonPalaceGiftOpenPage from '@/features/dragonpalace/DragonPalaceGiftOp
 import DragonPalacePetInfoPage from '@/features/dragonpalace/DragonPalacePetInfoPage.vue'
 import AnnouncementDetailPage from '@/features/announcement/AnnouncementDetailPage.vue'
 import LotteryResultPage from '@/features/announcement/LotteryResultPage.vue'
+import MessagePage from '@/features/common/MessagePage.vue'
+import ConfirmPage from '@/features/common/ConfirmPage.vue'
 
 const routes = [
   {
@@ -363,6 +386,21 @@ const routes = [
     path: '/inventory/upgrade',
     name: 'BagUpgrade',
     component: BagUpgradePage,
+  },
+  {
+    path: '/inventory/item/use',
+    name: 'ItemUseSelect',
+    component: ItemUseSelectPage,
+  },
+  {
+    path: '/inventory/item/result',
+    name: 'ItemUseResult',
+    component: ItemUseResultPage,
+  },
+  {
+    path: '/inventory/item/detail',
+    name: 'ItemDetail',
+    component: ItemDetailPage,
   },
   {
     path: '/tower',
@@ -574,6 +612,26 @@ const routes = [
     path: '/dynamics/battle-report',
     name: 'DynamicsBattleReport',
     component: DynamicsBattleReportPage,
+  },
+  {
+    path: '/message',
+    name: 'Message',
+    component: MessagePage,
+  },
+  {
+    path: '/confirm',
+    name: 'Confirm',
+    component: ConfirmPage,
+  },
+  {
+    path: '/block/confirm',
+    name: 'BlockConfirm',
+    component: BlockConfirmPage,
+  },
+  {
+    path: '/block/unblock',
+    name: 'UnblockConfirm',
+    component: UnblockConfirmPage,
   },
   {
     path: '/friend',
@@ -816,9 +874,24 @@ const routes = [
         component: AllianceWarHonorPage,
       },
       {
+        path: '/alliance/war/honor/exchange-result',
+        name: 'AllianceWarHonorExchangeResult',
+        component: AllianceWarHonorExchangeResultPage,
+      },
+      {
+        path: '/alliance/war/checkin-result',
+        name: 'AllianceWarCheckinResult',
+        component: AllianceWarCheckinResultPage,
+      },
+      {
         path: '/alliance/war/ranking',
         name: 'AllianceWarRanking',
         component: AllianceWarRankingPage,
+      },
+      {
+        path: '/alliance/war/battle-records',
+        name: 'AllianceWarBattleRecords',
+        component: AllianceWarBattleRecordsPage,
       },
       {
         path: '/alliance/war/targets',
@@ -835,6 +908,21 @@ const routes = [
         path: '/alliance/war/dragon-signup',
         name: 'AllianceWarDragonSignup',
         component: AllianceWarDragonSignupPage,
+      },
+      {
+        path: '/alliance/war/land-signup-confirm',
+        name: 'AllianceWarLandSignupConfirm',
+        component: AllianceWarLandSignupConfirmPage,
+      },
+      {
+        path: '/alliance/war/land-signup-result',
+        name: 'AllianceWarLandSignupResult',
+        component: AllianceWarLandSignupResultPage,
+      },
+      {
+        path: '/alliance/war/signup-success',
+        name: 'AllianceWarSignupSuccess',
+        component: AllianceWarSignupSuccessPage,
       },
       {
         path: '/alliance/barracks',
@@ -865,6 +953,11 @@ const routes = [
           path: '/alliance/notice',
           name: 'AllianceNotice',
           component: AllianceNoticePage,
+        },
+        {
+          path: '/alliance/notice/update-result',
+          name: 'AllianceNoticeUpdateResult',
+          component: AllianceNoticeUpdateResultPage,
         },
         {
           path: '/alliance/members',
@@ -917,9 +1010,19 @@ const routes = [
           component: AllianceTrainingGroundPage,
         },
         {
+          path: '/alliance/training-ground/create',
+          name: 'AllianceTrainingCreateRoom',
+          component: AllianceTrainingCreateRoomPage,
+        },
+        {
           path: '/alliance/training-intro',
           name: 'AllianceTrainingIntro',
           component: AllianceTrainingIntroPage,
+        },
+        {
+          path: '/alliance/fire-ore/success',
+          name: 'FireOreClaimSuccess',
+          component: FireOreClaimSuccessPage,
         },
         {
           path: '/alliance/rename',
@@ -933,6 +1036,11 @@ const routes = [
           props: true,
         },
         {
+          path: '/alliance/talent/learn-result',
+          name: 'AllianceTalentLearnResult',
+          component: AllianceTalentLearnResultPage,
+        },
+        {
           path: '/alliance/warehouse',
           name: 'AllianceWarehouse',
           component: AllianceWarehousePage,
@@ -943,6 +1051,11 @@ const routes = [
           component: AllianceItemStoragePage,
         },
         {
+          path: '/alliance/item-storage/result',
+          name: 'AllianceItemStorageResult',
+          component: AllianceItemStorageResultPage,
+        },
+        {
           path: '/alliance/beast-storage',
           name: 'AllianceBeastStorage',
           component: AllianceBeastStoragePage,
@@ -951,6 +1064,46 @@ const routes = [
           path: '/alliance/donate',
           name: 'AllianceDonate',
           component: AllianceDonatePage,
+        },
+        {
+          path: '/alliance/donate/result',
+          name: 'AllianceDonateResult',
+          component: AllianceDonateResultPage,
+        },
+        {
+          path: '/alliance/competition',
+          name: 'AllianceCompetition',
+          component: AllianceCompetitionPage,
+        },
+        {
+          path: '/alliance/competition/rules',
+          name: 'AllianceCompetitionRules',
+          component: AllianceCompetitionRulesPage,
+        },
+        {
+          path: '/alliance/competition/team-ranking',
+          name: 'AllianceCompetitionTeamRanking',
+          component: AllianceCompetitionTeamRankingPage,
+        },
+        {
+          path: '/alliance/competition/elite-ranking',
+          name: 'AllianceCompetitionEliteRanking',
+          component: () => import('@/features/alliance/AllianceCompetitionEliteRankingPage.vue'),
+        },
+        {
+          path: '/alliance/competition/alliance-ranking',
+          name: 'AllianceCompetitionAllianceRanking',
+          component: () => import('@/features/alliance/AllianceCompetitionAllianceRankingPage.vue'),
+        },
+        {
+          path: '/alliance/competition/past-records',
+          name: 'AllianceCompetitionPastRecords',
+          component: () => import('@/features/alliance/AllianceCompetitionPastRecordsPage.vue'),
+        },
+        {
+          path: '/alliance/competition/signup-result',
+          name: 'AllianceCompetitionSignupResult',
+          component: AllianceCompetitionSignupResultPage,
         },
       {
         path: '/manor',

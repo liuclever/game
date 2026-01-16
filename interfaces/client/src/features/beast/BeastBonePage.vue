@@ -237,10 +237,10 @@ const goHome = () => {
 
 <style scoped>
 .bone-page {
-  background: #FFF8DC;
+  background: #ffffff;
   min-height: 100vh;
   padding: 8px 12px;
-  font-size: 13px;
+  font-size: 16px;
   line-height: 1.6;
   font-family: SimSun, "宋体", serif;
 }
@@ -323,7 +323,7 @@ const goHome = () => {
 }
 
 .small {
-  font-size: 11px;
+  font-size: 17px;
 }
 
 .enhance-btn {

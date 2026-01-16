@@ -13,9 +13,9 @@
 
 <style scoped>
 .top-bar {
-  background: #fffacd;
+  background: #ffffff;
   border-bottom: 1px solid #e5d18a;
-  font-size: 12px;
+  font-size: 18px;
 }
 
 .inner {

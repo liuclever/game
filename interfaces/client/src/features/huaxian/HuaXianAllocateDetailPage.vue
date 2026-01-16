@@ -166,10 +166,10 @@ const goHome = () => {
 
 <style scoped>
 .allocate-detail-page {
-  background: #FFF8DC;
+  background: #ffffff;
   min-height: 100vh;
   padding: 8px 12px;
-  font-size: 13px;
+  font-size: 16px;
   line-height: 1.6;
   font-family: SimSun, "宋体", serif;
 }
@@ -206,27 +206,27 @@ const goHome = () => {
 }
 
 .small {
-  font-size: 11px;
+  font-size: 17px;
 }
 
 .amount-input {
   width: 180px;
-  font-size: 12px;
+  font-size: 18px;
   border: 1px solid #CCCCCC;
   padding: 2px 4px;
 }
 
 .confirm-btn {
-  font-size: 12px;
+  font-size: 18px;
   padding: 2px 12px;
-  background: #F0F0F0;
+  background: #ffffff;
   border: 1px solid #CCCCCC;
   cursor: pointer;
   margin-left: 8px;
 }
 
 .confirm-btn:hover {
-  background: #E0E0E0;
+  background: #ffffff;
 }
 
 .footer {

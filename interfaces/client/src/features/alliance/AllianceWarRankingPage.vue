@@ -7,6 +7,7 @@ const router = useRouter()
 
 const ranking = ref([])
 const myRank = ref(null)
+const myAllianceId = ref(null)
 const page = ref(1)
 const size = ref(10)
 const total = ref(0)
@@ -29,6 +30,16 @@ const fetchRanking = async (targetPage = page.value) => {
       total.value = res.data.data.total || 0
       ranking.value = res.data.data.ranking || []
       myRank.value = res.data.data.myRank || null
+      myAllianceId.value = res.data.data.myAllianceId || null
+      
+      // 如果后端返回的 myRank 为 null，但用户的联盟ID存在且在当前页的 ranking 中，尝试找到
+      // 这样可以处理分页的情况（用户的联盟可能不在当前页，但后端已经在ranking中查找过了）
+      if (!myRank.value && myAllianceId.value) {
+        const found = ranking.value.find(r => r.allianceId === myAllianceId.value)
+        if (found) {
+          myRank.value = found
+        }
+      }
     } else {
       errorMessage.value = res.data?.error || '排行榜加载失败'
     }
@@ -76,16 +87,16 @@ onMounted(() => {
     <div class="section" v-if="errorMessage">
       <span class="warn">{{ errorMessage }}</span>
     </div>
-    <div class="section" v-else>
+    <div class="section" v-else-if="!loading">
       <template v-if="myRank">
         您的联盟排名为第{{ myRank.rank }}名 ({{ myRank.allianceName }}，战功: {{ myRank.score }})，好厉害哦！
       </template>
-      <template v-else-if="!loading">
+      <template v-else>
         您暂未入榜，继续加油！
       </template>
-      <template v-else>
-        正在加载您的联盟排名...
-      </template>
+    </div>
+    <div class="section" v-else-if="loading">
+      正在加载您的联盟排名...
     </div>
     <div class="section top-spot" v-if="ranking.length">
       天下第一联盟(恭喜)
@@ -148,10 +159,10 @@ onMounted(() => {
 
 <style scoped>
 .ranking-page {
-  background: #fff8dc;
+  background: #ffffff;
   min-height: 100vh;
   padding: 10px 14px 24px;
-  font-size: 13px;
+  font-size: 16px;
   line-height: 1.7;
   font-family: SimSun, '宋体', serif;
 }
@@ -162,7 +173,7 @@ onMounted(() => {
 
 .title-row {
   font-weight: bold;
-  font-size: 15px;
+  font-size: 18px;
 }
 
 .list-header {
@@ -193,7 +204,7 @@ onMounted(() => {
 }
 
 .small {
-  font-size: 11px;
+  font-size: 17px;
 }
 
 .pager a + a {

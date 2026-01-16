@@ -28,7 +28,7 @@
 .bottom-bar {
   background: #e5f0ff;
   border-top: 1px solid #c0d4f0;
-  font-size: 12px;
+  font-size: 18px;
 }
 
 .inner {

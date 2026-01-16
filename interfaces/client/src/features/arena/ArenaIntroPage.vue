@@ -67,8 +67,8 @@ const goHome = () => router.push('/')
 <style scoped>
 .intro-page {
   padding: 10px;
-  font-size: 14px;
-  background: #f5f5dc;
+  font-size: 17px;
+  background: #FFFFFF;
   min-height: 100vh;
 }
 .section { margin: 6px 0; line-height: 1.6; }
