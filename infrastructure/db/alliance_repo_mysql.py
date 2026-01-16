@@ -526,8 +526,8 @@ class MySQLAllianceRepo(IAllianceRepo):
 
     def create_training_room(self, room: AllianceTrainingRoom) -> int:
         sql = """
-            INSERT INTO alliance_training_rooms (alliance_id, creator_user_id, title, status, max_participants)
-            VALUES (%s, %s, %s, %s, %s)
+            INSERT INTO alliance_training_rooms (alliance_id, creator_user_id, title, status, max_participants, duration_hours)
+            VALUES (%s, %s, %s, %s, %s, %s)
         """
         return execute_insert(sql, (
             room.alliance_id,
@@ -535,11 +535,12 @@ class MySQLAllianceRepo(IAllianceRepo):
             room.title,
             room.status,
             room.max_participants,
+            getattr(room, "duration_hours", 2) or 2,  # 兼容旧数据，默认2小时
         ))
 
     def get_training_rooms(self, alliance_id: int) -> List[AllianceTrainingRoom]:
         sql = """
-            SELECT id, alliance_id, creator_user_id, title, status, max_participants, created_at, completed_at
+            SELECT id, alliance_id, creator_user_id, title, status, max_participants, duration_hours, created_at, completed_at
             FROM alliance_training_rooms
             WHERE alliance_id = %s
             ORDER BY status DESC, created_at DESC
@@ -549,7 +550,7 @@ class MySQLAllianceRepo(IAllianceRepo):
 
     def get_training_room_by_id(self, room_id: int) -> Optional[AllianceTrainingRoom]:
         sql = """
-            SELECT id, alliance_id, creator_user_id, title, status, max_participants, created_at, completed_at
+            SELECT id, alliance_id, creator_user_id, title, status, max_participants, duration_hours, created_at, completed_at
             FROM alliance_training_rooms
             WHERE id = %s
         """
@@ -639,72 +640,45 @@ class MySQLAllianceRepo(IAllianceRepo):
         execute_update(sql, (status, status, room_id))
 
     def has_claimed_fire_ore_today(self, user_id: int) -> bool:
-        """检查玩家今日是否已领取火能原石"""
-        # 使用 player 表的 last_fire_ore_claim_date 字段，如果没有该字段则返回 False
+        """检查玩家今日是否已领取火能原石（使用数据库日期确保时区一致）"""
         try:
+            # 使用数据库的CURDATE()来比较，确保时区一致
             sql = """
                 SELECT last_fire_ore_claim_date
                 FROM player
                 WHERE user_id = %s
+                AND last_fire_ore_claim_date = CURDATE()
             """
             rows = execute_query(sql, (user_id,))
-            if not rows:
-                return False
-            claim_date = rows[0].get("last_fire_ore_claim_date")
-            if not claim_date:
-                return False
-            from datetime import date, datetime
-            today = date.today()
-            
-            # 如果已经是 date 类型，直接比较
-            if isinstance(claim_date, date):
-                return claim_date == today
-            
-            # 如果是字符串，尝试解析
-            if isinstance(claim_date, str):
-                try:
-                    # 尝试解析日期字符串
-                    if 'T' in claim_date or ' ' in claim_date:
-                        claim_date = datetime.fromisoformat(claim_date.replace('Z', '+00:00')).date()
-                    else:
-                        claim_date = datetime.strptime(claim_date, '%Y-%m-%d').date()
-                    return claim_date == today
-                except (ValueError, AttributeError):
-                    return False
-            
-            # 如果是 datetime 类型，转换为 date
-            if isinstance(claim_date, datetime):
-                return claim_date.date() == today
-            
-            # 如果有 date() 方法，调用它
-            if hasattr(claim_date, 'date'):
-                try:
-                    return claim_date.date() == today
-                except:
-                    return False
-            
-            return False
+            # 如果查询到记录，说明今日已领取
+            return len(rows) > 0
         except Exception:
             # 如果字段不存在或其他错误，返回 False
             return False
 
-    def record_fire_ore_claim(self, user_id: int) -> None:
-        """记录火能原石领取"""
+    def record_fire_ore_claim(self, user_id: int) -> bool:
+        """记录火能原石领取（使用条件更新，确保原子性）
+        返回True表示更新成功（今日首次领取），False表示今日已领取过
+        """
         # 更新 player 表的 last_fire_ore_claim_date 字段
-        # 如果字段不存在，会抛出异常，但我们已经添加了字段迁移脚本
+        # 只有当今日未领取时才更新，防止并发问题
         try:
             sql = """
                 UPDATE player
                 SET last_fire_ore_claim_date = CURDATE()
                 WHERE user_id = %s
+                AND (last_fire_ore_claim_date IS NULL OR last_fire_ore_claim_date < CURDATE())
             """
-            execute_update(sql, (user_id,))
+            affected_rows = execute_update(sql, (user_id,))
+            # 如果影响行数>0，说明更新成功（今日首次领取）
+            # 如果影响行数=0，说明今日已领取过
+            return affected_rows > 0
         except Exception as e:
-            # 如果字段不存在，记录错误但不影响主流程
-            # 这种情况下，has_claimed_fire_ore_today 会始终返回 False
+            # 如果字段不存在，记录错误
             import logging
             logging.warning(f"Failed to update last_fire_ore_claim_date for user {user_id}: {e}")
-            # 不抛出异常，允许功能继续
+            # 返回False，表示无法记录（可能是字段不存在）
+            return False
 
     def update_alliance_resources(self, alliance_id: int, funds_delta: int = 0, prosperity_delta: int = 0) -> None:
         sql = "UPDATE alliances SET funds = GREATEST(0, funds + %s), prosperity = GREATEST(0, prosperity + %s) WHERE id = %s"
@@ -1260,6 +1234,7 @@ class MySQLAllianceRepo(IAllianceRepo):
             title=row.get("title"),
             status=row.get("status"),
             max_participants=row.get("max_participants"),
+            duration_hours=row.get("duration_hours", 2) or 2,  # 兼容旧数据，默认2小时
             created_at=row.get("created_at"),
             completed_at=row.get("completed_at"),
         )

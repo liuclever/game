@@ -101,8 +101,8 @@ onMounted(() => {
 .upgrade-page {
   background: #ffffff;
   min-height: 100vh;
-  padding: 10px 12px;
-  font-size: 14px;
+  padding: 8px 12px;
+  font-size: 17px;
   line-height: 1.8;
   font-family: SimSun, "宋体", serif;
 }

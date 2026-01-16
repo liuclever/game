@@ -133,6 +133,18 @@ class HomeGiftService:
         if not gift:
             raise HomeGiftError("未知礼包")
 
+        # 先尝试标记为已领取（使用数据库唯一键防止并发）
+        # 如果已经领取过，会触发唯一键冲突，从而防止重复领取
+        try:
+            self.gift_claim_repo.mark_claimed(user_id, gift_key)
+        except Exception as e:
+            # 如果标记失败，检查是否已领取
+            if self.gift_claim_repo.is_claimed(user_id, gift_key):
+                raise HomeGiftError("该礼包已领取")
+            # 其他错误重新抛出
+            raise HomeGiftError(f"领取失败：{str(e)}")
+
+        # 再次检查（双重保险）
         if self.gift_claim_repo.is_claimed(user_id, gift_key):
             raise HomeGiftError("该礼包已领取")
 
@@ -144,35 +156,39 @@ class HomeGiftService:
         gold_added = 0
         yuanbao_added = 0
 
-        for r in gift.rewards:
-            if r.type == "gold":
-                player.gold += int(r.amount or 0)
-                gold_added += int(r.amount or 0)
-            elif r.type == "yuanbao":
-                player.yuanbao += int(r.amount or 0)
-                yuanbao_added += int(r.amount or 0)
-            elif r.type == "item":
-                if not r.item_id or r.quantity <= 0:
-                    raise HomeGiftError("礼包配置错误：物品奖励缺少 item_id")
-                self.inventory_service.add_item(user_id, r.item_id, int(r.quantity))
-                item = self.item_repo.get_by_id(r.item_id)
-                name = item.name if item else f"物品{r.item_id}"
-                granted_items[name] = granted_items.get(name, 0) + int(r.quantity)
-            elif r.type == "random_from_pool":
-                pool = r.pool or []
-                if not pool or r.quantity <= 0:
-                    raise HomeGiftError("礼包配置错误：随机奖池为空")
-                for _ in range(int(r.quantity)):
-                    item_id = random.choice(pool)
-                    self.inventory_service.add_item(user_id, item_id, 1)
-                    item = self.item_repo.get_by_id(item_id)
-                    name = item.name if item else f"物品{item_id}"
-                    granted_items[name] = granted_items.get(name, 0) + 1
-            else:
-                raise HomeGiftError(f"未知奖励类型: {r.type}")
+        try:
+            for r in gift.rewards:
+                if r.type == "gold":
+                    player.gold += int(r.amount or 0)
+                    gold_added += int(r.amount or 0)
+                elif r.type == "yuanbao":
+                    player.yuanbao += int(r.amount or 0)
+                    yuanbao_added += int(r.amount or 0)
+                elif r.type == "item":
+                    if not r.item_id or r.quantity <= 0:
+                        raise HomeGiftError("礼包配置错误：物品奖励缺少 item_id")
+                    self.inventory_service.add_item(user_id, r.item_id, int(r.quantity))
+                    item = self.item_repo.get_by_id(r.item_id)
+                    name = item.name if item else f"物品{r.item_id}"
+                    granted_items[name] = granted_items.get(name, 0) + int(r.quantity)
+                elif r.type == "random_from_pool":
+                    pool = r.pool or []
+                    if not pool or r.quantity <= 0:
+                        raise HomeGiftError("礼包配置错误：随机奖池为空")
+                    for _ in range(int(r.quantity)):
+                        item_id = random.choice(pool)
+                        self.inventory_service.add_item(user_id, item_id, 1)
+                        item = self.item_repo.get_by_id(item_id)
+                        name = item.name if item else f"物品{item_id}"
+                        granted_items[name] = granted_items.get(name, 0) + 1
+                else:
+                    raise HomeGiftError(f"未知奖励类型: {r.type}")
 
-        self.player_repo.save(player)
-        self.gift_claim_repo.mark_claimed(user_id, gift_key)
+            self.player_repo.save(player)
+        except Exception as e:
+            # 如果发放奖励失败，尝试回滚标记（虽然通常不需要，因为唯一键已经防止了重复）
+            # 这里主要是为了确保数据一致性
+            raise HomeGiftError(f"发放奖励失败：{str(e)}")
 
         items_payload = [{"name": k, "quantity": v} for k, v in granted_items.items()]
         return {

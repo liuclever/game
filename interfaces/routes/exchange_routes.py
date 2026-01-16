@@ -60,7 +60,7 @@ def _exchange_beast(required: int, ball_item_id: int, success_message: str, user
     inventory_service = services.inventory_service
 
     if not inventory_service.has_item(user_id, SHEN_NILIN_FRAGMENT_ITEM_ID, required):
-        return jsonify({"ok": False, "error": f"神·逆鳞不足（需要{required}块）"}), 400
+        return jsonify({"ok": False, "error": f"神·逆鳞碎片不足（需要{required}块）"}), 400
 
     try:
         inventory_service.remove_item(user_id, SHEN_NILIN_FRAGMENT_ITEM_ID, required)

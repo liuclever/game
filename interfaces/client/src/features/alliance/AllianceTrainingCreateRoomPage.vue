@@ -21,7 +21,8 @@ const createRoom = async () => {
   
   try {
     const res = await http.post('/alliance/training-ground/rooms', { 
-      title: roomTitle.value.trim() 
+      title: roomTitle.value.trim(),
+      duration_hours: 2  // 固定2小时
     })
     
     if (res.data?.ok) {
@@ -36,6 +37,10 @@ const createRoom = async () => {
     loading.value = false
   }
 }
+
+onMounted(() => {
+  // 不再需要加载时长选项，固定2小时
+})
 
 const goBack = () => {
   router.push('/alliance/training-ground')
@@ -63,6 +68,14 @@ const goHome = () => {
         />
       </div>
       <div class="hint">提示：房间名称可选，默认为"焚天炉"</div>
+    </div>
+    
+    <div class="section">
+      <div class="form-row">
+        <label>修行时长：</label>
+        <span class="form-input" style="display: inline-block; border: none; padding: 0;">2小时（固定）</span>
+      </div>
+      <div class="hint">提示：修行需要消耗1个火能原石，请确保有足够的火能原石</div>
     </div>
     
     <div v-if="errorMsg" class="section error">{{ errorMsg }}</div>

@@ -119,11 +119,12 @@ import AllianceWarLandListPage from '@/features/alliance/AllianceWarTargetsPage.
 import AllianceWarBattleRecordsPage from '@/features/alliance/AllianceWarBattleRecordsPage.vue'
 import AllianceWarLandDetailPage from '@/features/alliance/AllianceWarLandDetailPage.vue'
 import AllianceWarDragonSignupPage from '@/features/alliance/AllianceWarDragonSignupPage.vue'
+import AllianceWarTigerSignupPage from '@/features/alliance/AllianceWarTigerSignupPage.vue'
 import AllianceWarSignupSuccessPage from '@/features/alliance/AllianceWarSignupSuccessPage.vue'
 import AllianceWarLandSignupConfirmPage from '@/features/alliance/AllianceWarLandSignupConfirmPage.vue'
 import AllianceWarLandSignupResultPage from '@/features/alliance/AllianceWarLandSignupResultPage.vue'
 import AllianceBarracksPage from '@/features/alliance/AllianceBarracksPage.vue'
-import AllianceTeamPage from '@/features/alliance/AllianceTeamPage.vue'
+// import AllianceTeamPage from '@/features/alliance/AllianceTeamPage.vue' // 功能已禁用
 import AllianceSacredBeastPage from '@/features/alliance/AllianceSacredBeastPage.vue'
 import AllianceChatPage from '@/features/alliance/AllianceChatPage.vue'
 import AllianceCouncilPage from '@/features/alliance/AllianceCouncilPage.vue'
@@ -146,10 +147,10 @@ import AllianceTrainingCreateRoomPage from '@/features/alliance/AllianceTraining
 import FireOreClaimSuccessPage from '@/features/alliance/FireOreClaimSuccessPage.vue'
 import AllianceDonatePage from '@/features/alliance/AllianceDonatePage.vue'
 import AllianceDonateResultPage from '@/features/alliance/AllianceDonateResultPage.vue'
-import AllianceCompetitionPage from '@/features/alliance/AllianceCompetitionPage.vue'
-import AllianceCompetitionRulesPage from '@/features/alliance/AllianceCompetitionRulesPage.vue'
-import AllianceCompetitionTeamRankingPage from '@/features/alliance/AllianceCompetitionTeamRankingPage.vue'
-import AllianceCompetitionSignupResultPage from '@/features/alliance/AllianceCompetitionSignupResultPage.vue'
+// import AllianceCompetitionPage from '@/features/alliance/AllianceCompetitionPage.vue' // 功能已禁用
+// import AllianceCompetitionRulesPage from '@/features/alliance/AllianceCompetitionRulesPage.vue' // 功能已禁用
+// import AllianceCompetitionTeamRankingPage from '@/features/alliance/AllianceCompetitionTeamRankingPage.vue' // 功能已禁用
+// import AllianceCompetitionSignupResultPage from '@/features/alliance/AllianceCompetitionSignupResultPage.vue' // 功能已禁用
 import AllianceItemStoragePage from '@/features/alliance/AllianceItemStoragePage.vue'
 import AllianceItemStorageResultPage from '@/features/alliance/AllianceItemStorageResultPage.vue'
 import AllianceBeastStoragePage from '@/features/alliance/AllianceBeastStoragePage.vue'
@@ -910,6 +911,11 @@ const routes = [
         component: AllianceWarDragonSignupPage,
       },
       {
+        path: '/alliance/war/tiger-signup',
+        name: 'AllianceWarTigerSignup',
+        component: AllianceWarTigerSignupPage,
+      },
+      {
         path: '/alliance/war/land-signup-confirm',
         name: 'AllianceWarLandSignupConfirm',
         component: AllianceWarLandSignupConfirmPage,
@@ -929,11 +935,11 @@ const routes = [
         name: 'AllianceBarracks',
         component: AllianceBarracksPage,
       },
-      {
-        path: '/alliance/team',
-        name: 'AllianceTeam',
-        component: AllianceTeamPage,
-      },
+      // {
+      //   path: '/alliance/team',
+      //   name: 'AllianceTeam',
+      //   component: AllianceTeamPage,
+      // }, // 功能已禁用
       {
         path: '/alliance/sacred-beast',
         name: 'AllianceSacredBeast',
@@ -1070,41 +1076,41 @@ const routes = [
           name: 'AllianceDonateResult',
           component: AllianceDonateResultPage,
         },
-        {
-          path: '/alliance/competition',
-          name: 'AllianceCompetition',
-          component: AllianceCompetitionPage,
-        },
-        {
-          path: '/alliance/competition/rules',
-          name: 'AllianceCompetitionRules',
-          component: AllianceCompetitionRulesPage,
-        },
-        {
-          path: '/alliance/competition/team-ranking',
-          name: 'AllianceCompetitionTeamRanking',
-          component: AllianceCompetitionTeamRankingPage,
-        },
-        {
-          path: '/alliance/competition/elite-ranking',
-          name: 'AllianceCompetitionEliteRanking',
-          component: () => import('@/features/alliance/AllianceCompetitionEliteRankingPage.vue'),
-        },
-        {
-          path: '/alliance/competition/alliance-ranking',
-          name: 'AllianceCompetitionAllianceRanking',
-          component: () => import('@/features/alliance/AllianceCompetitionAllianceRankingPage.vue'),
-        },
-        {
-          path: '/alliance/competition/past-records',
-          name: 'AllianceCompetitionPastRecords',
-          component: () => import('@/features/alliance/AllianceCompetitionPastRecordsPage.vue'),
-        },
-        {
-          path: '/alliance/competition/signup-result',
-          name: 'AllianceCompetitionSignupResult',
-          component: AllianceCompetitionSignupResultPage,
-        },
+        // {
+        //   path: '/alliance/competition',
+        //   name: 'AllianceCompetition',
+        //   component: AllianceCompetitionPage,
+        // },
+        // {
+        //   path: '/alliance/competition/rules',
+        //   name: 'AllianceCompetitionRules',
+        //   component: AllianceCompetitionRulesPage,
+        // },
+        // {
+        //   path: '/alliance/competition/team-ranking',
+        //   name: 'AllianceCompetitionTeamRanking',
+        //   component: AllianceCompetitionTeamRankingPage,
+        // },
+        // {
+        //   path: '/alliance/competition/elite-ranking',
+        //   name: 'AllianceCompetitionEliteRanking',
+        //   component: () => import('@/features/alliance/AllianceCompetitionEliteRankingPage.vue'),
+        // },
+        // {
+        //   path: '/alliance/competition/alliance-ranking',
+        //   name: 'AllianceCompetitionAllianceRanking',
+        //   component: () => import('@/features/alliance/AllianceCompetitionAllianceRankingPage.vue'),
+        // },
+        // {
+        //   path: '/alliance/competition/past-records',
+        //   name: 'AllianceCompetitionPastRecords',
+        //   component: () => import('@/features/alliance/AllianceCompetitionPastRecordsPage.vue'),
+        // },
+        // {
+        //   path: '/alliance/competition/signup-result',
+        //   name: 'AllianceCompetitionSignupResult',
+        //   component: AllianceCompetitionSignupResultPage,
+        // }, // 功能已禁用
       {
         path: '/manor',
         name: 'manor',

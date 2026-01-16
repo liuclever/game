@@ -10,13 +10,24 @@ const landName = route.query.land_name || ''
 const landId = route.query.land_id || ''
 const submitting = ref(false)
 
+// 根据 land_id 判断是飞龙军还是伏虎军
+// 飞龙军只能选择土地：1, 2
+// 伏虎军只能选择据点：3, 4
+const getArmyType = () => {
+  const id = parseInt(landId)
+  if (id === 3 || id === 4) {
+    return 'tiger'  // 伏虎军
+  }
+  return 'dragon'  // 飞龙军（默认）
+}
+
 const confirmSignup = async () => {
   if (submitting.value) return
   submitting.value = true
   try {
     const res = await http.post('/alliance/war/target-signup', {
       target_id: parseInt(landId),
-      army: 'dragon',
+      army: getArmyType(),
     })
     if (res.data?.ok) {
       // 跳转到成功页面

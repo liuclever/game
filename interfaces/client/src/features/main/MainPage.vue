@@ -96,7 +96,7 @@ const moving = ref(false)
 const movingTo = ref('')
 const remainingSeconds = ref(0)
 
-// 联盟战功排行（前三名）
+// 召唤大陆联盟排行（前三名）
 const allianceTop3 = ref([])
 const DUNGEONS = [
   // 林中空地
@@ -191,7 +191,7 @@ const checkAuth = async () => {
   }
 }
 
-// 加载联盟战功排行（前三名）
+// 加载召唤大陆联盟排行（前三名）
 const loadAllianceTop3 = async () => {
   try {
     const res = await http.get('/alliance/war/top3')
@@ -425,19 +425,42 @@ const stopCultivation = async () => {
   }
 }
 
+// 晋级提示消息
+const levelupMessage = ref('')
+const levelupMessageType = ref('') // success, error
+
 // 晋级
 const doLevelup = async () => {
   try {
     const res = await http.post('/player/levelup')
     if (res.data.ok) {
-      alert(res.data.message)
+      // 显示页面内提示消息，而不是弹窗
+      levelupMessage.value = res.data.message
+      levelupMessageType.value = 'success'
+      // 3秒后自动清除消息
+      setTimeout(() => {
+        levelupMessage.value = ''
+        levelupMessageType.value = ''
+      }, 3000)
       checkAuth() // 刷新用户信息
       loadCultivationStatus()
     } else {
-      alert(res.data.error)
+      // 错误消息也显示在页面内
+      levelupMessage.value = res.data.error
+      levelupMessageType.value = 'error'
+      setTimeout(() => {
+        levelupMessage.value = ''
+        levelupMessageType.value = ''
+      }, 3000)
     }
   } catch (e) {
     console.error('晋级失败', e)
+    levelupMessage.value = '晋级失败，请稍后重试'
+    levelupMessageType.value = 'error'
+    setTimeout(() => {
+      levelupMessage.value = ''
+      levelupMessageType.value = ''
+    }, 3000)
   }
 }
 
@@ -678,11 +701,14 @@ const handleLink = (name) => {
       开启新城市地图[<a class="link" @click="handleLink('定老城')">定老城</a>]<a class="link" @click="handleLink('移动')">移动</a>
     </div>
 
-    <!-- 联盟战功排行 -->
-    <div class="section title">【联盟战功排行】</div>
+    <!-- 召唤大陆联盟排行 -->
+    <div class="section title">【召唤大陆联盟排行】</div>
     <template v-if="allianceTop3.length > 0">
       <div class="section indent" v-for="alliance in allianceTop3" :key="alliance.allianceId">
-        第{{ alliance.rank }}名：{{ alliance.allianceName }}({{ alliance.allianceLevel }}级)
+        <template v-if="alliance.rank === 1">第一联盟</template>
+        <template v-else-if="alliance.rank === 2">第二联盟</template>
+        <template v-else-if="alliance.rank === 3">第三联盟</template>
+        <template v-else>第{{ alliance.rank }}名</template>：<span class="red bold">{{ alliance.allianceName }}({{ alliance.allianceLevel }}级)</span>
       </div>
     </template>
     <div class="section indent gray" v-else>
@@ -745,6 +771,10 @@ const handleLink = (name) => {
 
     <!-- 个人信息 -->
     <div class="section title">【个人信息】</div>
+    <!-- 晋级提示消息 -->
+    <div v-if="levelupMessage" class="section message" :class="levelupMessageType">
+      {{ levelupMessage }}
+    </div>
     <template v-if="isLoggedIn && currentUser">
       <div class="section indent">
         等级:<span class="bold">{{ summonerTitle }}</span>
@@ -923,6 +953,26 @@ const handleLink = (name) => {
 
 .small {
   font-size: 17px;
+}
+
+.message {
+  padding: 8px 12px;
+  margin: 8px 0;
+  border-radius: 4px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.message.success {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.message.error {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
 }
 
 .chat-box {

@@ -232,13 +232,17 @@ class WorldChatService:
                 if remaining <= 0:
                     break
                 if item.quantity <= remaining:
-                    # 删除整个临时物品记录
-                    self.inventory_service.inventory_repo.delete(item.id)
+                    # 数量不足或刚好用完，删除整个临时物品记录
                     remaining -= item.quantity
+                    self.inventory_service.inventory_repo.delete(item.id)
                 else:
                     # 减少数量
                     item.quantity -= remaining
-                    self.inventory_service.inventory_repo.save(item)
+                    # 如果减少后数量为0，删除记录；否则保存
+                    if item.quantity <= 0:
+                        self.inventory_service.inventory_repo.delete(item.id)
+                    else:
+                        self.inventory_service.inventory_repo.save(item)
                     remaining = 0
         
         # 如果临时背包不够，从正式背包扣除剩余数量（遍历所有小喇叭ID）

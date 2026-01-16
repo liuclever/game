@@ -356,6 +356,7 @@
   {"id": 6021, "name": "鼓舞丹", "type": "consumable", "description": "提升战斗士气", "stackable": true, "max_stack": 9999},
   {"id": 6022, "name": "魔纹布", "type": "material", "description": "背包升级材料", "stackable": true, "max_stack": 9999},
   {"id": 6023, "name": "丝线", "type": "material", "description": "背包升级材料", "stackable": true, "max_stack": 9999},
+  {"id": 6024, "name": "双倍卡", "type": "consumable", "description": "地图副本宝箱/战利品掉落翻倍", "stackable": true, "max_stack": 9999},
   {"id": 6027, "name": "补签卡", "type": "consumable", "description": "补签错过的签到", "stackable": true, "max_stack": 9999},
   {"id": 6030, "name": "远古进化宝箱", "type": "consumable", "description": "开启获得进化材料", "stackable": true, "max_stack": 9999},
   {"id": 6031, "name": "洗髓丹", "type": "consumable", "description": "重置幻兽资质", "stackable": true, "max_stack": 9999},

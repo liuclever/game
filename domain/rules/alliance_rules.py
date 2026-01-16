@@ -4,11 +4,38 @@ from domain.entities.player import Player
 class AllianceRules:
     CREATE_LEVEL_REQUIREMENT = 30
     LEAGUE_LEADER_TOKEN_ID = 11001
-    TRAINING_DURATION_MINUTES = 120
+    TRAINING_DURATION_MINUTES = 120  # 默认2小时（兼容旧数据）
     TRAINING_DAILY_LIMIT = 1
     FIRE_ORE_CONTRIBUTION_COST = 5  # 领取火能原石需要消耗的贡献值
     FIRE_ORE_ITEM_ID = 1004  # 火能原石物品ID
     MIN_TRAINING_PARTICIPANTS = 2  # 开始修行所需的最少人数
+    
+    # 修行时长和活力消耗配置（小时 -> 活力）
+    TRAINING_DURATION_OPTIONS = {
+        2: {"hours": 2, "minutes": 120, "energy_cost": 16},
+        4: {"hours": 4, "minutes": 240, "energy_cost": 32},
+        8: {"hours": 8, "minutes": 480, "energy_cost": 40},
+        12: {"hours": 12, "minutes": 720, "energy_cost": 50},
+        24: {"hours": 24, "minutes": 1440, "energy_cost": 100},
+    }
+    
+    @staticmethod
+    def get_training_energy_cost(duration_hours: int) -> int:
+        """根据修行时长（小时）获取活力消耗"""
+        option = AllianceRules.TRAINING_DURATION_OPTIONS.get(duration_hours)
+        if option:
+            return option["energy_cost"]
+        # 默认值：2小时消耗16活力
+        return 16
+    
+    @staticmethod
+    def get_training_duration_minutes(duration_hours: int) -> int:
+        """根据修行时长（小时）获取分钟数"""
+        option = AllianceRules.TRAINING_DURATION_OPTIONS.get(duration_hours)
+        if option:
+            return option["minutes"]
+        # 默认值：2小时=120分钟
+        return 120
     RENAME_MIN_LENGTH = 2
     RENAME_MAX_LENGTH = 13
     RENAME_COST_YUANBAO = 1000

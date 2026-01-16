@@ -328,23 +328,25 @@ const viewBeast = (beast) => {
       <div class="section">
         战绩:{{ player.wins || 0 }}/{{ player.battles || 0 }} <a v-if="isOtherPlayer" class="link" @click="challenge">{{ sparring ? '切磋中...' : '切磋' }}</a>
       </div>
-      <div class="section">
-        挑战排名: {{ player.arena_rank || 1 }} 赛区.{{ player.arena_position || 1 }} 名
+      <div class="section" v-if="player.arena_rank && player.arena_position">
+        挑战排名: {{ player.arena_rank }} 赛区.{{ player.arena_position }} 名
       </div>
       <div class="section">
-        状态:{{ player.status || '落龙镇' }} ({{ player.status_detail || '修行中' }})
+        状态:{{ player.status || '落龙镇' }}<span v-if="player.status_detail"> ({{ player.status_detail }})</span>
+      </div>
+      <div class="section" v-if="player.mount">
+        坐骑:<span class="link readonly">{{ player.mount }}</span>
       </div>
       <div class="section">
-        坐骑:<span class="link readonly">{{ player.mount || '破天飞剑' }}</span>
+        联盟:<span v-if="player.alliance">
+          <a class="link" @click="handleLink('联盟')">{{ player.alliance }}</a>
+          <span v-if="player.alliance_title"> | {{ player.alliance_title }}</span>
+          <span v-if="player.alliance_level">({{ player.alliance_level }}级)</span>
+        </span>
+        <span v-else class="gray">未加入</span>
       </div>
-      <div class="section">
-        天赋:<span class="link readonly">查看</span>
-      </div>
-      <div class="section">
-        联盟:<a class="link" @click="handleLink('联盟')">{{ player.alliance || '暗河' }}</a> | {{ player.alliance_title || '风起云涌' }}({{ player.alliance_level || 10 }}级)
-      </div>
-      <div class="section">
-        封号:{{ player.title || '飞龙之王' }}
+      <div class="section" v-if="player.title">
+        封号:{{ player.title }}
       </div>
 
       <!-- 动态 -->

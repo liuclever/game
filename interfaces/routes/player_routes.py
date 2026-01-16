@@ -153,12 +153,12 @@ def get_player_profile():
             "arena_rank": 1,
             "arena_position": 1,
             "status": player.location,
-            "status_detail": "修行中",
-            "mount": "破天飞剑",
+            "status_detail": None,  # 不再显示默认值
+            "mount": None,  # 不再显示默认值
             "alliance": alliance_name,
             "alliance_title": None,
             "alliance_level": alliance_level,
-            "title": "飞龙之王",
+            "title": player.get_rank_name() if player.get_rank_name() else None,  # 使用实际封号，没有则不显示
         },
         "beasts": beasts_data,
         "dynamics": dynamics,

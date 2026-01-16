@@ -29,8 +29,11 @@ const zhenyaoInfo = ref({
   hellUsed: 0,          // 炼狱层今日已用次数
   trialLimit: 10,       // 试炼层每日上限
   hellLimit: 10,        // 炼狱层每日上限
-  zhenyaoFu: 125,       // 镇妖符数量（预留）
+  zhenyaoFu: 0,         // 镇妖符数量（从背包获取）
 })
+
+// 镇妖符物品ID
+const ZHENYAO_FU_ITEM_ID = 6001
 
 // 层数列表
 const floors = ref([])
@@ -46,26 +49,46 @@ const dynamicType = ref('all')  // 'all' = 全服动态, 'personal' = 个人动�
 // 动态列表（预留）
 const dynamics = ref([])
 
+// 加载镇妖符数量
+const loadZhenyaoFuCount = async () => {
+  try {
+    const res = await http.get('/inventory/item-count', {
+      params: { item_id: ZHENYAO_FU_ITEM_ID }
+    })
+    if (res.data.ok) {
+      return res.data.count || 0
+    }
+  } catch (e) {
+    console.error('加载镇妖符数量失败', e)
+  }
+  return 0
+}
+
 // 加载镇妖信息
 const loadZhenyaoInfo = async () => {
   try {
-    const res = await http.get('/zhenyao/info')
+    // 并行加载镇妖信息和镇妖符数量
+    const [zhenyaoRes, zhenyaoFuCount] = await Promise.all([
+      http.get('/zhenyao/info'),
+      loadZhenyaoFuCount()
+    ])
+    
     zhenyaoInfo.value = {
-      canZhenyao: res.data.can_zhenyao,
-      playerLevel: res.data.player_level,
-      rankName: res.data.rank_name,
-      zhenyaoRange: res.data.zhenyao_range,
-      towerMaxFloor: res.data.tower_max_floor,
-      trialCount: res.data.trial_count,
-      hellCount: res.data.hell_count,
-      trialUsed: res.data.trial_used || 0,
-      hellUsed: res.data.hell_used || 0,
-      trialLimit: res.data.trial_limit || 10,
-      hellLimit: res.data.hell_limit || 10,
-      zhenyaoFu: 125,
+      canZhenyao: zhenyaoRes.data.can_zhenyao,
+      playerLevel: zhenyaoRes.data.player_level,
+      rankName: zhenyaoRes.data.rank_name,
+      zhenyaoRange: zhenyaoRes.data.zhenyao_range,
+      towerMaxFloor: zhenyaoRes.data.tower_max_floor,
+      trialCount: zhenyaoRes.data.trial_count,
+      hellCount: zhenyaoRes.data.hell_count,
+      trialUsed: zhenyaoRes.data.trial_used || 0,
+      hellUsed: zhenyaoRes.data.hell_used || 0,
+      trialLimit: zhenyaoRes.data.trial_limit || 10,
+      hellLimit: zhenyaoRes.data.hell_limit || 10,
+      zhenyaoFu: zhenyaoFuCount,  // 从背包获取实时数量
     }
-    if (!res.data.can_zhenyao) {
-      error.value = res.data.error
+    if (!zhenyaoRes.data.can_zhenyao) {
+      error.value = zhenyaoRes.data.error
     }
   } catch (e) {
     console.error('加载镇妖信息失败', e)
@@ -231,7 +254,7 @@ const goHome = () => {
 
 const refreshSettlement = async () => {
   loading.value = true
-  await loadZhenyaoInfo()
+  await loadZhenyaoInfo()  // 这会重新加载镇妖符数量
   await loadFloors()
   await loadDynamics()
 }

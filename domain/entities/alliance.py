@@ -106,6 +106,7 @@ class AllianceTrainingRoom:
     title: str
     status: str = "ongoing"  # ongoing/completed/closed
     max_participants: int = 4
+    duration_hours: int = 2  # 修行时长（小时），默认2小时
     created_at: Optional[datetime] = None
     completed_at: Optional[datetime] = None
 

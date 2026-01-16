@@ -258,7 +258,7 @@ const handleLink = (name) => {
     <!-- 操作按钮 -->
     <div class="section">
       <a class="link" @click="autoChallenge">自动闯塔</a>
-      <a class="link suppress-btn" @click="suppress">镇妖</a>
+      <a v-if="currentTower === 'tongtian'" class="link suppress-btn" @click="suppress">镇妖</a>
     </div>
     
     <!-- 鼓舞状态 -->
