@@ -543,6 +543,44 @@ def get_alliance_barracks():
     status = 200 if result.get("ok") else 400
     return jsonify(result), status
 
+@alliance_bp.post('/members/manage-army')
+def manage_member_army():
+    """管理成员的军队分配
+    请求参数：
+    - target_user_id: 目标成员ID
+    - action: 'kick' (踢出) 或 'assign' (分配)
+    - army_type: 当action='assign'时，1=飞龙军，2=伏虎军
+    """
+    user_id = get_current_user_id()
+    if not user_id:
+        return jsonify({"ok": False, "error": "请先登录"}), 401
+    
+    data = request.get_json() or {}
+    target_user_id = data.get("target_user_id")
+    action = data.get("action")
+    army_type = data.get("army_type")
+    
+    if not target_user_id:
+        return jsonify({"ok": False, "error": "缺少目标成员ID"}), 400
+    
+    if action not in ("kick", "assign"):
+        return jsonify({"ok": False, "error": "无效的操作类型"}), 400
+    
+    # 分配时，army_type是可选的，如果不指定则根据成员等级自动决定
+    if action == "assign" and army_type is not None and army_type not in (1, 2):
+        return jsonify({"ok": False, "error": "无效的军队类型（1=飞龙军，2=伏虎军）"}), 400
+    
+    try:
+        target_user_id = int(target_user_id)
+        if army_type is not None:
+            army_type = int(army_type)
+    except (TypeError, ValueError):
+        return jsonify({"ok": False, "error": "参数类型错误"}), 400
+    
+    result = services.alliance_service.manage_member_army(user_id, target_user_id, action, army_type)
+    status = 200 if result.get("ok") else 400
+    return jsonify(result), status
+
 @alliance_bp.get('/war/info')
 def get_war_info():
     user_id = get_current_user_id()
@@ -789,15 +827,17 @@ def run_land_battle(land_id: int):
     3. 最终胜利者自动占领土地
     
     时间检查：只在对战时间内（周三/周六 20:00-22:00）才能执行。
-    允许通过环境变量 ALLIANCE_WAR_ALLOW_TIME_BYPASS=true 跳过时间检查（测试用）。
+    允许通过环境变量 ALLIANCE_WAR_ALLOW_TIME_BYPASS=true 或请求参数 test_mode=true 跳过时间检查（测试用）。
     """
     user_id = get_current_user_id()
     if not user_id:
         return jsonify({"ok": False, "error": "请先登录"}), 401
     
-    # 检查是否在对战时间内（允许通过环境变量跳过）
+    # 检查是否在对战时间内（允许通过环境变量或请求参数跳过）
     import os
-    allow_bypass = os.getenv("ALLIANCE_WAR_ALLOW_TIME_BYPASS", "").lower() in ("1", "true", "yes")
+    data = request.get_json() or {}
+    test_mode = data.get("test_mode", False) or request.args.get("test_mode", "").lower() in ("1", "true", "yes")
+    allow_bypass = test_mode or os.getenv("ALLIANCE_WAR_ALLOW_TIME_BYPASS", "").lower() in ("1", "true", "yes")
     if not allow_bypass:
         now = datetime.utcnow()
         is_war, phase, status = services.alliance_service._is_war_time(now)
@@ -807,62 +847,180 @@ def run_land_battle(land_id: int):
                 "error": f"当前不在对战时间内（对战时间：周三/周六 20:00-22:00），当前状态：{status}。测试时可设置环境变量 ALLIANCE_WAR_ALLOW_TIME_BYPASS=true 跳过"
             }), 400
     
-    # 1. 配对联盟
-    pair_result = services.alliance_battle_service.lock_and_pair_land(land_id)
-    if not pair_result.get("ok"):
-        return jsonify(pair_result), 400
+    # 循环配对和执行对战，直到只剩下一个胜利者
+    from domain.entities.alliance_registration import STATUS_VICTOR, STATUS_REGISTERED
+    all_battle_results = []
+    all_pair_results = []
+    round_number = 0
+    max_rounds = 10  # 防止无限循环
     
-    battles = pair_result.get("battles", [])
-    if not battles:
-        return jsonify({
-            "ok": True,
-            "message": "没有可配对的对战",
-            "battles": []
-        }), 200
+    while round_number < max_rounds:
+        round_number += 1
+        
+        # 1. 检查当前有多少个活跃的报名（包括胜利者，需要继续下一轮对战）
+        all_registrations = services.alliance_repo.list_land_registrations_by_land(land_id)
+        active_registrations = [r for r in all_registrations if r.is_active() or r.status == STATUS_VICTOR]
+        
+        # 如果有多个胜利者，需要让它们重新进入配对状态
+        victor_registrations = [r for r in all_registrations if r.status == STATUS_VICTOR]
+        if len(victor_registrations) > 1:
+            # 将胜利者状态重置为已报名，以便进行下一轮配对
+            for victor in victor_registrations:
+                victor.status = STATUS_REGISTERED
+                services.alliance_repo.save_land_registration(victor)
+        
+        # 检查是否只剩下一个胜利者
+        if len(victor_registrations) == 1:
+            # 只有一个胜利者，是最终胜利者
+            victor = victor_registrations[0]
+            now = datetime.utcnow()
+            war_date = now.date()
+            weekday = now.weekday()
+            war_phase = "first" if weekday <= 2 else "second"
+            
+            # 更新赛季积分
+            season_key = now.strftime("%Y-%m")
+            services.alliance_repo.increment_alliance_war_score(victor.alliance_id, season_key, 1)
+            
+            # 设置土地占领
+            services.alliance_repo.set_land_occupation(land_id, victor.alliance_id, war_phase, war_date)
+            
+            return jsonify({
+                "ok": True,
+                "message": f"对战完成，联盟 {victor.alliance_id} 占领土地 {land_id}",
+                "rounds": round_number,
+                "all_pair_results": all_pair_results,
+                "all_battle_results": all_battle_results,
+                "occupation": {
+                    "alliance_id": victor.alliance_id,
+                    "land_id": land_id,
+                    "status": "occupied"
+                }
+            }), 200
+        
+        # 2. 配对联盟
+        try:
+            pair_result = services.alliance_battle_service.lock_and_pair_land(land_id)
+        except Exception as e:
+            return jsonify({
+                "ok": False,
+                "error": f"配对时发生错误: {str(e)}"
+            }), 400
+        
+        if not pair_result.get("ok"):
+            # 配对失败，可能是没有足够的联盟
+            error_msg = pair_result.get("error", "配对失败")
+            if "至少需要两个联盟" in error_msg:
+                # 如果只有一个或没有联盟，检查是否有胜利者
+                if len(victor_registrations) == 1:
+                    victor = victor_registrations[0]
+                    now = datetime.utcnow()
+                    war_date = now.date()
+                    weekday = now.weekday()
+                    war_phase = "first" if weekday <= 2 else "second"
+                    season_key = now.strftime("%Y-%m")
+                    services.alliance_repo.increment_alliance_war_score(victor.alliance_id, season_key, 1)
+                    services.alliance_repo.set_land_occupation(land_id, victor.alliance_id, war_phase, war_date)
+                    return jsonify({
+                        "ok": True,
+                        "message": f"对战完成，联盟 {victor.alliance_id} 占领土地 {land_id}",
+                        "rounds": round_number,
+                        "all_pair_results": all_pair_results,
+                        "all_battle_results": all_battle_results,
+                        "occupation": {
+                            "alliance_id": victor.alliance_id,
+                            "land_id": land_id,
+                            "status": "occupied"
+                        }
+                    }), 200
+            return jsonify(pair_result), 400
+        
+        all_pair_results.append(pair_result)
+        battles = pair_result.get("battles", [])
+        
+        if not battles:
+            # 没有可配对的对战，可能是轮空或其他情况
+            bye_allocation = pair_result.get("bye_allocation")
+            if bye_allocation:
+                # 有轮空，说明只有一个联盟，直接占领
+                bye_alliance_id = bye_allocation.get("alliance_id")
+                if bye_alliance_id:
+                    # 找到轮空联盟的报名记录
+                    bye_registration = next((r for r in all_registrations if r.alliance_id == bye_alliance_id), None)
+                    if bye_registration:
+                        now = datetime.utcnow()
+                        war_date = now.date()
+                        weekday = now.weekday()
+                        war_phase = "first" if weekday <= 2 else "second"
+                        season_key = now.strftime("%Y-%m")
+                        services.alliance_repo.increment_alliance_war_score(bye_alliance_id, season_key, 1)
+                        services.alliance_repo.set_land_occupation(land_id, bye_alliance_id, war_phase, war_date)
+                        return jsonify({
+                            "ok": True,
+                            "message": f"对战完成，联盟 {bye_alliance_id} 占领土地 {land_id}（轮空）",
+                            "rounds": round_number,
+                            "all_pair_results": all_pair_results,
+                            "all_battle_results": all_battle_results,
+                            "occupation": {
+                                "alliance_id": bye_alliance_id,
+                                "land_id": land_id,
+                                "status": "occupied"
+                            }
+                        }), 200
+            break
+        
+        # 3. 执行每场对战的所有回合
+        round_battle_results = []
+        for battle_info in battles:
+            battle_id = battle_info["battle_id"]
+            left_alliance_id = battle_info["left_alliance_id"]
+            right_alliance_id = battle_info["right_alliance_id"]
+            
+            rounds_executed = 0
+            battle_finished = False
+            
+            # 循环推进回合直到战斗结束
+            while not battle_finished:
+                advance_result = services.alliance_battle_service.advance_round(battle_id)
+                if not advance_result.get("ok"):
+                    round_battle_results.append({
+                        "battle_id": battle_id,
+                        "left_alliance_id": left_alliance_id,
+                        "right_alliance_id": right_alliance_id,
+                        "status": "error",
+                        "error": advance_result.get("error"),
+                        "rounds_executed": rounds_executed
+                    })
+                    break
+                
+                rounds_executed += 1
+                round_info = advance_result.get("round", {})
+                
+                if advance_result.get("battle_finished"):
+                    battle_finished = True
+                    round_battle_results.append({
+                        "battle_id": battle_id,
+                        "left_alliance_id": left_alliance_id,
+                        "right_alliance_id": right_alliance_id,
+                        "status": "finished",
+                        "rounds_executed": rounds_executed,
+                        "final_round": round_info
+                    })
+        
+        all_battle_results.extend(round_battle_results)
     
-    # 2. 执行每场对战的所有回合
-    battle_results = []
-    for battle_info in battles:
-        battle_id = battle_info["battle_id"]
-        left_alliance_id = battle_info["left_alliance_id"]
-        right_alliance_id = battle_info["right_alliance_id"]
-        
-        rounds_executed = 0
-        battle_finished = False
-        
-        # 循环推进回合直到战斗结束
-        while not battle_finished:
-            advance_result = services.alliance_battle_service.advance_round(battle_id)
-            if not advance_result.get("ok"):
-                battle_results.append({
-                    "battle_id": battle_id,
-                    "left_alliance_id": left_alliance_id,
-                    "right_alliance_id": right_alliance_id,
-                    "status": "error",
-                    "error": advance_result.get("error"),
-                    "rounds_executed": rounds_executed
-                })
-                break
-            
-            rounds_executed += 1
-            round_info = advance_result.get("round", {})
-            
-            if advance_result.get("battle_finished"):
-                battle_finished = True
-                battle_results.append({
-                    "battle_id": battle_id,
-                    "left_alliance_id": left_alliance_id,
-                    "right_alliance_id": right_alliance_id,
-                    "status": "finished",
-                    "rounds_executed": rounds_executed,
-                    "final_round": round_info
-                })
+    # 如果循环结束还没有确定最终胜利者，返回当前状态
+    all_registrations = services.alliance_repo.list_land_registrations_by_land(land_id)
+    victor_registrations = [r for r in all_registrations if r.status == STATUS_VICTOR]
     
     return jsonify({
         "ok": True,
-        "message": f"成功执行 {len(battles)} 场对战",
-        "pair_result": pair_result,
-        "battle_results": battle_results
+        "message": f"执行了 {round_number} 轮对战",
+        "rounds": round_number,
+        "all_pair_results": all_pair_results,
+        "all_battle_results": all_battle_results,
+        "victor_count": len(victor_registrations),
+        "warning": "可能还有对战未完成，或已达到最大轮数限制"
     }), 200
 
 

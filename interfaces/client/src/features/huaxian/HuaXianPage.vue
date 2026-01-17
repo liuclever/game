@@ -30,6 +30,42 @@ const formation = ref({
 // ========== 化仙丹数量 ==========
 const huaxianDanCount = ref(0)
 
+// ========== 背包物品 ==========
+const bagItems = ref([])
+
+// ========== 7种结晶ID和名称 ==========
+const crystalConfig = [
+  { id: 1001, name: '金之结晶' },
+  { id: 1002, name: '木之结晶' },
+  { id: 1003, name: '水之结晶' },
+  { id: 1004, name: '火之结晶' },
+  { id: 1005, name: '土之结晶' },
+  { id: 1006, name: '风之结晶' },
+  { id: 1007, name: '电之结晶' },
+]
+
+// ========== 结晶数量计算 ==========
+const crystalCounts = computed(() => {
+  const counts = {}
+  for (const crystal of crystalConfig) {
+    const item = bagItems.value.find(i => i.item_id === crystal.id)
+    counts[crystal.id] = item ? item.quantity : 0
+  }
+  return counts
+})
+
+// ========== 化仙阵开启材料检查 ==========
+const canStartFormation = computed(() => {
+  if (formation.value.active) return false
+  // 检查7种结晶是否各至少有1个
+  for (const crystal of crystalConfig) {
+    if (crystalCounts.value[crystal.id] < 1) {
+      return false
+    }
+  }
+  return true
+})
+
 // ========== 幻兽列表 ==========
 const beastList = ref([])
 const teamBeastIds = ref(new Set())
@@ -98,10 +134,11 @@ const loadData = async () => {
       }
     }
     
-    // 背包中的化仙丹数量（item_id = 6015）
+    // 背包物品
     if (invRes.data.ok) {
-      const items = invRes.data.items || []
-      const danItem = items.find(i => i.item_id === 6015)
+      bagItems.value = invRes.data.items || []
+      // 背包中的化仙丹数量（item_id = 6015）
+      const danItem = bagItems.value.find(i => i.item_id === 6015)
       huaxianDanCount.value = danItem ? danItem.quantity : 0
     }
   } catch (err) {
@@ -158,6 +195,15 @@ const allocateExp = () => {
 const startFormation = async () => {
   if (formation.value.active) {
     alert('化仙阵已在运行中')
+    return
+  }
+  if (!canStartFormation.value) {
+    const missing = crystalConfig.filter(c => crystalCounts.value[c.id] < 1)
+    const missingNames = missing.map(c => c.name).join('、')
+    alert(`材料不足：需要${missingNames}各1个`)
+    return
+  }
+  if (!confirm('确定要开启化仙阵吗？将消耗金之结晶、木之结晶、水之结晶、火之结晶、土之结晶、风之结晶、电之结晶各1个')) {
     return
   }
   operating.value = true
@@ -249,8 +295,14 @@ const goHome = () => {
       <!-- 化仙阵 -->
       <div class="section spacer">
         化仙阵：<template v-if="formation.active">运行中({{ Math.ceil(formation.remainingSeconds / 60) }}分钟)</template><template v-else>未开启</template>
-        <a v-if="!formation.active" class="link" :class="{ disabled: operating }" @click="startFormation">开启</a>
+        <a v-if="!formation.active" class="link" :class="{ disabled: operating || !canStartFormation }" @click="startFormation">开启</a>
         <a class="link" @click="harvestExp">收获</a>
+      </div>
+      <!-- 化仙阵开启材料要求 -->
+      <div v-if="!formation.active" class="section indent" style="font-size: 0.9em; color: #666;">
+        开启需要：<template v-for="(crystal, idx) in crystalConfig" :key="crystal.id">
+          <span :class="crystalCounts[crystal.id] >= 1 ? 'green' : 'red'">{{ crystal.name }}×1</span><template v-if="idx < crystalConfig.length - 1">、</template>
+        </template>
       </div>
       
       <!-- 化仙丹 -->

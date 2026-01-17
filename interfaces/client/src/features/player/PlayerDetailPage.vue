@@ -120,8 +120,8 @@ const loadPlayerInfo = async () => {
         mount: p.mount || '未携带',
         pvpTeam: '切磋',
         talent: '查看',
-        alliance: p.alliance || '未加入',
-        allianceLevel: Number(p.alliance_level || 1),
+        alliance: p.alliance || null,  // 保持null，不要转换为字符串
+        allianceLevel: p.alliance_level ? Number(p.alliance_level) : null,  // 如果没有联盟，保持null
         sealTitle: p.title || p.rank_name || '',
 
         dynamics: dynamics.map((d) => ({
@@ -272,7 +272,23 @@ const viewTalent = () => {
 
 // 查看联盟
 const viewAlliance = () => {
-  alert('查看联盟')
+  if (!player.value?.alliance) {
+    alert('该玩家未加入联盟')
+    return
+  }
+  
+  // 如果查看的是自己的信息，跳转到自己的联盟页面
+  if (!isOtherPlayer.value) {
+    router.push('/alliance')
+  } else {
+    // 查看其他玩家的联盟：跳转到联盟大厅并搜索该联盟名称
+    router.push({
+      path: '/alliance/hall',
+      query: {
+        keyword: player.value.alliance
+      }
+    })
+  }
 }
 
 // 查看战宠详情
@@ -373,7 +389,11 @@ onMounted(async () => {
      
       
       <div class="section">
-        联盟: <a class="link" @click="viewAlliance">{{ player.alliance }}</a>({{ player.allianceLevel }}级)
+        联盟:<span v-if="player.alliance">
+          <a class="link" @click="viewAlliance">{{ player.alliance }}</a>
+          <span v-if="player.allianceLevel">({{ player.allianceLevel }}级)</span>
+        </span>
+        <span v-else class="gray">未加入</span>
       </div>
       
 

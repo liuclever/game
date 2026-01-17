@@ -1,9 +1,10 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import http from '@/services/http'
 
 const router = useRouter()
+const route = useRoute()
 
 const loading = ref(true)
 const errorMsg = ref('')
@@ -77,7 +78,15 @@ const goToPage = async (p) => {
 }
 
 onMounted(() => {
-  fetchList()
+  // 如果URL中有keyword参数（比如从玩家详情页点击联盟名称跳转过来），设置搜索关键词并搜索
+  const keywordParam = route.query.keyword
+  if (keywordParam && typeof keywordParam === 'string') {
+    keyword.value = keywordParam
+    // 设置关键词后自动执行搜索
+    search()
+  } else {
+    fetchList()
+  }
 })
 </script>
 

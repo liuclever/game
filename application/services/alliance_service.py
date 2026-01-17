@@ -88,7 +88,7 @@ class AllianceService:
     WAR_CHECKIN_REWARD_COPPER = 30000  # 签到获得30000铜钱
     # 战功兑换规则
     WAR_HONOR_EXCHANGE_RULES = {
-        "fire_crystal": {"honor": 2, "item_id": 1004, "item_name": "焚火晶", "quantity": 1, "type": "item"},  # 2战功=1焚火晶
+        "fire_crystal": {"honor": 2, "item_id": 6102, "item_name": "焚火晶", "quantity": 1, "type": "item"},  # 2战功=1焚火晶
         "gold_bag": {"honor": 4, "item_id": 6005, "item_name": "金袋", "quantity": 1, "type": "item"},  # 4战功=1金袋
         "prosperity": {"honor": 6, "prosperity": 1000, "item_name": "繁荣度", "quantity": 1000, "type": "prosperity"},  # 6战功=1000繁荣度
     }
@@ -2289,6 +2289,31 @@ class AllianceService:
             return {"ok": False, "error": "玩家不存在"}
 
         normalized_army = self._normalize_army_choice(army, player.level or 1)
+        
+        # 检查该军队是否有成员（基于成员的等级自动分配的army_type）
+        # 将字符串army转换为整数army_type：dragon -> 1, tiger -> 2
+        army_type_int = self.ARMY_DRAGON if normalized_army == AllianceRules.ARMY_DRAGON else self.ARMY_TIGER
+        army_members = self.alliance_repo.get_members_by_army(alliance.id, army_type_int)
+        if len(army_members) == 0:
+            army_label = "飞龙军" if normalized_army == AllianceRules.ARMY_DRAGON else "伏虎军"
+            return {"ok": False, "error": f"{army_label}没有成员，无法报名攻打"}
+        
+        # 检查该军队的所有成员是否有出战幻兽（战灵）
+        # 通过全局services访问player_beast_repo
+        from interfaces.web_api.bootstrap import services as global_services
+        members_without_beasts = []
+        for member in army_members:
+            team_beasts = global_services.player_beast_repo.get_team_beasts(member.user_id)
+            if len(team_beasts) == 0:
+                members_without_beasts.append(member)
+        
+        if len(members_without_beasts) > 0:
+            army_label = "飞龙军" if normalized_army == AllianceRules.ARMY_DRAGON else "伏虎军"
+            member_names = [m.nickname or f"玩家{m.user_id}" for m in members_without_beasts[:3]]  # 最多显示3个
+            if len(members_without_beasts) > 3:
+                member_names.append(f"等{len(members_without_beasts)}人")
+            return {"ok": False, "error": f"{army_label}中以下成员没有出战幻兽：{', '.join(member_names)}，无法报名攻打"}
+        
         allowed_land_ids = (
             self.DRAGON_ONLY_LANDS if normalized_army == AllianceRules.ARMY_DRAGON else self.TIGER_ONLY_LANDS
         )
@@ -2453,6 +2478,92 @@ class AllianceService:
                 "dragon": [self._member_army_row(m) for m in dragon],
                 "tiger": [self._member_army_row(m) for m in tiger],
             },
+        }
+    
+    def manage_member_army(self, user_id: int, target_user_id: int, action: str, army_type: Optional[int] = None) -> dict:
+        """
+        管理成员的军队分配
+        action: 'kick' (踢出到未分配) 或 'assign' (分配到军队)
+        army_type: 当action='assign'时，1=飞龙军，2=伏虎军；当action='kick'时忽略，设为0
+        """
+        # 检查操作者权限
+        actor = self.alliance_repo.get_member(user_id)
+        if not actor:
+            return {"ok": False, "error": "未加入联盟"}
+        
+        # 检查是否是盟主
+        if actor.role != AllianceRules.ROLE_LEADER:
+            return {"ok": False, "error": "只有盟主可以管理军队成员"}
+        
+        # 检查目标成员
+        target = self.alliance_repo.get_member(target_user_id)
+        if not target or target.alliance_id != actor.alliance_id:
+            return {"ok": False, "error": "未找到该成员"}
+        
+        if actor.user_id == target_user_id:
+            return {"ok": False, "error": "无法修改自己的军队分配"}
+        
+        # 执行操作
+        if action == "kick":
+            # 踢出：将army_type设为0（未分配）
+            new_army_type = 0
+            army_label = "未分配"
+            action_label = "踢出"
+        elif action == "assign":
+            # 分配：根据成员等级自动决定军队类型
+            # 如果指定了army_type，则使用指定的；否则根据等级自动决定
+            player = self.player_repo.get_by_id(target_user_id)
+            if not player:
+                return {"ok": False, "error": "玩家不存在"}
+            
+            if army_type is not None:
+                if army_type not in (self.ARMY_DRAGON, self.ARMY_TIGER):
+                    return {"ok": False, "error": "无效的军队类型"}
+                new_army_type = army_type
+                # 检查等级限制：40级及以下只能加入伏虎军
+                level = player.level or 0
+                if new_army_type == self.ARMY_DRAGON and level <= self.ARMY_LEVEL_THRESHOLD:
+                    return {"ok": False, "error": "40级及以下的成员只能加入伏虎军"}
+            else:
+                # 根据成员等级自动决定：40级及以下伏虎军，40级以上飞龙军
+                level = player.level or 0
+                new_army_type = self._determine_army_type(level)
+            
+            army_label = "飞龙军" if new_army_type == self.ARMY_DRAGON else "伏虎军"
+            action_label = "分配到"
+        else:
+            return {"ok": False, "error": "无效的操作类型"}
+        
+        # 更新成员的军队类型
+        self.alliance_repo.update_member_army(target_user_id, new_army_type)
+        
+        # 同步alliance_army_assignments表
+        if new_army_type == 0:
+            # 踢出时，从alliance_army_assignments表删除记录
+            from infrastructure.db.connection import execute_update
+            execute_update(
+                "DELETE FROM alliance_army_assignments WHERE alliance_id = %s AND user_id = %s",
+                (actor.alliance_id, target_user_id)
+            )
+        else:
+            # 分配时，更新或插入alliance_army_assignments表
+            army_str = "dragon" if new_army_type == self.ARMY_DRAGON else "tiger"
+            self.alliance_repo.upsert_army_assignment(actor.alliance_id, target_user_id, army_str)
+        
+        # 记录动态
+        target_name = target.nickname or f"玩家{target_user_id}"
+        self._record_activity(
+            alliance_id=actor.alliance_id,
+            event_type="army_manage",
+            actor_user_id=user_id,
+            actor_name=self._member_display_name(actor),
+            target_name=target_name,
+            item_name=f"{action_label}{army_label}",
+        )
+        
+        return {
+            "ok": True,
+            "message": f"已将{target_name}{action_label}{army_label}",
         }
 
     def get_war_info(self, user_id: int) -> dict:
@@ -3113,7 +3224,12 @@ class AllianceService:
         return dragon, tiger
 
     def _sync_member_army(self, member: AllianceMember, level: int) -> None:
-        """同步成员军队类型：根据等级自动分配（40级及以下伏虎军，40级以上飞龙军）"""
+        """同步成员军队类型：根据等级自动分配（40级及以下伏虎军，40级以上飞龙军）
+        注意：如果army_type为0（未分配），则不会自动同步，保持未分配状态
+        """
+        # 如果成员已经被手动设置为未分配（army_type=0），则不自动同步
+        if member.army_type == 0:
+            return
         expected = self._determine_army_type(level)
         if member.army_type != expected:
             self.alliance_repo.update_member_army(member.user_id, expected)

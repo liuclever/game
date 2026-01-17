@@ -2,6 +2,8 @@
 import { ref, onMounted, computed, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import http from '@/services/http'
+// 测试按钮组件（可删除）
+import AllianceWarTestButton from './AllianceWarTestButton.vue'
 
 const router = useRouter()
 
@@ -418,6 +420,9 @@ const formatCountdown = (seconds) => {
           </template>
         </div>
       </div>
+
+      <!-- 测试按钮组件（可删除） -->
+      <!-- <AllianceWarTestButton /> -->
     </template>
 
     <div class="section spacer">

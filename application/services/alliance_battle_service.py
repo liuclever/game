@@ -131,6 +131,13 @@ class AllianceBattleService:
 
             left_signups = self._build_army_signups(left, now)
             right_signups = self._build_army_signups(right, now)
+            
+            # 检查是否有足够的参战成员
+            if len(left_signups) == 0:
+                raise ValueError(f"联盟 {left.alliance_id} 的 {left.army} 军队没有已签到的成员，无法参战")
+            if len(right_signups) == 0:
+                raise ValueError(f"联盟 {right.alliance_id} 的 {right.army} 军队没有已签到的成员，无法参战")
+            
             self.alliance_repo.add_army_signups(left_signups + right_signups)
 
             round_record = AllianceLandBattleRound(
@@ -369,12 +376,32 @@ class AllianceBattleService:
     def _build_army_signups(
         self, registration: AllianceRegistration, timestamp: datetime
     ) -> List[AllianceArmySignup]:
+        """构建参战成员列表，只包含已签到的成员"""
         assignments = self.alliance_repo.get_army_assignments(registration.alliance_id)
         filtered: List[AllianceArmyAssignment] = [
             assign for assign in assignments if assign.army == registration.army
         ]
+        
+        # 检查成员是否已签到（根据规则，只有已签到的成员才能参战）
+        now = datetime.utcnow()
+        weekday = now.weekday()
+        war_phase = "first" if weekday <= 2 else "second"  # 周一-周三为第一次，周四-周六为第二次
+        checkin_date = now.date()
+        
+        checked_in_assignments: List[AllianceArmyAssignment] = []
+        for assign in filtered:
+            # 检查该成员是否已签到
+            if self.alliance_repo.has_war_checkin(
+                registration.alliance_id, 
+                assign.user_id, 
+                war_phase, 
+                weekday, 
+                checkin_date
+            ):
+                checked_in_assignments.append(assign)
+        
         signups: List[AllianceArmySignup] = []
-        for order, assign in enumerate(filtered, start=1):
+        for order, assign in enumerate(checked_in_assignments, start=1):
             signups.append(
                 AllianceArmySignup(
                     id=None,
@@ -586,11 +613,13 @@ class AllianceBattleService:
                 (registration.alliance_id,)
             )
             
-            # 检查是否是最终胜利者（该土地/据点没有其他活跃的报名）
+            # 检查是否是最终胜利者（该土地/据点没有其他活跃的报名或胜利者）
             all_registrations = self.alliance_repo.list_land_registrations_by_land(registration.land_id)
-            active_registrations = [r for r in all_registrations if r.is_active() and r.id != registration.id]
+            active_registrations = [r for r in all_registrations if (r.is_active() or r.status == STATUS_VICTOR) and r.id != registration.id]
             
-            # 如果没有其他活跃的报名，说明是最终胜利者（规则③：最终胜利者占领土地）
+            # 如果没有其他活跃的报名或胜利者，说明是最终胜利者（规则③：最终胜利者占领土地）
+            # 注意：这个检查在 run_land_battle 中也会进行，这里作为备用检查
+            # 如果 run_land_battle 正确执行，这里不会触发（因为会有多个胜利者）
             if not active_registrations:
                 # 更新赛季积分
                 season_key = datetime.utcnow().strftime("%Y-%m")
