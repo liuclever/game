@@ -3,6 +3,7 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { fetchHandbookIndex } from '@/services/handbookService'
 import { resolveHandbookImage } from './handbookImage'
+import MainMenuLinks from '@/features/main/components/MainMenuLinks.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -134,6 +135,9 @@ onMounted(() => load())
         <input class="page-input" v-model="pageInput" />
         <button class="btn" @click="jumpToPage">跳转</button>
       </div>
+
+      <!-- 主页菜单（严格复刻主页内容与UI） -->
+      <MainMenuLinks />
 
       <div class="section">
         <a class="link" @click="goHome">返回游戏首页</a>

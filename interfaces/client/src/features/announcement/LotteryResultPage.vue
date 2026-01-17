@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import MainMenuLinks from '@/features/main/components/MainMenuLinks.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -54,6 +55,9 @@ const goHome = () => {
     </template>
     
     <div class="divider"></div>
+
+    <!-- 主页菜单（严格复刻主页内容与UI） -->
+    <MainMenuLinks />
     
     <div class="section nav-links">
       <a class="link" @click="goBack">返回轮盘抽奖</a>

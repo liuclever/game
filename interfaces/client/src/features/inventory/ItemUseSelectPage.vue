@@ -3,6 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import http from '@/services/http'
 import { useMessage } from '@/composables/useMessage'
+import MainMenuLinks from '@/features/main/components/MainMenuLinks.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -13,6 +14,8 @@ const item = ref(null)
 const quantity = ref(1)
 const maxQuantity = ref(1)
 const allowBatch = ref(false)
+
+const isNilinFragment = computed(() => Number(item.value?.item_id) === 3011)
 
 // 加载道具信息
 const loadItem = async () => {
@@ -35,9 +38,15 @@ const loadItem = async () => {
       }
       item.value = found
       // 可批量道具一次最多10个；不可批量的不要实现批量（固定只能选1个）
-      const BATCH_ITEM_IDS = new Set([6003, 6014, 6030, 6007, 6008, 6009, 6010, 6004, 4001, 6013, 3011, 7101, 7102, 7103, 7104, 7105, 7106])
-      allowBatch.value = BATCH_ITEM_IDS.has(Number(found.item_id))
-      maxQuantity.value = allowBatch.value ? Math.min(10, found.quantity) : 1
+      // 神·逆鳞碎片(3011)改为“合成机制”：不走批量使用数量选择
+      if (Number(found.item_id) === 3011) {
+        allowBatch.value = false
+        maxQuantity.value = 1
+      } else {
+        const BATCH_ITEM_IDS = new Set([6003, 6014, 6030, 6007, 6008, 6009, 6010, 6004, 4001, 6013, 7101, 7102, 7103, 7104, 7105, 7106])
+        allowBatch.value = BATCH_ITEM_IDS.has(Number(found.item_id))
+        maxQuantity.value = allowBatch.value ? Math.min(10, found.quantity) : 1
+      }
       quantity.value = 1
     } else {
       showMessage('加载失败', 'error')
@@ -58,7 +67,7 @@ import { getItemUseRoute, getItemUseHint } from '@/utils/itemUseRoutes'
 const useItem = async () => {
   if (!item.value) return
   
-  const qty = quantity.value
+  const qty = isNilinFragment.value ? 1 : quantity.value
   if (qty < 1 || qty > maxQuantity.value) {
     showMessage('数量无效', 'error')
     return
@@ -125,12 +134,15 @@ onMounted(() => {
     <div v-if="loading" class="section gray">加载中...</div>
     
     <template v-else-if="item">
-      <div class="section title">【{{ item.action_name || '使用' }}道具】</div>
+      <div class="section title">【{{ isNilinFragment ? '合成' : (item.action_name || '使用') }}道具】</div>
       
       <div class="section">
         <div class="item-name">{{ item.name }}</div>
         <div class="item-info">拥有数量：{{ item.quantity }}</div>
         <div class="item-desc" v-if="item.description">{{ item.description }}</div>
+        <template v-if="isNilinFragment">
+          <div class="hint">合成规则：每次消耗100块碎片 → 获得1块神·逆鳞</div>
+        </template>
       </div>
 
       <div class="section" v-if="allowBatch">
@@ -146,12 +158,14 @@ onMounted(() => {
       </div>
 
       <div class="section">
-        <a class="link btn-link" @click="useItem">{{ item.action_name || '使用' }}</a>
+        <a class="link btn-link" @click="useItem">{{ isNilinFragment ? '合成' : (item.action_name || '使用') }}</a>
       </div>
 
       <div class="section">
         <a class="link" @click="goBack">返回背包</a>
       </div>
+      <!-- 主页菜单（严格复刻主页内容与UI） -->
+      <MainMenuLinks />
       <div class="section">
         <a class="link" @click="goHome">返回游戏首页</a>
       </div>

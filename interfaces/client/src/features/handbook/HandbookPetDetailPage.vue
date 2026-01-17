@@ -3,6 +3,7 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { fetchHandbookPetDetail } from '@/services/handbookService'
 import { resolveHandbookImage } from './handbookImage'
+import MainMenuLinks from '@/features/main/components/MainMenuLinks.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -169,6 +170,9 @@ onMounted(() => load())
           <span v-if="idx < (pet.skills || []).length - 1"> | </span>
         </span>
       </div>
+
+      <!-- 主页菜单（严格复刻主页内容与UI） -->
+      <MainMenuLinks />
 
       <div class="section">
         <a class="link" @click="goBack">返回前页</a>

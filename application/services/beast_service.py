@@ -171,6 +171,13 @@ class BeastService:
         # 使用 factory 创建实例
         from domain.services.beast_factory import create_initial_beast
         beast = create_initial_beast(user_id=user_id, template=template)
+
+        # 兜底：确保种族写入（历史版本 Beast 可能没有 race 字段）
+        try:
+            if not getattr(beast, "race", ""):
+                beast.race = template.race
+        except Exception:
+            pass
         
         # 覆盖等级和境界（如果提供）
         if level > 1:

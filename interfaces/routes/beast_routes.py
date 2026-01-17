@@ -83,6 +83,18 @@ def get_beast_list():
 
         # 重新计算属性和战力
         beast = _calc_beast_stats(beast)
+        # 兜底修复：历史数据可能缺少 race，尝试从模板补齐并回写
+        if not getattr(beast, "race", ""):
+            tpl = None
+            try:
+                tpl = services.beast_template_repo.get_by_id(getattr(beast, "template_id", 0) or 0)
+            except Exception:
+                tpl = None
+            if tpl and getattr(tpl, "race", ""):
+                try:
+                    beast.race = tpl.race
+                except Exception:
+                    pass
         services.player_beast_repo.update_beast(beast)
         total_power = _calc_total_combat_power_with_equipment(beast)
         
@@ -363,6 +375,18 @@ def get_beast_detail(beast_id: int):
     
     # 重新计算属性（确保属性与等级匹配）
     beast = _calc_beast_stats(beast)
+    # 兜底修复：历史数据可能缺少 race，尝试从模板补齐并回写
+    if not getattr(beast, "race", ""):
+        tpl = None
+        try:
+            tpl = services.beast_template_repo.get_by_id(getattr(beast, "template_id", 0) or 0)
+        except Exception:
+            tpl = None
+        if tpl and getattr(tpl, "race", ""):
+            try:
+                beast.race = tpl.race
+            except Exception:
+                pass
     # 保存更新后的属性到数据库
     services.player_beast_repo.update_beast(beast)
     
@@ -1254,6 +1278,9 @@ def evolve_beast():
     # ==================== 更新境界 ====================
     # 更新境界
     beast.realm = next_realm
+
+    # 计算并应用资质提升（按模板 realms 配置）
+    boosts = calc_aptitude_boost(beast.name, old_realm, next_realm)
     
     # 应用资质提升
     beast.hp_aptitude += boosts.get('hp_aptitude', 0)

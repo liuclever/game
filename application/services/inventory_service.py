@@ -42,6 +42,18 @@ PRESTIGE_STONE_ITEM_ID = 12001
 PRESTIGE_STONE_CONSUME_AMOUNT = 5
 PRESTIGE_STONE_TARGET_LEVEL = 19
 
+# 神兽召唤球（兑换获得）等级门槛 + 同一神兽仅一只
+DIVINE_BEAST_BALL_CONFIG = {
+    # ball_item_id: (template_id, beast_name, min_player_level)
+    26060: (58, "神·罗刹", 30),
+    26059: (59, "神·不死鸟", 40),
+    26058: (60, "神·白虎", 40),
+    26061: (61, "神·绝影", 50),
+    26062: (62, "神·朱雀", 60),
+    26063: (63, "神·玄武", 70),
+    26064: (64, "神·青龙", 70),
+}
+
 LUCKY_CHEST_ITEM_ID = 6008
 NINGSHEN_INCENSE_ITEM_ID = 6009
 ANCIENT_SILVER_CHEST_ITEM_ID = 6003
@@ -137,6 +149,12 @@ class InventoryService:
         # material类型：部分道具允许在背包中“使用/打开”
         if item_template.type == "material":
             if item_template.id == 12001:  # 声望石
+                return (True, "使用")
+            # 神·逆鳞：用于兑换神兽召唤球，背包内提供“使用”按钮引导跳转
+            if int(item_template.id) == 3010:
+                return (True, "使用")
+            # 神·逆鳞碎片：背包内允许“使用”用于直接合成（集齐100 -> 1神·逆鳞）
+            if int(item_template.id) == 3011:
                 return (True, "使用")
             # 战灵钥匙：跳转战灵功能页核销（前端会提示并跳转）
             if int(item_template.id) == 6006:
@@ -631,18 +649,20 @@ class InventoryService:
                 raise InventoryError("该物品不支持批量使用")
 
         # ========== 直接在背包内合成：神·逆鳞碎片(3011) -> 神·逆鳞(3010) ==========
-        # 规则：100碎片兑换1个神·逆鳞（一次性最多合成10个）
+        # 规则：100碎片兑换1个神·逆鳞（跨格统计与扣除；背包页表现为“合成”而非“批量使用”）
         if int(item_template.id) == 3011:
-            available = int(inv_item.quantity or 0)
-            if available < 100:
-                raise InventoryError(f"神·逆鳞碎片不足（当前：{available}块），集齐100块可合成1块神·逆鳞")
+            total_available = int(self._get_item_count(user_id, 3011) or 0)
+            if total_available < 100:
+                # 按需求：不展示“现有多少”，避免碎片分格/临时背包等造成误导
+                raise InventoryError("神·逆鳞碎片不足，需要集齐100块可合成1块神·逆鳞")
 
-            exchange_count = min(available // 100, 10)
-            consume_count = exchange_count * 100
+            # 每次点击合成 1 个（消耗 100 碎片），避免与“批量使用<=10”的概念混淆
+            exchange_count = 1
+            consume_count = 100
 
-            # 先扣碎片（仅扣当前格子，保留余数）
-            self._remove_item_from_slot(inv_item_id, consume_count)
-            # 再发放神·逆鳞
+            # 跨多格扣除碎片（仅正式背包）
+            self._remove_item_quantity(user_id, 3011, consume_count)
+            # 发放神·逆鳞
             self.add_item(user_id, 3010, exchange_count)
 
             return {
@@ -720,19 +740,43 @@ class InventoryService:
             if not self.beast_service:
                 raise InventoryError("系统错误：BeastService 未配置")
 
-            # 改进：通过名称查找模板
-            beast_name = item_template.name.replace("召唤球", "")
-            beast_template = self.beast_service.template_repo.get_by_name(beast_name)
+            # 神兽召唤球：等级门槛 & 唯一持有（同一神兽仅一只）
+            if int(item_template.id) in DIVINE_BEAST_BALL_CONFIG:
+                if quantity != 1:
+                    raise InventoryError("神兽召唤球一次只能打开1个")
+                if not self.player_repo:
+                    raise InventoryError("系统错误：PlayerRepo 未配置")
+                player = self.player_repo.get_by_id(user_id)
+                if not player:
+                    raise InventoryError("玩家不存在")
 
-            if not beast_template:
-                # 兼容逻辑：通过ID偏移查找
-                beast_template_id = item_template.id - 20000
-                beast_template = self.beast_service.template_repo.get_by_id(beast_template_id)
+                template_id, beast_name, min_lv = DIVINE_BEAST_BALL_CONFIG[int(item_template.id)]
+                player_level = int(getattr(player, "level", 0) or 0)
+                if player_level < int(min_lv):
+                    raise InventoryError(f"人物等级不足，需要{int(min_lv)}级才能打开{item_template.name}")
 
-            if not beast_template:
-                raise InventoryError(f"幻兽模板不存在: {beast_name}")
+                existing = self.beast_service.beast_repo.get_by_user_id(user_id)
+                if any(int(getattr(b, "template_id", 0) or 0) == int(template_id) for b in (existing or [])):
+                    raise InventoryError(f"你已拥有{beast_name}，无法再次获得")
 
-            beast_template_id = beast_template.id
+                beast_template = self.beast_service.template_repo.get_by_id(int(template_id))
+                if not beast_template:
+                    raise InventoryError(f"幻兽模板不存在: {beast_name}")
+                beast_template_id = int(template_id)
+            else:
+                # 改进：通过名称查找模板
+                beast_name = item_template.name.replace("召唤球", "")
+                beast_template = self.beast_service.template_repo.get_by_name(beast_name)
+
+                if not beast_template:
+                    # 兼容逻辑：通过ID偏移查找
+                    beast_template_id = item_template.id - 20000
+                    beast_template = self.beast_service.template_repo.get_by_id(beast_template_id)
+
+                if not beast_template:
+                    raise InventoryError(f"幻兽模板不存在: {beast_name}")
+
+                beast_template_id = beast_template.id
 
             # 使用 beast_routes 里的 obtain_beast_for_user 方法 (即 obtain_beast 的核心逻辑)
             # 采用局部导入以避免循环依赖

@@ -1,5 +1,6 @@
 <script setup>
 import { useRouter, useRoute } from 'vue-router'
+import MainMenuLinks from '@/features/main/components/MainMenuLinks.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -26,6 +27,9 @@ const goHome = () => {
   <div class="success-page">
     <div class="message">购买{{ quantity }}个【{{ itemName }}】成功！已放入您的背包中。</div>
     <div class="cost">消耗{{ cost }}{{ currencyText }}</div>
+
+    <!-- 主页菜单（严格复刻主页内容与UI） -->
+    <MainMenuLinks />
 
     <div class="nav-links">
       <div><a class="link" @click="goShop">返回商城</a></div>

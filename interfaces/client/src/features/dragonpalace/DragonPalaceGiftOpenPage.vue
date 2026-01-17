@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import http from '@/services/http'
+import MainMenuLinks from '@/features/main/components/MainMenuLinks.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -89,6 +90,8 @@ const goHome = () => router.push('/')
       <div class="section spacer">
         <a class="link" @click="goInventory">返回背包</a>
       </div>
+      <!-- 主页菜单（严格复刻主页内容与UI） -->
+      <MainMenuLinks />
       <div class="section">
         <a class="link" @click="goHome">返回游戏首页</a>
       </div>

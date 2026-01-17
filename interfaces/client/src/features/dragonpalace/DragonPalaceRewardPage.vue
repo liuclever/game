@@ -1,6 +1,7 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import MainMenuLinks from '@/features/main/components/MainMenuLinks.vue'
 
 const router = useRouter()
 const msg = ref('领取成功，获得龙宫之谜探索礼包')
@@ -29,6 +30,8 @@ const goHome = () => router.push('/')
     <div class="section">
       <a class="link" @click="goBack">返回前页</a>
     </div>
+    <!-- 主页菜单（严格复刻主页内容与UI） -->
+    <MainMenuLinks />
     <div class="section">
       <a class="link" @click="goHome">返回游戏首页</a>
     </div>

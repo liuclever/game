@@ -2,6 +2,7 @@
 import { computed, ref, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import http from '@/services/http'
+import MainMenuLinks from '@/features/main/components/MainMenuLinks.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -336,6 +337,9 @@ watch(
       <input type="number" v-model="pageInput" class="page-input" min="1" :max="totalPages" />
       <button @click="jumpToPage" class="jump-btn">跳转</button>
     </div>
+
+    <!-- 主页菜单（严格复刻主页内容与UI） -->
+    <MainMenuLinks />
 
     <!-- 返回首页 -->
     <div class="section">

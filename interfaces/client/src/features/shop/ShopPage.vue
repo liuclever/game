@@ -2,6 +2,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import http from '@/services/http'
+import MainMenuLinks from '@/features/main/components/MainMenuLinks.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -313,6 +314,9 @@ onMounted(() => {
         <button class="page-btn" @click="goToPage">跳转</button>
       </div>
     </div>
+
+    <!-- 主页菜单（严格复刻主页内容与UI） -->
+    <MainMenuLinks />
 
     <!-- 返回 -->
     <div class="footer-section">

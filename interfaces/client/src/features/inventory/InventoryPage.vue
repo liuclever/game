@@ -3,6 +3,7 @@ import { useMessage } from '@/composables/useMessage'
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import http from '@/services/http'
+import MainMenuLinks from '@/features/main/components/MainMenuLinks.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -388,42 +389,8 @@ const handleLink = (name) => {
       皇城:<span class="link readonly">召唤之王挑战赛</span>
     </div>
 
-    <!-- 导航菜单 -->
-    <div class="section">
-      <a class="link" @click="handleLink('幻兽')">幻兽</a>. 
-      <a class="link active">背包</a>. 
-      <a class="link" @click="handleLink('商城')">商城</a>. 
-      <a class="link" @click="handleLink('赞助')">赞助</a>. 
-      <a class="link" @click="handleLink('礼包')">礼包</a>
-    </div>
-    <div class="section">
-      <a class="link" @click="handleLink('联盟')">联盟</a>. 
-      <a class="link" @click="handleLink('盟战')">盟战</a>. 
-      <a class="link" @click="handleLink('地图')">地图</a>. 
-      <span class="link readonly">天赋</span>. 
-      <a class="link" @click="handleLink('化仙')">化仙</a>
-    </div>
-    <div class="section">
-      <span class="link readonly">切磋</span>. 
-      <a class="link" @click="handleLink('闯塔')">闯塔</a>. 
-      <a class="link" @click="handleLink('战场')">战场</a>. 
-      <a class="link" @click="handleLink('擂台')">擂台</a>. 
-      <span class="link readonly">坐骑</span>
-    </div>
-    <div class="section">
-      <a class="link" @click="router.push('/tree')">古树</a>. 
-      <a class="link" @click="handleLink('排行')">排行</a>. 
-      <span class="link readonly">成就</span>. 
-      <a class="link" @click="handleLink('图鉴')">图鉴</a>. 
-      <span class="link readonly">攻略</span>
-    </div>
-    <div class="section">
-      <a class="link" @click="handleLink('兑换')">兑换</a>. 
-      <span class="link readonly">签到</span>. 
-      <span class="link readonly">论坛</span>. 
-      <a class="link" @click="handleLink('VIP')">VIP</a>. 
-      <span class="link readonly">安全锁</span>
-    </div>
+    <!-- 主页菜单（严格复刻主页内容与UI） -->
+    <MainMenuLinks />
 
     <!-- 返回首页 -->
     <div class="section">

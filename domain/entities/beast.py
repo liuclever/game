@@ -181,6 +181,9 @@ class Beast:
     # 实例境界（可选）。为空字符串时，使用模板的 realm
     realm: str = ""
 
+    # 本体种族（与 BeastTemplate.race 对齐，如：兽族/虫族/羽族/水族等）
+    race: str = ""
+
     # 实际资质（区别于模板中的资质上限）
     hp_aptitude: int = 0              # 气血资质
     speed_aptitude: int = 0           # 速度资质

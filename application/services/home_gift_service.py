@@ -128,6 +128,32 @@ class HomeGiftService:
             ],
         }
 
+    def _validate_gift_rewards(self, gift: GiftDef) -> None:
+        """领取前做完整校验，避免“发了一半就报错”导致无限领取/部分道具丢失。"""
+        for r in gift.rewards:
+            if r.type in ("gold", "yuanbao"):
+                continue
+
+            if r.type == "item":
+                if not r.item_id or int(r.quantity or 0) <= 0:
+                    raise HomeGiftError("礼包配置错误：物品奖励缺少 item_id 或数量无效")
+                item = self.item_repo.get_by_id(int(r.item_id))
+                if item is None:
+                    raise HomeGiftError(f"礼包配置错误：物品不存在({r.item_id})")
+                continue
+
+            if r.type == "random_from_pool":
+                pool = r.pool or []
+                if not pool or int(r.quantity or 0) <= 0:
+                    raise HomeGiftError("礼包配置错误：随机奖池为空或数量无效")
+                for item_id in pool:
+                    item = self.item_repo.get_by_id(int(item_id))
+                    if item is None:
+                        raise HomeGiftError(f"礼包配置错误：奖池物品不存在({item_id})")
+                continue
+
+            raise HomeGiftError(f"礼包配置错误：未知奖励类型({r.type})")
+
     def claim(self, user_id: int, gift_key: str) -> Dict[str, Any]:
         gift = self._gift_map.get(gift_key)
         if not gift:
@@ -140,36 +166,39 @@ class HomeGiftService:
         if not player:
             raise HomeGiftError("玩家不存在")
 
+        # 关键：先校验所有奖励都能正常发放，再进入实际发放流程
+        self._validate_gift_rewards(gift)
+
         granted_items: Dict[str, int] = {}
         gold_added = 0
         yuanbao_added = 0
 
-        for r in gift.rewards:
-            if r.type == "gold":
-                player.gold += int(r.amount or 0)
-                gold_added += int(r.amount or 0)
-            elif r.type == "yuanbao":
-                player.yuanbao += int(r.amount or 0)
-                yuanbao_added += int(r.amount or 0)
-            elif r.type == "item":
-                if not r.item_id or r.quantity <= 0:
-                    raise HomeGiftError("礼包配置错误：物品奖励缺少 item_id")
-                self.inventory_service.add_item(user_id, r.item_id, int(r.quantity))
-                item = self.item_repo.get_by_id(r.item_id)
-                name = item.name if item else f"物品{r.item_id}"
-                granted_items[name] = granted_items.get(name, 0) + int(r.quantity)
-            elif r.type == "random_from_pool":
-                pool = r.pool or []
-                if not pool or r.quantity <= 0:
-                    raise HomeGiftError("礼包配置错误：随机奖池为空")
-                for _ in range(int(r.quantity)):
-                    item_id = random.choice(pool)
-                    self.inventory_service.add_item(user_id, item_id, 1)
-                    item = self.item_repo.get_by_id(item_id)
-                    name = item.name if item else f"物品{item_id}"
-                    granted_items[name] = granted_items.get(name, 0) + 1
-            else:
-                raise HomeGiftError(f"未知奖励类型: {r.type}")
+        try:
+            for r in gift.rewards:
+                if r.type == "gold":
+                    player.gold += int(r.amount or 0)
+                    gold_added += int(r.amount or 0)
+                elif r.type == "yuanbao":
+                    player.yuanbao += int(r.amount or 0)
+                    yuanbao_added += int(r.amount or 0)
+                elif r.type == "item":
+                    self.inventory_service.add_item(user_id, int(r.item_id), int(r.quantity))
+                    item = self.item_repo.get_by_id(int(r.item_id))
+                    name = item.name if item else f"物品{r.item_id}"
+                    granted_items[name] = granted_items.get(name, 0) + int(r.quantity)
+                elif r.type == "random_from_pool":
+                    pool = r.pool or []
+                    for _ in range(int(r.quantity)):
+                        item_id = random.choice(pool)
+                        self.inventory_service.add_item(user_id, int(item_id), 1)
+                        item = self.item_repo.get_by_id(int(item_id))
+                        name = item.name if item else f"物品{item_id}"
+                        granted_items[name] = granted_items.get(name, 0) + 1
+                else:
+                    raise HomeGiftError(f"未知奖励类型: {r.type}")
+        except InventoryError as exc:
+            # 兼容：如底层仍报错，转成可读错误，避免“接口500但已发部分道具”不知原因
+            raise HomeGiftError(str(exc))
 
         self.player_repo.save(player)
         self.gift_claim_repo.mark_claimed(user_id, gift_key)

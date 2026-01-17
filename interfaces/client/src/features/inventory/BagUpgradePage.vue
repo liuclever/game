@@ -3,6 +3,7 @@ import { useMessage } from '@/composables/useMessage'
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import http from '@/services/http'
+import MainMenuLinks from '@/features/main/components/MainMenuLinks.vue'
 
 const router = useRouter()
 
@@ -89,6 +90,9 @@ onMounted(() => {
       </template>
     </template>
     
+    <!-- 主页菜单（严格复刻主页内容与UI） -->
+    <MainMenuLinks />
+
     <div class="nav-links">
       <div><a class="link" @click="goBack">返回背包</a></div>
       <div><a class="link" @click="goHome">返回游戏首页</a></div>

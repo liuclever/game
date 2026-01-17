@@ -2,6 +2,7 @@
 import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import http from '@/services/http'
+import MainMenuLinks from '@/features/main/components/MainMenuLinks.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -653,6 +654,9 @@ watch(() => route.params.id, () => {
       
       <!-- 分隔线 -->
       <div class="divider"></div>
+
+      <!-- 主页菜单（严格复刻主页内容与UI） -->
+      <MainMenuLinks />
       
       <!-- 导航 -->
       <div class="section nav-links">

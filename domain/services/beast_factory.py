@@ -140,6 +140,7 @@ def create_initial_beast(user_id: int, template: BeastTemplate) -> Beast:
         # 复制模板上的攻击类型和境界，便于调试和后续可能的个体修改
         attack_type=template.attack_type,
         realm=template.realm,
+        race=template.race,
         # 成长率（从模板的 growth_score 获取）
         growth_rate=template.growth_score,
         # 资质相关

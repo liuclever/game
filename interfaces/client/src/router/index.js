@@ -12,7 +12,6 @@ import RefinePotMagicPage from '@/features/refine-pot/RefinePotMagicPage.vue'
 import RefinePotMagicDefensePage from '@/features/refine-pot/RefinePotMagicDefensePage.vue'
 import ExchangePage from '@/features/exchange/ExchangePage.vue'
 import ExchangeDetailPage from '@/features/exchange/ExchangeDetailPage.vue'
-import ExchangeNilinPage from '@/features/exchange/ExchangeNilinPage.vue'
 import ExchangeGodHerbPage from '@/features/exchange/ExchangeGodHerbPage.vue'
 import ExchangeGodCrystalPage from '@/features/exchange/ExchangeGodCrystalPage.vue'
 import ExchangeXuanwuPage from '@/features/exchange/ExchangeXuanwuPage.vue'
@@ -308,11 +307,7 @@ const routes = [
     name: 'ExchangeBeastQinglong',
     component: ExchangeDetailPage,
   },
-  {
-    path: '/exchange/item/nilin',
-    name: 'ExchangeItemNilin',
-    component: ExchangeNilinPage,
-  },
+  // 神·逆鳞碎片(3011) -> 神·逆鳞(3010)：按需求改为“背包内直接合成”，不提供兑换页入口
   {
     path: '/exchange/item/god-herb',
     name: 'ExchangeItemGodHerb',
