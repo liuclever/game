@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { fetchHandbookSkillDetail } from '@/services/handbookService'
+import MainMenuLinks from '@/features/main/components/MainMenuLinks.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -47,6 +48,9 @@ onMounted(() => load())
       <div class="section skill-name">{{ skill.name }}</div>
       <div class="section indent">{{ skill.desc }}</div>
 
+      <!-- 主页菜单（严格复刻主页内容与UI） -->
+      <MainMenuLinks />
+
       <div class="section">
         <a class="link" @click="goBack">返回前页</a>
       </div>
@@ -62,7 +66,7 @@ onMounted(() => load())
   background: #ffffff;
   min-height: 100vh;
   padding: 14px 14px;
-  font-size: 18px;
+  font-size: 20px;
   line-height: 1.8;
   font-family: SimSun, "宋体", serif;
 }
@@ -77,7 +81,7 @@ onMounted(() => load())
 
 .skill-name {
   font-weight: bold;
-  font-size: 20px;
+  font-size: 22px;
 }
 
 .indent {

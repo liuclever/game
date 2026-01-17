@@ -1,5 +1,6 @@
 <script setup>
 import { useRouter } from 'vue-router'
+import MainMenuLinks from '@/features/main/components/MainMenuLinks.vue'
 
 const router = useRouter()
 
@@ -18,6 +19,9 @@ const goHome = () => router.push('/')
     <div class="section indent">6、当周幸运数字，下周一统一公布；</div>
     <div class="section indent">7、玩家获奖后，需手动领取，奖励有效期为一周，即在下次公布幸运数字时，如未领取当周奖励，则奖励作废。</div>
 
+    <!-- 主页菜单（严格复刻主页内容与UI） -->
+    <MainMenuLinks />
+
     <div class="section spacer">
       <a class="link" @click="goHome">返回游戏首页</a>
     </div>
@@ -29,7 +33,7 @@ const goHome = () => router.push('/')
   background: #ffffff;
   min-height: 100vh;
   padding: 8px 12px;
-  font-size: 16px;
+  font-size: 18px;
   line-height: 1.7;
   font-family: SimSun, "宋体", serif;
 }

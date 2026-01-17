@@ -2,8 +2,12 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import http from '@/services/http'
+import MainMenuLinks from '@/features/main/components/MainMenuLinks.vue'
 
 const router = useRouter()
+
+// 注：战灵获取（开启灵石）已按需求转移到【背包-灵石】点击使用；
+// 灵件室仅负责展示/锁定/一键出售。
 
 // 跳转到战灵详情页
 const goToSpiritDetail = (spiritId) => {
@@ -62,12 +66,6 @@ const filteredSpirits = computed(() => {
   return spirits.value.filter(sp => sp.element === currentElement.value)
 })
 
-// 获取战灵的已解锁属性条数
-const getUnlockedLineCount = (spirit) => {
-  if (!spirit.lines) return 0
-  return spirit.lines.filter(ln => ln.unlocked).length
-}
-
 // 获取战灵的总属性条数
 const getTotalLineCount = (spirit) => {
   if (!spirit.lines) return 0
@@ -77,7 +75,8 @@ const getTotalLineCount = (spirit) => {
 // 判断战灵是否被锁定（任意一条属性被锁定则整个战灵锁定）
 const isLocked = (spirit) => {
   if (!spirit.lines) return false
-  return spirit.lines.some(ln => ln.locked)
+  // 仅“已解锁的词条 locked=true”才视为锁定（与后端一键出售规则一致）
+  return spirit.lines.some(ln => ln && ln.unlocked && ln.locked)
 }
 
 // ========== 操作 ==========
@@ -92,7 +91,7 @@ const toggleLock = async (spirit) => {
     
     // 锁定/解锁第一条属性来代表整个战灵的锁定状态
     const res = await http.post(`/spirit/${spirit.id}/lock-line`, {
-      line_index: 0,
+      line_index: 1,
       locked: newLockState
     })
     
@@ -117,17 +116,13 @@ const sellSpirit = async (spirit) => {
     return
   }
   
-  if (!confirm(`确定要出售 ${spirit.name} 吗？`)) {
-    return
-  }
-  
   try {
     const res = await http.post(`/spirit/${spirit.id}/sell`)
     if (res.data.ok) {
       // 从列表中移除
       spirits.value = spirits.value.filter(s => s.id !== spirit.id)
       warehouseCount.value -= 1
-      alert(`出售成功，获得 ${res.data.spiritPower || 0} 灵力`)
+      alert(`出售成功，获得 ${res.data.gained_spirit_power || 0} 灵力`)
     } else {
       alert(res.data.error || '出售失败')
     }
@@ -138,35 +133,8 @@ const sellSpirit = async (spirit) => {
 }
 
 const sellAllUnlocked = async () => {
-  const unlockedSpirits = filteredSpirits.value.filter(s => !isLocked(s))
-  
-  if (unlockedSpirits.length === 0) {
-    alert('没有可出售的战灵（未锁定的）')
-    return
-  }
-  
-  if (!confirm(`确定要出售当前分类下所有未锁定的 ${unlockedSpirits.length} 个战灵吗？`)) {
-    return
-  }
-  
-  let successCount = 0
-  let totalPower = 0
-  
-  for (const spirit of unlockedSpirits) {
-    try {
-      const res = await http.post(`/spirit/${spirit.id}/sell`)
-      if (res.data.ok) {
-        successCount++
-        totalPower += res.data.spiritPower || 0
-      }
-    } catch (err) {
-      console.error('出售战灵失败:', err)
-    }
-  }
-  
-  // 重新加载数据
-  await loadData()
-  alert(`成功出售 ${successCount} 个战灵，获得 ${totalPower} 灵力`)
+  // 按需求：一键出售跳转到确认页
+  router.push({ path: '/spirit/warehouse/sell-confirm', query: { element: currentElement.value } })
 }
 
 // ========== 导航 ==========
@@ -193,14 +161,14 @@ const goHome = () => {
     <template v-else>
       <!-- 元素分类标签 -->
       <div class="section element-tabs">
-        <template v-for="(elem, index) in elementConfig" :key="elem.key">
+        <span v-for="(elem, index) in elementConfig" :key="elem.key">
           <a 
             class="link element-tab"
             :class="{ active: elem.key === currentElement }"
             @click="selectElement(elem.key)"
           >{{ elem.label }}</a>
           <span v-if="index < elementConfig.length - 1"> | </span>
-        </template>
+        </span>
       </div>
       
       <!-- 一键出售 -->
@@ -215,13 +183,12 @@ const goHome = () => {
         </div>
         <div v-else>
           <div v-for="spirit in filteredSpirits" :key="spirit.id" class="section spirit-row">
-            <a class="link spirit-info" :class="{ 'spirit-unlocked': !isLocked(spirit) }" @click="goToSpiritDetail(spirit.id)">
-              {{ spirit.name }} ({{ getUnlockedLineCount(spirit) }}条属性)
+            <a class="link spirit-info" @click="goToSpiritDetail(spirit.id)">
+              {{ spirit.name }} ({{ getTotalLineCount(spirit) }}条属性)
             </a>
             <a class="link action-btn" @click.prevent="toggleLock(spirit)">
               {{ isLocked(spirit) ? '解锁' : '锁定' }}
             </a>
-            <a class="link action-btn" @click.prevent="sellSpirit(spirit)">售出</a>
           </div>
         </div>
       </div>
@@ -230,6 +197,8 @@ const goHome = () => {
       <div class="section spacer">
         <a class="link" @click="goBack">返回战灵首页</a>
       </div>
+      <!-- 主页菜单（严格复刻主页内容与UI） -->
+      <MainMenuLinks />
       <div class="section">
         <a class="link" @click="goHome">返回游戏首页</a>
       </div>
@@ -243,7 +212,7 @@ const goHome = () => {
   background: #ffffff;
   min-height: 100vh;
   padding: 8px 12px;
-  font-size: 16px;
+  font-size: 18px;
   line-height: 1.6;
   font-family: SimSun, "宋体", serif;
 }
@@ -279,10 +248,6 @@ const goHome = () => {
 
 .spirit-info {
   color: #0066CC;
-}
-
-.spirit-unlocked {
-  /* 未锁定的战灵用普通蓝色 */
 }
 
 .action-btn {
@@ -323,6 +288,6 @@ const goHome = () => {
 }
 
 .small {
-  font-size: 17px;
+  font-size: 19px;
 }
 </style>

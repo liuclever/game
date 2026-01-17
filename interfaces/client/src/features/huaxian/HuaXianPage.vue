@@ -161,9 +161,6 @@ const doHuaxian = async (beast) => {
     return
   }
   const name = beast.displayName || beast.name
-  if (!confirm(`确定要将【${name}】化仙吗？幻兽将消失并转化为经验！`)) {
-    return
-  }
   operating.value = true
   try {
     const res = await http.delete(`/beast/${beast.id}`)

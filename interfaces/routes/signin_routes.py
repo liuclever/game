@@ -6,6 +6,9 @@ from infrastructure.db.connection import execute_query, execute_update
 from datetime import datetime, date, timedelta
 import calendar
 
+from interfaces.web_api.bootstrap import services
+from application.services.signin_service import SigninError
+
 signin_bp = Blueprint('signin', __name__, url_prefix='/api/signin')
 
 def get_current_user_id():
@@ -30,18 +33,32 @@ def get_signin_info():
         
         today = date.today()
         consecutive_days = int(player[0]['consecutive_signin_days'] or 0)
+
+        # 以 player.last_signin_date 作为“是否已签到”的主依据（主页签到即写该字段）
+        last_signin = player[0].get("last_signin_date")
+        if isinstance(last_signin, datetime):
+            last_signin = last_signin.date()
+        has_signed_by_player = (last_signin == today) if last_signin else False
         
         # 从签到记录表中查询本月已签到的日期
         first_day = date(today.year, today.month, 1)
-        records = execute_query(
-            """SELECT DAY(signin_date) as day FROM player_signin_records 
-               WHERE user_id = %s AND signin_date >= %s AND signin_date <= %s
-               ORDER BY signin_date""",
-            (user_id, first_day, today)
-        )
-        
-        signin_days = [r['day'] for r in records]
-        has_signed = today.day in signin_days
+        signin_days = []
+        try:
+            records = execute_query(
+                """SELECT DAY(signin_date) as day FROM player_signin_records 
+                   WHERE user_id = %s AND signin_date >= %s AND signin_date <= %s
+                   ORDER BY signin_date""",
+                (user_id, first_day, today)
+            )
+            signin_days = [r['day'] for r in records]
+        except Exception:
+            signin_days = []
+
+        # 兼容：若主页签到未写入 records（或老库缺表），也要确保显示“已签到”
+        has_signed = has_signed_by_player or (today.day in signin_days)
+        if has_signed_by_player and today.day not in signin_days:
+            signin_days = list(signin_days) + [today.day]
+            signin_days = sorted(set(signin_days))
         
         return jsonify({
             "ok": True,
@@ -56,82 +73,33 @@ def get_signin_info():
 
 @signin_bp.post('')
 def do_signin():
-    """执行签到"""
+    """执行签到（与主页签到统一：调用 SigninService 奖励逻辑）"""
     user_id = get_current_user_id()
     if not user_id:
         return jsonify({"ok": False, "error": "请先登录"}), 401
-    
+
     try:
-        today = date.today()
-        
-        # 检查今天是否已签到（从记录表查询）
-        existing = execute_query(
-            "SELECT id FROM player_signin_records WHERE user_id = %s AND signin_date = %s",
-            (user_id, today)
-        )
-        
-        if existing:
-            return jsonify({"ok": False, "error": "今日已签到"}), 400
-        
-        # 获取玩家信息
-        player = execute_query(
-            "SELECT last_signin_date, consecutive_signin_days FROM player WHERE user_id = %s",
-            (user_id,)
-        )
-        
-        if not player:
-            return jsonify({"ok": False, "error": "玩家不存在"}), 404
-        
-        last_signin = player[0]['last_signin_date']
-        
-        # 处理 last_signin_date 可能是 datetime 或 date 类型
-        if isinstance(last_signin, datetime):
-            last_signin = last_signin.date()
-        
-        # 计算连续签到天数
-        consecutive_days = int(player[0]['consecutive_signin_days'] or 0)
-        yesterday = today - timedelta(days=1)
-        
-        if last_signin == yesterday:
-            # 连续签到
-            consecutive_days += 1
-        else:
-            # 中断了，重新开始
-            consecutive_days = 1
-        
-        # 更新签到信息
-        execute_update(
-            """UPDATE player 
-               SET last_signin_date = %s, consecutive_signin_days = %s 
-               WHERE user_id = %s""",
-            (today, consecutive_days, user_id)
-        )
-        
-        # 发放签到奖励（简化版：每次签到给1000铜钱）
-        reward_copper = 1000
-        execute_update(
-            "UPDATE player SET gold = gold + %s WHERE user_id = %s",
-            (reward_copper, user_id)
-        )
-        
-        # 记录签到
-        execute_update(
-            """INSERT INTO player_signin_records (user_id, signin_date, is_makeup, reward_copper)
-               VALUES (%s, %s, 0, %s)""",
-            (user_id, today, reward_copper)
-        )
-        
-        return jsonify({
-            "ok": True,
-            "message": f"签到成功！获得铜钱{reward_copper}",
-            "consecutiveDays": consecutive_days,
-            "reward": {
-                "copper": reward_copper,
-                "multiplier": 1
-            }
-        })
+        result = services.signin_service.do_signin(player_id=user_id)
+    except SigninError:
+        return jsonify({"ok": False, "error": "今日已签到"}), 400
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
+
+    # 兼容签到页旧字段
+    reward = (result or {}).get("reward") or {}
+    consecutive_days = int((result or {}).get("signin_streak", 0) or 0)
+    reward_copper = int(reward.get("copper", 0) or 0)
+    return jsonify({
+        "ok": True,
+        "message": f"签到成功！获得铜钱{reward_copper}",
+        "consecutiveDays": consecutive_days,
+        "reward": {
+            "copper": reward_copper,
+            "multiplier": int(reward.get("multiplier", 1) or 1),
+        },
+        "last_signin_date": (result or {}).get("last_signin_date"),
+        "issuer_name": (result or {}).get("issuer_name"),
+    })
 
 @signin_bp.get('/makeup/info')
 def get_makeup_info():

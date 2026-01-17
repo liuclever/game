@@ -102,7 +102,28 @@ class SpiritSystemConfig:
         return "普通"
 
     # ===================== 词条解锁 =====================
-    def get_line_unlock_cost(self, line_index: int) -> Optional[Dict[str, Any]]:
+    def get_line_unlock_cost(self, element_key: str, line_index: int) -> Optional[Dict[str, Any]]:
+        """
+        获取指定元素 + 指定词条(2/3) 的解锁消耗。
+
+        优先读取 configs/spirit_system.json 的 line_unlock_costs_by_element：
+          { "earth": {"2":1,"3":2}, ... }，物品统一使用 items.spirit_key_item_id（战灵钥匙）。
+
+        为兼容旧配置，若不存在 line_unlock_costs_by_element，则回退到 line_unlock_costs。
+        """
+        key_item_id = self.get_spirit_key_item_id()
+        mp_by_element = self._config.get("line_unlock_costs_by_element", {}) or {}
+        per = mp_by_element.get(element_key) if isinstance(mp_by_element, dict) else None
+        if isinstance(per, dict):
+            qty = per.get(str(line_index))
+            try:
+                qty_i = int(qty or 0)
+            except Exception:
+                qty_i = 0
+            if key_item_id > 0 and qty_i > 0:
+                return {"key_item_id": key_item_id, "quantity": qty_i}
+
+        # 兼容旧配置
         mp = self._config.get("line_unlock_costs", {}) or {}
         cost = mp.get(str(line_index))
         return cost if isinstance(cost, dict) else None

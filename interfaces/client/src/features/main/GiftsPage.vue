@@ -2,10 +2,9 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import http from '@/services/http'
-import { useMessage } from '@/composables/useMessage'
+import MainMenuLinks from '@/features/main/components/MainMenuLinks.vue'
 
 const router = useRouter()
-const { message, messageType, showMessage } = useMessage()
 
 const loading = ref(true)
 const error = ref('')
@@ -108,6 +107,9 @@ onMounted(fetchGifts)
         </template>
       </div>
     </template>
+
+    <!-- 主页菜单（严格复刻主页内容与UI） -->
+    <MainMenuLinks />
 
     <div class="line">
       <a class="link" @click="router.push('/')">返回游戏首页</a>

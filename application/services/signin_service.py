@@ -1,6 +1,6 @@
 # game/application/services/signin_service.py
 from datetime import date
-from infrastructure.db.connection import execute_query
+from infrastructure.db.connection import execute_query, execute_update
 
 from domain.entities.player import Player
 from domain.repositories.player_repo import IPlayerRepo
@@ -62,6 +62,21 @@ class SigninService:
 
         # 保存玩家数据
         self.player_repo.save(player)
+
+        # 同步写入“签到记录表”，用于签到页/月历/累计奖励等功能读取
+        # 说明：主页签到走的也是本服务，因此这里写一次，保证“主页签到”和“签到页”不再两套逻辑。
+        try:
+            execute_update(
+                """
+                INSERT INTO player_signin_records (user_id, signin_date, is_makeup, reward_copper)
+                VALUES (%s, %s, 0, %s)
+                ON DUPLICATE KEY UPDATE reward_copper=VALUES(reward_copper)
+                """,
+                (player_id, today, int(reward_info.get("actual_gold", 0) or 0)),
+            )
+        except Exception:
+            # 老库可能没有该表；不影响签到主流程（至少 player.last_signin_date 会被写入）
+            pass
         
         return {
             'ok': True,

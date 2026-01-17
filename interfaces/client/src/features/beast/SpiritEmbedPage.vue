@@ -60,7 +60,8 @@ const loadData = async () => {
         // 元素必须匹配
         if (sp.element !== elementKey.value) return false
         // 种族必须匹配（或者战灵是通用种族）
-        if (sp.race && sp.race !== beast.value.race) return false
+        // 若幻兽种族缺失（历史数据），则不做种族过滤，避免“明明有战灵但提示没有”
+        if (beast.value?.race && sp.race && sp.race !== beast.value.race) return false
         return true
       })
     } else {
@@ -164,7 +165,7 @@ const goToSpiritDetail = (spiritId) => {
   background: #ffffff;
   min-height: 100vh;
   padding: 8px 12px;
-  font-size: 16px;
+  font-size: 18px;
   line-height: 1.6;
   font-family: SimSun, "宋体", serif;
 }
@@ -226,6 +227,6 @@ const goToSpiritDetail = (spiritId) => {
 }
 
 .small {
-  font-size: 17px;
+  font-size: 19px;
 }
 </style>

@@ -83,6 +83,18 @@ def get_beast_list():
 
         # 重新计算属性和战力
         beast = _calc_beast_stats(beast)
+        # 兜底修复：历史数据可能缺少 race，尝试从模板补齐并回写
+        if not getattr(beast, "race", ""):
+            tpl = None
+            try:
+                tpl = services.beast_template_repo.get_by_id(getattr(beast, "template_id", 0) or 0)
+            except Exception:
+                tpl = None
+            if tpl and getattr(tpl, "race", ""):
+                try:
+                    beast.race = tpl.race
+                except Exception:
+                    pass
         services.player_beast_repo.update_beast(beast)
         total_power = _calc_total_combat_power_with_equipment(beast)
         
@@ -363,6 +375,18 @@ def get_beast_detail(beast_id: int):
     
     # 重新计算属性（确保属性与等级匹配）
     beast = _calc_beast_stats(beast)
+    # 兜底修复：历史数据可能缺少 race，尝试从模板补齐并回写
+    if not getattr(beast, "race", ""):
+        tpl = None
+        try:
+            tpl = services.beast_template_repo.get_by_id(getattr(beast, "template_id", 0) or 0)
+        except Exception:
+            tpl = None
+        if tpl and getattr(tpl, "race", ""):
+            try:
+                beast.race = tpl.race
+            except Exception:
+                pass
     # 保存更新后的属性到数据库
     services.player_beast_repo.update_beast(beast)
     
@@ -869,7 +893,7 @@ def release_beast(beast_id: int):
     # ========== 4. 根据境界返还进化材料 ==========
     returned_items = []
     realm_to_material = {
-        "地界": 3010,   # 神逆鳞
+        "地界": 3010,   # 神·逆鳞
         "天界": 3012,   # 进化神草
         "神界": 3014,   # 进化圣水晶
     }
@@ -1157,16 +1181,43 @@ def evolve_beast():
     # ==================== 扣除进化材料 ====================
     # 常量：物品ID
     SHEN_NI_LIN_ITEM_ID = 3010
+    EVOLVE_STONE_IDS = {
+        20: 3001,  # 黄阶进化石
+        30: 3002,  # 玄阶进化石
+        40: 3003,  # 地阶进化石
+        50: 3004,  # 天阶进化石
+        60: 3005,  # 飞马进化石
+        70: 3006,  # 天龙进化石
+        80: 3007   # 战神进化石
+    }
     
     evolve_transition = f"{old_realm}->{next_realm}"
     
     try:
-        # 1. 地界->灵界：扣除神逆鳞×1
+        # 1. 地界->灵界：扣除神·逆鳞×1 + 进化石×10
         if evolve_transition == "地界->灵界":
-            # 扣除神逆鳞×1
+            # 获取玩家等级来确定进化石
+            player = services.player_repo.get_by_id(user_id)
+            if not player:
+                return jsonify({"ok": False, "error": "玩家不存在"}), 404
+            
+            player_level = player.level
+            # 确定进化石ID（根据玩家等级段）
+            evolve_stone_id = None
+            for level_threshold in sorted(EVOLVE_STONE_IDS.keys(), reverse=True):
+                if player_level >= level_threshold:
+                    evolve_stone_id = EVOLVE_STONE_IDS[level_threshold]
+                    break
+            
+            if not evolve_stone_id:
+                return jsonify({"ok": False, "error": "玩家等级不足20级，无法进化"}), 400
+            
+            # 扣除神·逆鳞×1
             services.inventory_service.remove_item(user_id, SHEN_NI_LIN_ITEM_ID, 1)
+            # 扣除进化石×10
+            services.inventory_service.remove_item(user_id, evolve_stone_id, 10)
         
-        # 2. 灵界->神界：扣除神逆鳞×4 + 进化神草×90 + 铜钱200万
+        # 2. 灵界->神界：扣除神·逆鳞×4 + 进化神草×90 + 铜钱200万
         elif evolve_transition == "灵界->神界":
             # 获取玩家信息
             player = services.player_repo.get_by_id(user_id)
@@ -1177,7 +1228,7 @@ def evolve_beast():
             if player.gold < 2000000:
                 return jsonify({"ok": False, "error": "铜钱不足，需要200万铜钱"}), 400
             
-            # 扣除神逆鳞×4
+            # 扣除神·逆鳞×4
             services.inventory_service.remove_item(user_id, SHEN_NI_LIN_ITEM_ID, 4)
             # 扣除进化神草×90（需要通过名称查找item_id）
             # 查找进化神草的item_id
@@ -1192,7 +1243,7 @@ def evolve_beast():
             player.gold -= 2000000
             services.player_repo.update_player(player)
         
-        # 3. 神界->天界：扣除神逆鳞×10 + 进化水晶×60 + 铜钱500万
+        # 3. 神界->天界：扣除神·逆鳞×10 + 进化水晶×60 + 铜钱500万
         elif evolve_transition == "神界->天界":
             # 获取玩家信息
             player = services.player_repo.get_by_id(user_id)
@@ -1203,7 +1254,7 @@ def evolve_beast():
             if player.gold < 5000000:
                 return jsonify({"ok": False, "error": "铜钱不足，需要500万铜钱"}), 400
             
-            # 扣除神逆鳞×10
+            # 扣除神·逆鳞×10
             services.inventory_service.remove_item(user_id, SHEN_NI_LIN_ITEM_ID, 10)
             # 扣除进化水晶×60（需要通过名称查找item_id）
             evolve_crystal_items = [item for item in services.inventory_service.get_user_items(user_id) 
@@ -1227,6 +1278,9 @@ def evolve_beast():
     # ==================== 更新境界 ====================
     # 更新境界
     beast.realm = next_realm
+
+    # 计算并应用资质提升（按模板 realms 配置）
+    boosts = calc_aptitude_boost(beast.name, old_realm, next_realm)
     
     # 应用资质提升
     beast.hp_aptitude += boosts.get('hp_aptitude', 0)

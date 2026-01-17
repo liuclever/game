@@ -73,9 +73,6 @@ const assignRole = async (member) => {
 }
 
 const kickMember = async (member) => {
-  if (!confirm(`确定将 ${member.nickname} 踢出联盟吗？`)) {
-    return
-  }
   try {
     const res = await http.post('/alliance/members/kick', {
       target_user_id: member.user_id,

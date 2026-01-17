@@ -63,6 +63,27 @@ const hasSignedToday = computed(() => {
 
 const signinRewardMsg = ref('')
 
+// 古树（幸运果实）快捷状态：主页展示“今日幸运果实数字/是否已领取”，点击跳转古树
+const treeStatus = ref(null)
+const treeStatusError = ref('')
+const loadTreeStatus = async () => {
+  if (!isLoggedIn.value) return
+  treeStatusError.value = ''
+  try {
+    const res = await http.get('/tree/status')
+    if (res.data?.ok) {
+      treeStatus.value = res.data
+    } else {
+      treeStatusError.value = res.data?.error || '加载失败'
+    }
+  } catch (e) {
+    treeStatusError.value = e?.response?.data?.error || '加载失败'
+  }
+}
+const treeTodayNumber = computed(() => treeStatus.value?.today_number ?? null)
+const treeClaimedToday = computed(() => !Boolean(treeStatus.value?.can_draw_today))
+const goTree = () => router.push('/tree')
+
 // 修行状态
 const cultivation = ref({
   is_cultivating: false,
@@ -164,6 +185,8 @@ const checkAuth = async () => {
       loadCultivationStatus()
       // 获取当前位置
       loadCurrentLocation()
+      // 获取古树状态（用于“今日幸运果实”快捷展示）
+      loadTreeStatus()
     } else {
       isLoggedIn.value = false
       currentUser.value = null
@@ -662,10 +685,10 @@ const handleLink = (name) => {
         <span class="ann-title">{{ ann.title }}</span>
       </div>
     </div>
-    
+
     <!-- 欢迎区 -->
     <div class="section" v-if="isLoggedIn && currentUser">
-      欢迎您，<a class="link username" @click="goPlayerHome(currentUser.id)">{{ currentUser.nickname }}</a>
+      欢迎您，<a class="link username" @click="goPlayerHome(currentUser.id)">{{ currentUser.nickname }}</a><span v-if="Number(currentUser.vip_level || 0) > 0">👑</span>
       <span> (ID:{{ currentUser.id }}) </span>
       <a class="link" @click="handleLink('好友')">好友>></a>
     </div>
@@ -685,6 +708,16 @@ const handleLink = (name) => {
         <span class="gray">未登录</span>
       </template>
       <div class="section indent red" v-if="signinRewardMsg">{{ signinRewardMsg }}</div>
+    </div>
+    <div class="section" v-if="isLoggedIn">
+      今日幸运果实数字
+      <template v-if="treeClaimedToday">
+        <span class="gray">已领取</span>
+      </template>
+      <template v-else>
+        <a class="link" @click="goTree">未领取</a>
+      </template>
+      <span class="gray" v-if="treeStatusError">（{{ treeStatusError }}）</span>
     </div>
     <div class="section">
       任务: 通关【回音之谷】 <a class="link" @click="handleLink('前往')">前往</a>
@@ -780,9 +813,9 @@ const handleLink = (name) => {
         等级:<span class="bold">{{ summonerTitle }}</span>
       </div>
       <div class="section indent">
-        声望:{{ prestigeDisplay }} <a 
-          v-if="cultivation.can_levelup" 
-          class="link red" 
+        声望:{{ prestigeDisplay }} <a
+          v-if="cultivation.can_levelup"
+          class="link red"
           @click="doLevelup"
         >晋级</a>
       </div>
@@ -833,10 +866,10 @@ const handleLink = (name) => {
     </div>
 
     <!-- 底部信息 -->
-   
+
 
     <!-- 版权 -->
-   
+
   </div>
 </template>
 
@@ -845,7 +878,7 @@ const handleLink = (name) => {
   background: #ffffff;
   min-height: 100vh;
   padding: 12px 16px;
-  font-size: 16px;
+  font-size: 18px;
   line-height: 1.8;
   font-family: SimSun, "宋体", serif;
 }
@@ -984,7 +1017,7 @@ const handleLink = (name) => {
 
 .chat-msg {
   margin: 2px 0;
-  font-size: 18px;
+  font-size: 20px;
 }
 
 .footer {

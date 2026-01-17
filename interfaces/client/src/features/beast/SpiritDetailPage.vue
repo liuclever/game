@@ -113,7 +113,8 @@ const spiritName = computed(() => {
 // 判断战灵是否被锁定
 const isLocked = computed(() => {
   if (!spirit.value || !spirit.value.lines) return false
-  return spirit.value.lines.some(ln => ln.locked)
+  // 与后端规则保持一致：仅“已解锁词条 locked=true”视为锁定
+  return spirit.value.lines.some(ln => ln && ln.unlocked && ln.locked)
 })
 
 // 获取属性显示名称
@@ -149,7 +150,7 @@ const toggleLock = async () => {
   try {
     const newLockState = !isLocked.value
     const res = await http.post(`/spirit/${spirit.value.id}/lock-line`, {
-      line_index: 0,
+      line_index: 1,
       locked: newLockState
     })
     
@@ -172,14 +173,10 @@ const sellSpirit = async () => {
     return
   }
   
-  if (!confirm(`确定要出售 ${spiritName.value} 吗？`)) {
-    return
-  }
-  
   try {
     const res = await http.post(`/spirit/${spirit.value.id}/sell`)
     if (res.data.ok) {
-      alert(`出售成功，获得 ${res.data.spiritPower || 0} 灵力`)
+      alert(`出售成功，获得 ${res.data.gained_spirit_power || 0} 灵力`)
       router.push('/spirit/warehouse')
     } else {
       alert(res.data.error || '出售失败')
@@ -236,9 +233,19 @@ const unlockLine = async (lineIndex) => {
   }
 }
 
-// 获取激活所需钥匙数量
+// 获取激活所需钥匙数量（严格按《战灵拓展》：随元素与条数变化）
+const UNLOCK_KEY_COST = {
+  earth: { 2: 1, 3: 2 },
+  fire: { 2: 2, 3: 3 },
+  water: { 2: 3, 3: 4 },
+  wood: { 2: 4, 3: 5 },
+  metal: { 2: 5, 3: 6 },
+  god: { 2: 6, 3: 7 },
+}
 const getUnlockKeyCost = (lineIndex) => {
-  return lineIndex === 2 ? 1 : 2
+  const element = spirit.value?.element || 'earth'
+  const mp = UNLOCK_KEY_COST[element] || UNLOCK_KEY_COST.earth
+  return mp[lineIndex] || 0
 }
 
 // 返回战灵首页
@@ -293,7 +300,7 @@ const goToSpiritPage = () => {
   background: #ffffff;
   min-height: 100vh;
   padding: 8px 12px;
-  font-size: 16px;
+  font-size: 18px;
   line-height: 1.6;
   font-family: SimSun, "宋体", serif;
 }
@@ -344,6 +351,6 @@ const goToSpiritPage = () => {
 }
 
 .small {
-  font-size: 17px;
+  font-size: 19px;
 }
 </style>

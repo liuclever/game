@@ -88,9 +88,6 @@ const goDetail = (petId) => {
   router.push({ path: `/handbook/pet/${petId}`, query: { evolution: 0 } })
 }
 
-// 图鉴说明入口：展示 doc 原文（1:1 同步）
-const goIntro = () => router.push('/handbook/intro')
-
 const goHome = () => router.push('/')
 
 watch(
@@ -105,7 +102,6 @@ onMounted(() => load())
   <div class="handbook-page">
     <div class="section title title-row">
       <span>{{ worldTitle }}</span>
-      <a class="link intro-link" @click="goIntro">说明</a>
     </div>
 
     <div class="section" v-if="loading">加载中...</div>
@@ -151,7 +147,7 @@ onMounted(() => load())
   background: #ffffff;
   min-height: 100vh;
   padding: 12px 16px;
-  font-size: 16px;
+  font-size: 18px;
   line-height: 1.8;
   font-family: SimSun, "宋体", serif;
 }
@@ -199,7 +195,7 @@ onMounted(() => load())
 }
 
 .pet-name {
-  font-size: 16px;
+  font-size: 18px;
 }
 
 .link {
@@ -224,12 +220,12 @@ onMounted(() => load())
 .page-input {
   width: 50px;
   margin: 0 8px;
-  font-size: 14px;
+  font-size: 15px;
 }
 
 .btn {
   padding: 4px 10px;
-  font-size: 14px;
+  font-size: 15px;
 }
 
 .red {

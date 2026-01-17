@@ -2,6 +2,7 @@
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { fetchHandbookDoc } from '@/services/handbookService'
+import MainMenuLinks from '@/features/main/components/MainMenuLinks.vue'
 
 const router = useRouter()
 
@@ -48,6 +49,8 @@ onMounted(() => load())
     <div class="section spacer">
       <a class="link" @click="goBack">返回前页</a>
     </div>
+    <!-- 主页菜单（严格复刻主页内容与UI） -->
+    <MainMenuLinks />
     <div class="section">
       <a class="link" @click="goHome">返回游戏首页</a>
     </div>
@@ -59,7 +62,7 @@ onMounted(() => load())
   background: #ffffff;
   min-height: 100vh;
   padding: 14px 14px;
-  font-size: 18px;
+  font-size: 20px;
   line-height: 1.8;
   font-family: SimSun, "宋体", serif;
 }

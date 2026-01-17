@@ -18,7 +18,6 @@ const exchangeMap = ref({
     { name: '罗刹召唤球', desc: '神·罗刹召唤球×1', limit: '限1次' },
   ],
   道具: [
-    { name: '逆鳞', desc: '神·逆鳞×1', limit: '限1次' },
     { name: '进化神草', desc: '进化神草×1', limit: '限1次' },
     { name: '进化圣水晶', desc: '进化圣水晶×1', limit: '限1次' },
   ],
@@ -43,7 +42,6 @@ const exchangeRoutes = {
   '白虎召唤球': '/exchange/beast/baihu',
   '不死鸟召唤球': '/exchange/beast/businiao',
   '罗刹召唤球': '/exchange/beast/luosha',
-  '逆鳞': '/exchange/item/nilin',
   '进化神草': '/exchange/item/god-herb',
   '进化圣水晶': '/exchange/item/god-crystal',
 }

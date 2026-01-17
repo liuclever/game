@@ -3,6 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import http from '@/services/http'
 import { useMessage } from '@/composables/useMessage'
+import MainMenuLinks from '@/features/main/components/MainMenuLinks.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -12,6 +13,9 @@ const loading = ref(true)
 const item = ref(null)
 const quantity = ref(1)
 const maxQuantity = ref(1)
+const allowBatch = ref(false)
+
+const isNilinFragment = computed(() => Number(item.value?.item_id) === 3011)
 
 // 加载道具信息
 const loadItem = async () => {
@@ -33,7 +37,16 @@ const loadItem = async () => {
         return
       }
       item.value = found
-      maxQuantity.value = found.quantity
+      // 可批量道具一次最多10个；不可批量的不要实现批量（固定只能选1个）
+      // 神·逆鳞碎片(3011)改为“合成机制”：不走批量使用数量选择
+      if (Number(found.item_id) === 3011) {
+        allowBatch.value = false
+        maxQuantity.value = 1
+      } else {
+        const BATCH_ITEM_IDS = new Set([6003, 6014, 6030, 6007, 6008, 6009, 6010, 6004, 4001, 6013, 7101, 7102, 7103, 7104, 7105, 7106])
+        allowBatch.value = BATCH_ITEM_IDS.has(Number(found.item_id))
+        maxQuantity.value = allowBatch.value ? Math.min(10, found.quantity) : 1
+      }
       quantity.value = 1
     } else {
       showMessage('加载失败', 'error')
@@ -48,13 +61,13 @@ const loadItem = async () => {
   }
 }
 
-import { getItemUseRoute } from '@/utils/itemUseRoutes'
+import { getItemUseRoute, getItemUseHint } from '@/utils/itemUseRoutes'
 
 // 使用道具
 const useItem = async () => {
   if (!item.value) return
   
-  const qty = quantity.value
+  const qty = isNilinFragment.value ? 1 : quantity.value
   if (qty < 1 || qty > maxQuantity.value) {
     showMessage('数量无效', 'error')
     return
@@ -63,7 +76,8 @@ const useItem = async () => {
   // 检查是否有特殊的使用路由
   const useRoute = getItemUseRoute(item.value.item_id, item.value.name)
   if (useRoute) {
-    // 跳转到对应的使用窗口
+    // 按需求：去除提示/弹框，直接跳转到对应功能页
+    getItemUseHint(item.value.item_id, item.value.name) // 保留调用以维持兼容（不展示）
     router.push(useRoute)
     return
   }
@@ -120,33 +134,38 @@ onMounted(() => {
     <div v-if="loading" class="section gray">加载中...</div>
     
     <template v-else-if="item">
-      <div class="section title">【{{ item.action_name || '使用' }}道具】</div>
+      <div class="section title">【{{ isNilinFragment ? '合成' : (item.action_name || '使用') }}道具】</div>
       
       <div class="section">
         <div class="item-name">{{ item.name }}</div>
         <div class="item-info">拥有数量：{{ item.quantity }}</div>
         <div class="item-desc" v-if="item.description">{{ item.description }}</div>
+        <template v-if="isNilinFragment">
+          <div class="hint">合成规则：每次消耗100块碎片 → 获得1块神·逆鳞</div>
+        </template>
       </div>
 
-      <div class="section">
+      <div class="section" v-if="allowBatch">
         <div>选择{{ item.action_name || '使用' }}数量：</div>
-        <input 
-          type="number" 
-          v-model.number="quantity" 
-          :min="1" 
+        <input
+          type="number"
+          v-model.number="quantity"
+          :min="1"
           :max="maxQuantity"
           class="quantity-input"
         />
-        <div class="hint">（最多{{ maxQuantity }}个）</div>
+        <div class="hint">（一次最多10个，当前最多{{ maxQuantity }}个）</div>
       </div>
 
       <div class="section">
-        <a class="link btn-link" @click="useItem">{{ item.action_name || '使用' }}</a>
+        <a class="link btn-link" @click="useItem">{{ isNilinFragment ? '合成' : (item.action_name || '使用') }}</a>
       </div>
 
       <div class="section">
         <a class="link" @click="goBack">返回背包</a>
       </div>
+      <!-- 主页菜单（严格复刻主页内容与UI） -->
+      <MainMenuLinks />
       <div class="section">
         <a class="link" @click="goHome">返回游戏首页</a>
       </div>
@@ -159,7 +178,7 @@ onMounted(() => {
   background: #ffffff;
   min-height: 100vh;
   padding: 8px 12px;
-  font-size: 17px;
+  font-size: 19px;
   line-height: 1.8;
   font-family: SimSun, "宋体", serif;
 }
@@ -170,14 +189,14 @@ onMounted(() => {
 
 .title {
   font-weight: bold;
-  font-size: 18px;
+  font-size: 20px;
   margin-bottom: 12px;
 }
 
 .item-name {
   color: #CC3300;
   font-weight: bold;
-  font-size: 18px;
+  font-size: 20px;
   margin-bottom: 8px;
 }
 
@@ -197,14 +216,14 @@ onMounted(() => {
 .quantity-input {
   width: 80px;
   padding: 4px 8px;
-  font-size: 16px;
+  font-size: 18px;
   border: 1px solid #CCCCCC;
   margin: 8px 0;
 }
 
 .hint {
   color: #666;
-  font-size: 14px;
+  font-size: 15px;
   margin-top: 4px;
 }
 

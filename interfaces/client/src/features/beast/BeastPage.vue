@@ -2,6 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import http from '@/services/http'
+import MainMenuLinks from '@/features/main/components/MainMenuLinks.vue'
 
 const router = useRouter()
 
@@ -280,14 +281,6 @@ const handleLink = (name) => {
         <a class="link" @click="moveUp(beast)"> 上</a>
       </template>
     </div>
-    <div class="section">
-      <a class="link" @click="handleLink('战场')">战场</a>. 
-      <a class="link" @click="goTower">闯塔</a>. 
-      <span class="link readonly">切磋</span>. 
-      <a class="link" @click="handleLink('地图')">地图</a>. 
-      <a class="link" @click="handleLink('擂台')">擂台</a>
-    </div>
-
     <!-- 幻兽栏 -->
     <div v-if="!loading" class="section title">
       【幻兽栏({{ beastList.length }}/{{ maxBeastSlots }})】<a class="link" @click="handleLink('寄存室')">寄存室({{ storageCount }}/{{ maxStorage }})</a>
@@ -316,6 +309,9 @@ const handleLink = (name) => {
       <input type="text" v-model="jumpPage" class="page-input" />
       <button class="page-btn" @click="goToPage">跳转</button>
     </div>
+
+    <!-- 主页菜单（严格复刻主页内容与UI） -->
+    <MainMenuLinks />
 
     <!-- 返回 -->
     <div class="section spacer">

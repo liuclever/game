@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import http from '@/services/http'
+import MainMenuLinks from '@/features/main/components/MainMenuLinks.vue'
 
 const router = useRouter()
 
@@ -167,6 +168,9 @@ onMounted(() => {
       </div>
 
       <div class="section spacer">
+        <!-- 主页菜单（严格复刻主页内容与UI） -->
+        <MainMenuLinks />
+
         <a class="link" @click="goHome">返回游戏首页</a>
       </div>
     </template>
@@ -178,7 +182,7 @@ onMounted(() => {
   background: #ffffff;
   min-height: 100vh;
   padding: 8px 12px;
-  font-size: 16px;
+  font-size: 18px;
   line-height: 1.6;
   font-family: SimSun, "宋体", serif;
 }

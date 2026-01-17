@@ -126,9 +126,6 @@ const performBatchAbsorb = async () => {
   }
 
   const gradeText = gradeFilter.value ? getGradeLabel(gradeFilter.value) : '全部'
-  if (!confirm(`确定要一键噬魂吗？\n\n升级对象：${targetMosoul.value.name}\n材料品质：${gradeText}\n\n注意：将消耗储魂器内所有符合条件的魔魂（不含升级对象），材料魔魂会消失！\n目标满级后，剩余材料仍会被吞噬（经验会浪费）。`)) {
-    return
-  }
 
   try {
     const res = await http.post('/mosoul/consume/batch', {
@@ -201,9 +198,6 @@ const performAbsorb = async (materialMosoul) => {
   }
   
   const expProvide = getExpProvide(materialMosoul.grade)
-  if (!confirm(`确定要消耗【${materialMosoul.name}】(提供${expProvide}经验)来升级【${targetMosoul.value.name}】吗？\n消耗后该魔魂将消失！`)) {
-    return
-  }
   
   try {
     const res = await http.post(`/mosoul/consume/${materialMosoul.id}`, {
@@ -356,7 +350,7 @@ const getGradeColor = (grade) => {
 
 .separator {
   height: 1px;
-  background: #ffffffCCC;
+  background: #ffffffCC;
   margin: 10px 0;
 }
 

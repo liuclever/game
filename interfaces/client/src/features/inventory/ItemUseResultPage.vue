@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import MainMenuLinks from '@/features/main/components/MainMenuLinks.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -60,6 +61,8 @@ onMounted(() => {
     <div class="section">
       <a class="link" @click="goBack">返回背包</a>
     </div>
+    <!-- 主页菜单（严格复刻主页内容与UI） -->
+    <MainMenuLinks />
     <div class="section">
       <a class="link" @click="goHome">返回游戏首页</a>
     </div>
@@ -71,7 +74,7 @@ onMounted(() => {
   background: #ffffff;
   min-height: 100vh;
   padding: 8px 12px;
-  font-size: 17px;
+  font-size: 19px;
   line-height: 1.8;
   font-family: SimSun, "宋体", serif;
 }
@@ -82,14 +85,14 @@ onMounted(() => {
 
 .title {
   font-weight: bold;
-  font-size: 18px;
+  font-size: 20px;
   margin-bottom: 12px;
 }
 
 .success-message {
   color: #155724;
   font-weight: bold;
-  font-size: 18px;
+  font-size: 20px;
   padding: 12px;
   background: #d4edda;
   border: 1px solid #c3e6cb;

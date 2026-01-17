@@ -2,6 +2,7 @@
 import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import http from '@/services/http'
+import MainMenuLinks from '@/features/main/components/MainMenuLinks.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -653,6 +654,9 @@ watch(() => route.params.id, () => {
       
       <!-- 分隔线 -->
       <div class="divider"></div>
+
+      <!-- 主页菜单（严格复刻主页内容与UI） -->
+      <MainMenuLinks />
       
       <!-- 导航 -->
       <div class="section nav-links">
@@ -670,7 +674,7 @@ watch(() => route.params.id, () => {
   background: #ffffff;
   min-height: 100vh;
   padding: 12px 16px;
-  font-size: 16px;
+  font-size: 18px;
   line-height: 1.8;
   font-family: SimSun, "宋体", serif;
 }
@@ -680,7 +684,7 @@ watch(() => route.params.id, () => {
 }
 
 .title {
-  font-size: 15px;
+  font-size: 17px;
   font-weight: bold;
   color: #CC3300;
   margin-bottom: 8px;
@@ -688,7 +692,7 @@ watch(() => route.params.id, () => {
 
 .time {
   color: #666666;
-  font-size: 12px;
+  font-size: 13px;
 }
 
 .intro {
@@ -763,7 +767,7 @@ watch(() => route.params.id, () => {
 
 .note {
   color: #999999;
-  font-size: 11px;
+  font-size: 12px;
   padding-left: 12px;
 }
 

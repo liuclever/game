@@ -185,9 +185,9 @@
   },
   {
     "id": 3010,
-    "name": "神逆鳞",
+    "name": "神·逆鳞",
     "type": "material",
-    "description": "幻兽进化材料",
+    "description": "神·逆鳞：用于神兽兑换/幻兽进化等高阶用途",
     "stackable": true,
     "max_stack": 9999
   },
@@ -195,7 +195,7 @@
     "id": 3011,
     "name": "神·逆鳞碎片",
     "type": "material",
-    "description": "收集后可兑换神·逆鳞",
+    "description": "神·逆鳞碎片：收集100块可兑换1块神·逆鳞",
     "stackable": true,
     "max_stack": 9999
   },
@@ -337,7 +337,7 @@
   {"id": 6002, "name": "迷踪符", "type": "consumable", "description": "用于隐藏踪迹", "stackable": true, "max_stack": 9999},
   {"id": 6003, "name": "远古秘银宝箱", "type": "consumable", "description": "开启获得稀有物品", "stackable": true, "max_stack": 9999},
   {"id": 6004, "name": "招财神符", "type": "consumable", "description": "增加铜钱获取", "stackable": true, "max_stack": 9999},
-  {"id": 6005, "name": "金袋", "type": "consumable", "description": "包含大量铜钱", "stackable": true, "max_stack": 9999},
+  {"id": 6005, "name": "金袋", "type": "consumable", "description": "联盟捐赠物资：每个金袋可捐献+100联盟资金（在联盟-捐赠物资界面使用）", "stackable": true, "max_stack": 9999},
   {"id": 6006, "name": "战灵钥匙", "type": "material", "description": "战灵系统道具：用于解锁战灵词条槽位", "stackable": true, "max_stack": 9999},
   {"id": 6007, "name": "技能书口袋", "type": "consumable", "description": "开启获得随机技能书", "stackable": true, "max_stack": 9999},
   {"id": 6008, "name": "幸运宝箱", "type": "consumable", "description": "开启随机获得1-10万铜钱", "stackable": true, "max_stack": 9999},
@@ -356,7 +356,7 @@
   {"id": 6021, "name": "鼓舞丹", "type": "consumable", "description": "提升战斗士气", "stackable": true, "max_stack": 9999},
   {"id": 6022, "name": "魔纹布", "type": "material", "description": "背包升级材料", "stackable": true, "max_stack": 9999},
   {"id": 6023, "name": "丝线", "type": "material", "description": "背包升级材料", "stackable": true, "max_stack": 9999},
-  {"id": 6024, "name": "双倍卡", "type": "consumable", "description": "地图副本宝箱/战利品掉落翻倍", "stackable": true, "max_stack": 9999},
+  {"id": 6024, "name": "双倍卡", "type": "consumable", "description": "地图副本宝箱/战利品掉落翻倍（在地图副本打开战利品/宝箱时选择使用）", "stackable": true, "max_stack": 9999},
   {"id": 6027, "name": "补签卡", "type": "consumable", "description": "补签错过的签到", "stackable": true, "max_stack": 9999},
   {"id": 6030, "name": "远古进化宝箱", "type": "consumable", "description": "开启获得进化材料", "stackable": true, "max_stack": 9999},
   {"id": 6031, "name": "洗髓丹", "type": "consumable", "description": "重置幻兽资质", "stackable": true, "max_stack": 9999},

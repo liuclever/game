@@ -9,6 +9,7 @@ from domain.entities.item import Item, InventoryItem, PlayerBag
 from domain.repositories.inventory_repo import IInventoryRepo
 from domain.repositories.item_repo import IItemRepo
 from domain.rules.dragonpalace_rules import pick_dragonpalace_reward_item_id
+from infrastructure.db.connection import execute_query, execute_update
 from infrastructure.db.player_effect_repo_mysql import MySQLPlayerEffectRepo
 
 if TYPE_CHECKING:
@@ -40,6 +41,18 @@ class InventoryItemWithInfo:
 PRESTIGE_STONE_ITEM_ID = 12001
 PRESTIGE_STONE_CONSUME_AMOUNT = 5
 PRESTIGE_STONE_TARGET_LEVEL = 19
+
+# 神兽召唤球（兑换获得）等级门槛 + 同一神兽仅一只
+DIVINE_BEAST_BALL_CONFIG = {
+    # ball_item_id: (template_id, beast_name, min_player_level)
+    26060: (58, "神·罗刹", 30),
+    26059: (59, "神·不死鸟", 40),
+    26058: (60, "神·白虎", 40),
+    26061: (61, "神·绝影", 50),
+    26062: (62, "神·朱雀", 60),
+    26063: (63, "神·玄武", 70),
+    26064: (64, "神·青龙", 70),
+}
 
 LUCKY_CHEST_ITEM_ID = 6008
 NINGSHEN_INCENSE_ITEM_ID = 6009
@@ -74,6 +87,7 @@ class InventoryService:
         self.player_effect_repo = player_effect_repo
         self.activity_gift_service = None
         self.immortalize_pool_service: Optional["ImmortalizePoolService"] = None
+        self.spirit_service = None
 
     def set_activity_gift_service(self, activity_gift_service):
         self.activity_gift_service = activity_gift_service
@@ -81,95 +95,12 @@ class InventoryService:
     def set_immortalize_pool_service(self, service: "ImmortalizePoolService"):
         self.immortalize_pool_service = service
 
-    def _ensure_no_unique_constraint(self):
-        """
-        确保数据库中没有唯一约束 uk_user_item_temp（允许同一物品占用多个格子）
-        如果约束存在，尝试删除它
-        """
-        try:
-            from infrastructure.db.connection import execute_query, execute_update
-            # 检查约束是否存在
-            rows = execute_query(
-                """
-                SELECT COUNT(*) as cnt FROM information_schema.TABLE_CONSTRAINTS 
-                WHERE CONSTRAINT_SCHEMA = DATABASE()
-                AND TABLE_NAME = 'player_inventory' 
-                AND CONSTRAINT_NAME = 'uk_user_item_temp'
-                """
-            )
-            if rows and rows[0].get('cnt', 0) > 0:
-                # 约束存在，尝试删除
-                try:
-                    execute_update("ALTER TABLE player_inventory DROP INDEX uk_user_item_temp")
-                except Exception as e:
-                    # 如果删除失败（可能已经被删除或不存在），忽略
-                    pass
-        except Exception:
-            # 如果检查失败，忽略（可能是权限问题或表不存在）
-            pass
-
-    def _split_oversized_items(self, user_id: int, include_temp: bool = True):
-        """
-        检查并拆分超过99的物品（确保每个格子最多99个）
-        """
-        # 先确保没有唯一约束
-        self._ensure_no_unique_constraint()
-        
-        MAX_STACK = PlayerBag.MAX_STACK_SIZE  # 99
-        inv_items = self.inventory_repo.get_by_user_id(user_id, include_temp)
-        
-        # 需要拆分的物品列表（避免在遍历时修改）
-        items_to_split = [inv for inv in inv_items if inv.quantity > MAX_STACK]
-        
-        for inv in items_to_split:
-            # 获取物品模板
-            item_template = self.item_repo.get_by_id(inv.item_id)
-            if not item_template or not item_template.stackable:
-                # 不可堆叠物品不应该超过99，但为了安全起见也拆分
-                pass
-            
-            # 需要拆分：将原物品数量改为99
-            remaining = inv.quantity - MAX_STACK
-            inv.quantity = MAX_STACK
-            self.inventory_repo.save(inv)
-            
-            # 创建新的格子（每个最多99）
-            # 先检查是否已存在其他格子可以堆叠
-            existing_items = self.inventory_repo.find_all_items(
-                user_id, inv.item_id, is_temporary=inv.is_temporary
-            )
-            
-            # 先尝试填充已有的未满99的格子
-            for existing in existing_items:
-                if remaining <= 0:
-                    break
-                if existing.id == inv.id:
-                    continue  # 跳过当前正在拆分的格子
-                if existing.quantity < MAX_STACK:
-                    space = MAX_STACK - existing.quantity
-                    add_amount = min(space, remaining)
-                    existing.quantity += add_amount
-                    remaining -= add_amount
-                    self.inventory_repo.save(existing)
-            
-            # 如果还有剩余，创建新的格子
-            while remaining > 0:
-                split_qty = min(MAX_STACK, remaining)
-                new_item = InventoryItem(
-                    user_id=user_id,
-                    item_id=inv.item_id,
-                    quantity=split_qty,
-                    is_temporary=inv.is_temporary,
-                    created_at=inv.created_at,
-                )
-                self.inventory_repo.save(new_item)
-                remaining -= split_qty
+    def set_spirit_service(self, spirit_service):
+        """依赖注入：战灵服务（用于背包内直接开启灵石）。"""
+        self.spirit_service = spirit_service
 
     def get_inventory(self, user_id: int, include_temp: bool = True) -> List[InventoryItemWithInfo]:
         """获取玩家背包（带物品详情）"""
-        # 先检查并拆分超过99的物品
-        self._split_oversized_items(user_id, include_temp)
-        
         inv_items = self.inventory_repo.get_by_user_id(user_id, include_temp)
         result = []
         for inv in inv_items:
@@ -204,6 +135,9 @@ class InventoryService:
         
         # consumable类型可以打开或使用
         if item_template.type == "consumable":
+            # 明确不在背包实现的道具：不显示“使用/打开”
+            if item_template.id in (6031, 6032):  # 洗髓丹/坐骑口粮
+                return (False, "")
             # 判断是"打开"还是"使用"
             name = item_template.name or ""
             # 包含"召唤球"、"礼包"、"宝箱"、"箱"的显示"打开"
@@ -212,46 +146,24 @@ class InventoryService:
             else:
                 return (True, "使用")
         
-        # material类型中，声望石可以使用
+        # material类型：部分道具允许在背包中“使用/打开”
         if item_template.type == "material":
             if item_template.id == 12001:  # 声望石
                 return (True, "使用")
+            # 神·逆鳞：用于兑换神兽召唤球，背包内提供“使用”按钮引导跳转
+            if int(item_template.id) == 3010:
+                return (True, "使用")
+            # 神·逆鳞碎片：背包内允许“使用”用于直接合成（集齐100 -> 1神·逆鳞）
+            if int(item_template.id) == 3011:
+                return (True, "使用")
+            # 战灵钥匙：跳转战灵功能页核销（前端会提示并跳转）
+            if int(item_template.id) == 6006:
+                return (True, "使用")
+            # 六系灵石（未开）：背包内直接“打开”
+            if int(item_template.id) in (7101, 7102, 7103, 7104, 7105, 7106):
+                return (True, "打开")
         
         return (False, "")
-
-    def _calculate_actual_slot_count(self, user_id: int, is_temporary: bool = False) -> int:
-        """计算实际占用的容量（根据物品数量，1容量最多容纳99个同类道具）"""
-        import math
-        # 容量计算规则：1容量最多容纳99个同类道具
-        CAPACITY_STACK_LIMIT = 99
-        
-        inv_items = self.inventory_repo.get_by_user_id(user_id, include_temp=is_temporary)
-        total_slots = 0
-        
-        for inv_item in inv_items:
-            if inv_item.is_temporary != is_temporary:
-                continue
-            
-            if inv_item.quantity <= 0:
-                continue
-            
-            # 获取物品模板
-            item_template = self.item_repo.get_by_id(inv_item.item_id)
-            if not item_template:
-                # 如果找不到模板，按不可堆叠处理（每个占用1容量）
-                total_slots += 1
-                continue
-            
-            # 如果不可堆叠，每个占用1容量
-            if not item_template.stackable:
-                total_slots += inv_item.quantity
-            else:
-                # 可堆叠物品：根据容量上限（99）计算占用容量
-                # 例如：quantity=99 -> 1容量，quantity=100 -> 2容量（99+1）
-                slots_needed = math.ceil(inv_item.quantity / CAPACITY_STACK_LIMIT)
-                total_slots += slots_needed
-        
-        return total_slots
 
     def get_bag_info(self, user_id: int) -> dict:
         """获取背包信息"""
@@ -259,8 +171,8 @@ class InventoryService:
         bag_names = config.get('bag_names', {})
 
         bag = self.inventory_repo.get_bag_info(user_id)
-        slot_count = self._calculate_actual_slot_count(user_id, is_temporary=False)
-        temp_count = self._calculate_actual_slot_count(user_id, is_temporary=True)
+        slot_count = self.inventory_repo.get_slot_count(user_id, is_temporary=False)
+        temp_count = self.inventory_repo.get_slot_count(user_id, is_temporary=True)
         bag_name = bag_names.get(str(bag.bag_level), f"{bag.bag_level}级背包")
 
         return {
@@ -273,9 +185,9 @@ class InventoryService:
         }
 
     def _is_bag_full(self, user_id: int) -> bool:
-        """检查背包是否已满（根据实际占用的容量）"""
+        """检查背包是否已满"""
         bag = self.inventory_repo.get_bag_info(user_id)
-        slot_count = self._calculate_actual_slot_count(user_id, is_temporary=False)
+        slot_count = self.inventory_repo.get_slot_count(user_id, is_temporary=False)
         return slot_count >= bag.capacity
 
     def add_item(self, user_id: int, item_id: int, quantity: int = 1) -> Tuple[InventoryItem, bool]:
@@ -568,7 +480,7 @@ class InventoryService:
         return bag
 
     def _remove_item_quantity(self, user_id: int, item_id: int, quantity: int):
-        """从背包移除指定数量的物品（可能跨多个格子），数量为0时自动删除"""
+        """从背包移除指定数量的物品（可能跨多个格子）"""
         remaining = quantity
         items = self.inventory_repo.find_all_items(user_id, item_id, is_temporary=False)
 
@@ -576,17 +488,11 @@ class InventoryService:
             if remaining <= 0:
                 break
             if item.quantity <= remaining:
-                # 数量不足或刚好用完，删除整个物品记录
                 remaining -= item.quantity
                 self.inventory_repo.delete(item.id)
             else:
-                # 减少数量
                 item.quantity -= remaining
-                # 如果减少后数量为0，删除记录；否则保存
-                if item.quantity <= 0:
-                    self.inventory_repo.delete(item.id)
-                else:
-                    self.inventory_repo.save(item)
+                self.inventory_repo.save(item)
                 remaining = 0
 
     def clean_expired_temp_items(self) -> int:
@@ -601,13 +507,12 @@ class InventoryService:
         每次转移一件，直到背包满为止
         返回: 转移的物品列表 [{"item_id": x, "name": "xx", "quantity": n}, ...]
         """
-        MAX_STACK = PlayerBag.MAX_STACK_SIZE  # 99
         transferred = []
 
         while True:
             # 检查背包是否还有空间
             bag = self.inventory_repo.get_bag_info(user_id)
-            slot_count = self._calculate_actual_slot_count(user_id, is_temporary=False)
+            slot_count = self.inventory_repo.get_slot_count(user_id, is_temporary=False)
 
             if slot_count >= bag.capacity:
                 # 背包已满，停止转移
@@ -621,65 +526,34 @@ class InventoryService:
 
             # 尝试转移到正式背包
             item_template = self.item_repo.get_by_id(oldest_temp.item_id)
-            remaining_quantity = oldest_temp.quantity
 
             # 检查正式背包是否有同类物品可堆叠
-            if item_template and item_template.stackable:
-                # 先尝试填充已有的未满99的格子
-                existing_items = self.inventory_repo.find_all_items(user_id, oldest_temp.item_id, is_temporary=False)
-                for existing in existing_items:
-                    if remaining_quantity <= 0:
-                        break
-                    if existing.quantity < MAX_STACK:
-                        space = MAX_STACK - existing.quantity
-                        add_amount = min(space, remaining_quantity)
-                        existing.quantity += add_amount
-                        remaining_quantity -= add_amount
-                        self.inventory_repo.save(existing)
-                        transferred.append({
-                            "item_id": oldest_temp.item_id,
-                            "name": item_template.name if item_template else f"物品{oldest_temp.item_id}",
-                            "quantity": add_amount,
-                        })
+            existing = self.inventory_repo.find_item(user_id, oldest_temp.item_id, is_temporary=False)
 
-            # 如果还有剩余，需要创建新格子
-            while remaining_quantity > 0:
-                # 检查背包是否还有空间
-                slot_count = self._calculate_actual_slot_count(user_id, is_temporary=False)
-                if slot_count >= bag.capacity:
-                    # 背包已满，将剩余数量放回临时背包
-                    if remaining_quantity < oldest_temp.quantity:
-                        # 部分转移成功，更新临时物品数量
-                        oldest_temp.quantity = remaining_quantity
-                        self.inventory_repo.save(oldest_temp)
-                    # 否则保持原样，下次再转移
-                    break
-
-                # 创建新格子（最多99个）
-                add_amount = min(MAX_STACK, remaining_quantity)
-                new_item = InventoryItem(
-                    user_id=user_id,
-                    item_id=oldest_temp.item_id,
-                    quantity=add_amount,
-                    is_temporary=False,
-                    created_at=None,
-                )
-                self.inventory_repo.save(new_item)
-                remaining_quantity -= add_amount
+            if existing and item_template and item_template.stackable:
+                # 堆叠到现有格子
+                existing.quantity += oldest_temp.quantity
+                self.inventory_repo.save(existing)
+                self.inventory_repo.delete(oldest_temp.id)
                 transferred.append({
                     "item_id": oldest_temp.item_id,
                     "name": item_template.name if item_template else f"物品{oldest_temp.item_id}",
-                    "quantity": add_amount,
+                    "quantity": oldest_temp.quantity,
                 })
-
-            # 如果全部转移完成，删除临时物品
-            if remaining_quantity == 0:
-                self.inventory_repo.delete(oldest_temp.id)
-            elif remaining_quantity < oldest_temp.quantity:
-                # 部分转移，更新临时物品数量
-                oldest_temp.quantity = remaining_quantity
-                self.inventory_repo.save(oldest_temp)
-                break  # 背包已满，停止转移
+            else:
+                # 需要占用新格子
+                if slot_count < bag.capacity:
+                    # 有空间，直接将临时物品改为正式
+                    oldest_temp.is_temporary = False
+                    self.inventory_repo.save(oldest_temp)
+                    transferred.append({
+                        "item_id": oldest_temp.item_id,
+                        "name": item_template.name if item_template else f"物品{oldest_temp.item_id}",
+                        "quantity": oldest_temp.quantity,
+                    })
+                else:
+                    # 无空间，停止
+                    break
 
         return transferred
 
@@ -715,19 +589,9 @@ class InventoryService:
 
     def get_temp_items(self, user_id: int) -> List[InventoryItemWithInfo]:
         """获取临时背包物品（按时间排序）"""
-        # 先检查并拆分超过99的物品
-        self._split_oversized_items(user_id, include_temp=True)
-        
         inv_items = self.inventory_repo.get_temp_items_sorted(user_id)
         result = []
         for inv in inv_items:
-            # 过滤掉数量为0的物品
-            if inv.quantity <= 0:
-                try:
-                    self.inventory_repo.delete(inv.id)
-                except:
-                    pass
-                continue
             item_info = self.item_repo.get_by_id(inv.item_id)
             if item_info:
                 result.append(InventoryItemWithInfo(inv_item=inv, item_info=item_info))
@@ -761,6 +625,101 @@ class InventoryService:
         if item_template.type not in ("consumable", "material"):
             raise InventoryError("该物品不可使用")
 
+        # ========== 批量使用规则（严格按文档要求优化）==========
+        # - 可批量使用/打开的道具：一次最多 10 个
+        # - 不可批量的道具：禁止批量（quantity 必须为 1）
+        batch_allowed_item_ids = {
+            6003,  # 远古秘银宝箱
+            6014,  # 远古钛金宝箱
+            6030,  # 远古进化宝箱
+            6007,  # 技能书口袋
+            6008,  # 幸运宝箱
+            6009,  # 凝神香
+            6010,  # 骰子包
+            6004,  # 招财神符
+            4001, 6013,  # 活力草
+            3011,  # 神·逆鳞碎片（背包内合成）
+            7101, 7102, 7103, 7104, 7105, 7106,  # 六系灵石（未开）-> 背包内直接开启
+        }
+        if int(item_template.id) in batch_allowed_item_ids:
+            if int(quantity) > 10:
+                raise InventoryError("一次最多只能使用/打开10个")
+        else:
+            if int(quantity) != 1:
+                raise InventoryError("该物品不支持批量使用")
+
+        # ========== 直接在背包内合成：神·逆鳞碎片(3011) -> 神·逆鳞(3010) ==========
+        # 规则：100碎片兑换1个神·逆鳞（跨格统计与扣除；背包页表现为“合成”而非“批量使用”）
+        if int(item_template.id) == 3011:
+            total_available = int(self._get_item_count(user_id, 3011) or 0)
+            if total_available < 100:
+                # 按需求：不展示“现有多少”，避免碎片分格/临时背包等造成误导
+                raise InventoryError("神·逆鳞碎片不足，需要集齐100块可合成1块神·逆鳞")
+
+            # 每次点击合成 1 个（消耗 100 碎片），避免与“批量使用<=10”的概念混淆
+            exchange_count = 1
+            consume_count = 100
+
+            # 跨多格扣除碎片（仅正式背包）
+            self._remove_item_quantity(user_id, 3011, consume_count)
+            # 发放神·逆鳞
+            self.add_item(user_id, 3010, exchange_count)
+
+            return {
+                "message": f"合成成功，消耗神·逆鳞碎片×{consume_count}，获得神·逆鳞×{exchange_count}",
+                "rewards": {"神·逆鳞": exchange_count},
+            }
+
+        # ========== 背包内开启灵石：六系灵石(未开)(7101-7106) ==========
+        # 规则：开启消耗灵石，获得对应元素随机种族战灵（由 SpiritService 严格按配置执行）
+        if int(item_template.id) in (7101, 7102, 7103, 7104, 7105, 7106):
+            if not self.spirit_service:
+                raise InventoryError("系统错误：SpiritService 未配置")
+            id_to_element = {
+                7101: "earth",
+                7102: "fire",
+                7103: "water",
+                7104: "wood",
+                7105: "metal",
+                7106: "god",
+            }
+            element_key = id_to_element.get(int(item_template.id))
+            if not element_key:
+                raise InventoryError("灵石配置错误")
+
+            created = self.spirit_service.open_stone(user_id=user_id, element_key=element_key, quantity=int(quantity))
+            got = len(created or [])
+            return {
+                "message": f"开启成功，消耗{item_template.name}×{quantity}，获得战灵×{got}",
+                "rewards": {"战灵": got},
+            }
+
+        # ========== 不允许在背包直接“使用”的物品：给出明确指引（不扣除物品） ==========
+        # 严格遵循《商城购买 + 背包核销机制》：不能在背包用的道具应提示去对应功能界面核销
+        non_bag_use_hints = {
+            6001: "镇妖符请在【镇妖】界面镇妖时自动消耗",
+            6002: "迷踪符请在【地图副本】界面点击【迷踪】使用",
+            4002: "捕捉球请在【地图副本】捕捉幻兽时选择使用",
+            4003: "强力捕捉球请在【地图副本】捕捉幻兽时选择使用",
+            6018: "传送符请在【地图】界面的传送处使用",
+            6019: "追魂法宝请在【魔魂-猎魂高级场】使用",
+            6024: "双倍卡请在【地图副本】打开战利品/宝箱时选择使用",
+            6022: "魔纹布用于【背包升级】材料，升级背包时会自动消耗",
+            6023: "丝线用于【背包升级】材料，升级背包时会自动消耗",
+            6005: "金袋请在【联盟-捐赠物资】界面捐献使用",
+            11001: "盟主证明用于【创建联盟】时自动消耗",
+            6028: "炼魂丹请在【炼妖壶】功能中开始炼妖时自动消耗",
+            6029: "庄园建造手册请在【庄园】扩建土地时自动消耗",
+            6006: "战灵钥匙请前往【战灵】界面用于激活第2/第3条属性条",
+            6016: "神奇重生丹请在【幻兽-重生】界面使用",
+            6017: "重生丹请在【幻兽-重生】界面使用",
+            6031: "洗髓丹暂未开放（背包中不可使用）",
+            6032: "坐骑口粮暂未开放（背包中不可使用）",
+        }
+        hint = non_bag_use_hints.get(int(item_template.id))
+        if hint:
+            raise InventoryError(hint)
+
         # 3. 处理不同物品的使用效果
         message = ""
         rewards = {}  # 奖励字典，格式：{物品名: 数量}
@@ -781,19 +740,43 @@ class InventoryService:
             if not self.beast_service:
                 raise InventoryError("系统错误：BeastService 未配置")
 
-            # 改进：通过名称查找模板
-            beast_name = item_template.name.replace("召唤球", "")
-            beast_template = self.beast_service.template_repo.get_by_name(beast_name)
+            # 神兽召唤球：等级门槛 & 唯一持有（同一神兽仅一只）
+            if int(item_template.id) in DIVINE_BEAST_BALL_CONFIG:
+                if quantity != 1:
+                    raise InventoryError("神兽召唤球一次只能打开1个")
+                if not self.player_repo:
+                    raise InventoryError("系统错误：PlayerRepo 未配置")
+                player = self.player_repo.get_by_id(user_id)
+                if not player:
+                    raise InventoryError("玩家不存在")
 
-            if not beast_template:
-                # 兼容逻辑：通过ID偏移查找
-                beast_template_id = item_template.id - 20000
-                beast_template = self.beast_service.template_repo.get_by_id(beast_template_id)
+                template_id, beast_name, min_lv = DIVINE_BEAST_BALL_CONFIG[int(item_template.id)]
+                player_level = int(getattr(player, "level", 0) or 0)
+                if player_level < int(min_lv):
+                    raise InventoryError(f"人物等级不足，需要{int(min_lv)}级才能打开{item_template.name}")
 
-            if not beast_template:
-                raise InventoryError(f"幻兽模板不存在: {beast_name}")
+                existing = self.beast_service.beast_repo.get_by_user_id(user_id)
+                if any(int(getattr(b, "template_id", 0) or 0) == int(template_id) for b in (existing or [])):
+                    raise InventoryError(f"你已拥有{beast_name}，无法再次获得")
 
-            beast_template_id = beast_template.id
+                beast_template = self.beast_service.template_repo.get_by_id(int(template_id))
+                if not beast_template:
+                    raise InventoryError(f"幻兽模板不存在: {beast_name}")
+                beast_template_id = int(template_id)
+            else:
+                # 改进：通过名称查找模板
+                beast_name = item_template.name.replace("召唤球", "")
+                beast_template = self.beast_service.template_repo.get_by_name(beast_name)
+
+                if not beast_template:
+                    # 兼容逻辑：通过ID偏移查找
+                    beast_template_id = item_template.id - 20000
+                    beast_template = self.beast_service.template_repo.get_by_id(beast_template_id)
+
+                if not beast_template:
+                    raise InventoryError(f"幻兽模板不存在: {beast_name}")
+
+                beast_template_id = beast_template.id
 
             # 使用 beast_routes 里的 obtain_beast_for_user 方法 (即 obtain_beast 的核心逻辑)
             # 采用局部导入以避免循环依赖
@@ -835,11 +818,21 @@ class InventoryService:
                 raise InventoryError("玩家不存在")
             per = 50
             before = int(getattr(player, "energy", 0) or 0)
-            max_energy = int(getattr(player, "max_energy", 0) or 0) or before + per * quantity
-            after = min(before + per * quantity, max_energy)
-            gained = after - before
-            player.energy = after
+            max_energy = int(getattr(player, "max_energy", 0) or 0) or 100
+
+            # 活力已满则禁止使用（避免出现“活力+0但道具被消耗”的糟糕体验）
+            if before >= max_energy:
+                raise InventoryError("活力已满，无需使用活力草")
+
+            remaining = max_energy - before
+            need_count = (remaining + per - 1) // per  # 达到上限所需活力草数量
+            use_count = min(int(quantity), int(need_count))
+            gained = min(remaining, per * use_count)
+
+            player.energy = before + gained
             self.player_repo.save(player)
+            # 实际只消耗必要数量
+            quantity = int(use_count)
             message = f"成功使用{item_template.name}×{quantity}，活力+{gained}"
             rewards["活力"] = gained
         elif item_template.id == FORTUNE_TALISMAN_ITEM_ID:  # 招财神符
@@ -848,24 +841,6 @@ class InventoryService:
             player = self.player_repo.get_by_id(user_id)
             if not player:
                 raise InventoryError("玩家不存在")
-
-            # 检查每日使用次数限制
-            from application.services.vip_service import get_fortune_talisman_limit
-            from infrastructure.db.connection import execute_query, execute_update
-
-            vip_level = getattr(player, 'vip_level', 0) or 0
-            daily_limit = get_fortune_talisman_limit(vip_level)
-
-            # 查询今日已使用次数
-            rows = execute_query(
-                "SELECT use_count FROM fortune_talisman_daily WHERE user_id = %s AND use_date = CURDATE()",
-                (user_id,)
-            )
-            today_used = rows[0]['use_count'] if rows else 0
-
-            if today_used + quantity > daily_limit:
-                remaining = daily_limit - today_used
-                raise InventoryError(f"今日招财神符使用次数已达上限（{daily_limit}次），剩余{remaining}次")
 
             lv = int(getattr(player, "level", 1) or 1)
             if 1 <= lv <= 9:
@@ -893,28 +868,6 @@ class InventoryService:
             player.gold = int(getattr(player, "gold", 0) or 0) + total_gold
             self.player_repo.save(player)
 
-            # 更新今日使用次数
-            execute_update(
-                """INSERT INTO fortune_talisman_daily (user_id, use_date, use_count)
-                   VALUES (%s, CURDATE(), %s)
-                   ON DUPLICATE KEY UPDATE use_count = use_count + %s""",
-                (user_id, quantity, quantity)
-            )
-
-            message = f"成功使用{item_template.name}×{quantity}，获得铜钱×{total_gold}"
-            rewards["铜钱"] = total_gold
-        elif item_template.id == 6005:  # 金袋
-            if not self.player_repo:
-                raise InventoryError("系统错误：PlayerRepo 未配置")
-            player = self.player_repo.get_by_id(user_id)
-            if not player:
-                raise InventoryError("玩家不存在")
-            # 金袋：每个获得5000-10000铜钱
-            total_gold = 0
-            for _ in range(quantity):
-                total_gold += random.randint(5000, 10000)
-            player.gold = int(getattr(player, "gold", 0) or 0) + total_gold
-            self.player_repo.save(player)
             message = f"成功使用{item_template.name}×{quantity}，获得铜钱×{total_gold}"
             rewards["铜钱"] = total_gold
         elif item_template.id == 6015:  # 化仙丹
@@ -1066,18 +1019,20 @@ class InventoryService:
                     elif roll < 0.01:
                         _add_item_reward(SHEN_NI_LIN_FRAGMENT_ID, 1)
                     else:
-                        rest_pool = [
+                        # 文档要求：其余 99% 爆率由剩余 15 种道具平分（其中“七类结晶随机”按 7 类分别计入）
+                        pool15 = [
                             NINGSHEN_INCENSE_ITEM_ID,
                             STRONG_CAPTURE_BALL_ID,
                             DICE_BAG_ID,
                             MO_WEN_BU_ID,
-                            random.choice(CRYSTAL_POOL),
+                            # 七类结晶（7种分别计入池子）
+                            *CRYSTAL_POOL,
                             HUA_XIAN_DAN_ID,
                             DOUBLE_CARD_ID,
                             SI_XIAN_ID,
                             VITALITY_GRASS_ID,
                         ]
-                        _add_item_reward(random.choice(rest_pool), 1)
+                        _add_item_reward(random.choice(pool15), 1)
                     continue
 
                 if item_template.id == ANCIENT_TITANIUM_CHEST_ITEM_ID:
@@ -1233,7 +1188,7 @@ class InventoryService:
             message = f"成功使用{item_template.name}×{quantity}，24小时内修行声望+20%。剩余有效时间约 {remaining_hours} 小时"
             rewards["修行声望加成"] = f"{remaining_hours}小时"
         else:
-            raise InventoryError(f"物品 {item_template.name} 的使用逻辑尚未实现")
+            raise InventoryError(f"物品 {item_template.name} 的使用尚未上线，尽情期待！")
 
         # 4. 扣除物品
         self._remove_item_from_slot(inv_item_id, quantity)
@@ -1364,19 +1319,13 @@ class InventoryService:
         return f"成功开启{gift_name}×{quantity}，获得：{rewards_text}"
 
     def _remove_item_from_slot(self, inv_item_id: int, quantity: int):
-        """从特定格子扣除物品，如果数量变为0则删除记录"""
+        """从特定格子扣除物品"""
         inv_item = self.inventory_repo.get_by_id(inv_item_id)
         if not inv_item:
             return
 
         if inv_item.quantity <= quantity:
-            # 数量不足或刚好用完，删除整个物品记录
             self.inventory_repo.delete(inv_item_id)
         else:
-            # 减少数量
             inv_item.quantity -= quantity
-            # 如果减少后数量为0，删除记录；否则保存
-            if inv_item.quantity <= 0:
-                self.inventory_repo.delete(inv_item_id)
-            else:
-                self.inventory_repo.save(inv_item)
+            self.inventory_repo.save(inv_item)

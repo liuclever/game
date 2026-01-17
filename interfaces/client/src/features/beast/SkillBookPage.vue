@@ -60,10 +60,6 @@ const loadSkillBooks = async () => {
 
 // 使用技能书
 const useSkillBook = async (book) => {
-  if (!confirm(`确定要对【${beastName.value}】使用【${book.full_name}】吗？`)) {
-    return
-  }
-  
   actionMsg.value = ''
   
   try {

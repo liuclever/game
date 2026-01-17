@@ -3,6 +3,7 @@ import { useMessage } from '@/composables/useMessage'
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import http from '@/services/http'
+import MainMenuLinks from '@/features/main/components/MainMenuLinks.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -16,18 +17,19 @@ const loading = ref(true)
 const bagInfo = ref({ capacity: 145, used_slots: 0, temp_slots: 0 })
 const transferred = ref([])  // 本次转移的物品
 
-// 分类：物品、召唤球、战骨、卷轴、技能书
+// 分类
 const categories = {
-  item: '物品',
-  summonBall: '召唤球',
-  bone: '战骨',
-  scroll: '卷轴',
-  skillBook: '技能书',
+  all: '全部',
+  material: '材料',
+  consumable: '道具',
 }
-const currentCategory = ref('item')  // 默认显示物品
+const currentCategory = ref('all')
 
 // 是否显示临时背包
 const showTemp = ref(false)
+
+// 名称筛选关键词（卷轴、战骨、召唤球、技能书）
+const nameFilter = ref('')
 
 // 关键字搜索（仅正式背包）
 const keywordSearch = ref('')
@@ -81,7 +83,8 @@ const loadTempItems = async () => {
 // 切换到临时背包
 const switchToTemp = () => {
   showTemp.value = true
-  currentCategory.value = 'item'
+  currentCategory.value = 'all'
+  nameFilter.value = ''
   keywordSearch.value = ''
   currentPage.value = 1
   loadTempItems()
@@ -101,39 +104,6 @@ onMounted(() => {
   }
 })
 
-// 判断物品属于哪个分类
-const getItemCategory = (item) => {
-  const name = item.name || ''
-  const itemId = item.item_id || 0
-  const type = item.type || ''
-  
-  // 技能书：通过type判断或item_id判断（10001-10699范围）或名称包含"技能书"/"书"（排除卷轴）
-  if (type === 'skill_book' || (itemId >= 10001 && itemId <= 10699)) {
-    return 'skillBook'
-  }
-  if (name.includes('技能书') || (name.includes('书') && !name.includes('卷轴'))) {
-    return 'skillBook'
-  }
-  
-  // 召唤球：名称包含"捕捉球"或"召唤球"（排除宝箱）
-  if ((name.includes('捕捉球') || name.includes('召唤球')) && !name.includes('宝箱')) {
-    return 'summonBall'
-  }
-  
-  // 战骨：名称包含"骨"（排除卷轴）
-  if (name.includes('骨') && !name.includes('卷轴')) {
-    return 'bone'
-  }
-  
-  // 卷轴：名称包含"卷轴"
-  if (name.includes('卷轴')) {
-    return 'scroll'
-  }
-  
-  // 其他都是物品
-  return 'item'
-}
-
 // 过滤后的物品
 const filteredItems = computed(() => {
   let result = items.value
@@ -141,9 +111,14 @@ const filteredItems = computed(() => {
   // 过滤掉数量为0的物品
   result = result.filter(item => item.quantity > 0)
   
-  // 按分类筛选
-  if (currentCategory.value) {
-    result = result.filter(item => getItemCategory(item) === currentCategory.value)
+  // 按类型筛选
+  if (currentCategory.value !== 'all') {
+    result = result.filter(item => item.type === currentCategory.value)
+  }
+  
+  // 按名称关键词筛选
+  if (nameFilter.value) {
+    result = result.filter(item => item.name.includes(nameFilter.value))
   }
 
   // 按关键字搜索（仅正式背包）
@@ -169,6 +144,16 @@ const totalPages = computed(() => {
 const switchCategory = (cat) => {
   showTemp.value = false
   currentCategory.value = cat
+  nameFilter.value = ''  // 清除名称筛选
+  keywordSearch.value = ''
+  currentPage.value = 1
+}
+
+// 按名称筛选
+const filterByName = (keyword) => {
+  showTemp.value = false
+  nameFilter.value = keyword
+  currentCategory.value = 'all'  // 重置类型筛选
   keywordSearch.value = ''
   currentPage.value = 1
 }
@@ -209,11 +194,11 @@ const viewItemDetail = (item) => {
 import { getItemUseRoute } from '@/utils/itemUseRoutes'
 
 // 跳转到使用选择页或特殊使用窗口
-const openUseSelect = (item) => {
+const openUseSelect = async (item) => {
   // 检查是否有特殊的使用路由
   const useRoute = getItemUseRoute(item.item_id, item.name)
   if (useRoute) {
-    // 直接跳转到对应的使用窗口
+    // 按需求：去除提示/弹框，直接跳转到对应功能页
     router.push(useRoute)
   } else {
     // 没有特殊路由的道具，跳转到使用选择页
@@ -284,30 +269,35 @@ const handleLink = (name) => {
     <div class="section">
       <a 
         class="link" 
-        :class="{ active: !showTemp && currentCategory === 'item' }"
-        @click="switchCategory('item')"
-      >物品</a> | 
+        :class="{ active: !showTemp && currentCategory === 'consumable' && !nameFilter }"
+        @click="switchCategory('consumable')"
+      >道具</a> | 
       <a 
         class="link"
-        :class="{ active: !showTemp && currentCategory === 'summonBall' }"
-        @click="switchCategory('summonBall')"
-      >召唤球</a> | 
+        :class="{ active: !showTemp && currentCategory === 'material' && !nameFilter }"
+        @click="switchCategory('material')"
+      >材料</a> | 
       <a 
         class="link"
-        :class="{ active: !showTemp && currentCategory === 'bone' }"
-        @click="switchCategory('bone')"
-      >战骨</a>
+        :class="{ active: !showTemp && nameFilter === '召唤球' }"
+        @click="filterByName('召唤球')"
+      >召唤球</a>
     </div>
     <div class="section">
       <a 
         class="link"
-        :class="{ active: !showTemp && currentCategory === 'scroll' }"
-        @click="switchCategory('scroll')"
+        :class="{ active: !showTemp && nameFilter === '战骨' }"
+        @click="filterByName('战骨')"
+      >战骨</a> | 
+      <a 
+        class="link"
+        :class="{ active: !showTemp && nameFilter === '卷轴' }"
+        @click="filterByName('卷轴')"
       >卷轴</a> | 
       <a 
         class="link"
-        :class="{ active: !showTemp && currentCategory === 'skillBook' }"
-        @click="switchCategory('skillBook')"
+        :class="{ active: !showTemp && nameFilter === '技能书' }"
+        @click="filterByName('技能书')"
       >技能书</a>
     </div>
     <div class="section">
@@ -399,42 +389,8 @@ const handleLink = (name) => {
       皇城:<span class="link readonly">召唤之王挑战赛</span>
     </div>
 
-    <!-- 导航菜单 -->
-    <div class="section">
-      <a class="link" @click="handleLink('幻兽')">幻兽</a>. 
-      <a class="link active">背包</a>. 
-      <a class="link" @click="handleLink('商城')">商城</a>. 
-      <a class="link" @click="handleLink('赞助')">赞助</a>. 
-      <a class="link" @click="handleLink('礼包')">礼包</a>
-    </div>
-    <div class="section">
-      <a class="link" @click="handleLink('联盟')">联盟</a>. 
-      <a class="link" @click="handleLink('盟战')">盟战</a>. 
-      <a class="link" @click="handleLink('地图')">地图</a>. 
-      <span class="link readonly">天赋</span>. 
-      <a class="link" @click="handleLink('化仙')">化仙</a>
-    </div>
-    <div class="section">
-      <span class="link readonly">切磋</span>. 
-      <a class="link" @click="handleLink('闯塔')">闯塔</a>. 
-      <a class="link" @click="handleLink('战场')">战场</a>. 
-      <a class="link" @click="handleLink('擂台')">擂台</a>. 
-      <span class="link readonly">坐骑</span>
-    </div>
-    <div class="section">
-      <a class="link" @click="router.push('/tree')">古树</a>. 
-      <a class="link" @click="handleLink('排行')">排行</a>. 
-      <span class="link readonly">成就</span>. 
-      <a class="link" @click="handleLink('图鉴')">图鉴</a>. 
-      <span class="link readonly">攻略</span>
-    </div>
-    <div class="section">
-      <a class="link" @click="handleLink('兑换')">兑换</a>. 
-      <span class="link readonly">签到</span>. 
-      <span class="link readonly">论坛</span>. 
-      <a class="link" @click="handleLink('VIP')">VIP</a>. 
-      <span class="link readonly">安全锁</span>
-    </div>
+    <!-- 主页菜单（严格复刻主页内容与UI） -->
+    <MainMenuLinks />
 
     <!-- 返回首页 -->
     <div class="section">
@@ -449,7 +405,7 @@ const handleLink = (name) => {
   background: #ffffff;
   min-height: 100vh;
   padding: 8px 12px;
-  font-size: 17px;
+  font-size: 19px;
   line-height: 1.8;
   font-family: SimSun, "宋体", serif;
 }
@@ -497,7 +453,7 @@ const handleLink = (name) => {
 }
 
 .small {
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .items-list {
@@ -507,13 +463,13 @@ const handleLink = (name) => {
 
 .page-input {
   width: 40px;
-  font-size: 12px;
+  font-size: 13px;
   border: 1px solid #CCCCCC;
   padding: 1px 4px;
 }
 
 .page-btn {
-  font-size: 12px;
+  font-size: 13px;
   padding: 1px 8px;
   background: #F0F0F0;
   border: 1px solid #CCCCCC;

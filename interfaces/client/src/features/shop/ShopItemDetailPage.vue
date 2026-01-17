@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import http from '@/services/http'
+import MainMenuLinks from '@/features/main/components/MainMenuLinks.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -121,6 +122,8 @@ onMounted(() => {
     <!-- 返回链接 -->
     <div class="nav-links">
       <a class="link" @click="goBack">返回前页</a>
+      <!-- 主页菜单（严格复刻主页内容与UI） -->
+      <MainMenuLinks />
       <div><a class="link" @click="goHome">返回游戏首页</a></div>
     </div>
 
@@ -132,7 +135,7 @@ onMounted(() => {
   background: #ffffff;
   min-height: 100vh;
   padding: 8px 12px;
-  font-size: 16px;
+  font-size: 18px;
   line-height: 1.8;
   font-family: SimSun, "宋体", serif;
 }
@@ -161,12 +164,12 @@ onMounted(() => {
   width: 50px;
   padding: 2px 4px;
   border: 1px solid #999;
-  font-size: 16px;
+  font-size: 18px;
 }
 
 .buy-btn {
   padding: 2px 8px;
-  font-size: 18px;
+  font-size: 20px;
   cursor: pointer;
 }
 
@@ -199,6 +202,6 @@ onMounted(() => {
 }
 
 .small {
-  font-size: 17px;
+  font-size: 19px;
 }
 </style>

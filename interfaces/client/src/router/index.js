@@ -40,6 +40,8 @@ import BoneSelectPage from '@/features/beast/BoneSelectPage.vue'
 import BeastSpiritPage from '@/features/beast/BeastSpiritPage.vue'
 import SpiritEmbedPage from '@/features/beast/SpiritEmbedPage.vue'
 import SpiritWarehousePage from '@/features/beast/SpiritWarehousePage.vue'
+import SpiritWarehouseSellConfirmPage from '@/features/beast/SpiritWarehouseSellConfirmPage.vue'
+import SpiritWarehouseSellResultPage from '@/features/beast/SpiritWarehouseSellResultPage.vue'
 import SpiritDetailPage from '@/features/beast/SpiritDetailPage.vue'
 import SpiritRefinePage from '@/features/beast/SpiritRefinePage.vue'
 import SpiritKeyInsufficientPage from '@/features/beast/SpiritKeyInsufficientPage.vue'
@@ -205,11 +207,6 @@ const routes = [
     component: HandbookIndexPage,
   },
   {
-    path: '/handbook/intro',
-    name: 'HandbookIntro',
-    component: HandbookIntroPage,
-  },
-  {
     path: '/handbook/pet/:id',
     name: 'HandbookPetDetail',
     component: HandbookPetDetailPage,
@@ -314,11 +311,7 @@ const routes = [
     name: 'ExchangeBeastQinglong',
     component: ExchangeDetailPage,
   },
-  {
-    path: '/exchange/item/nilin',
-    name: 'ExchangeItemNilin',
-    component: ExchangeNilinPage,
-  },
+  // 神·逆鳞碎片(3011) -> 神·逆鳞(3010)：按需求改为“背包内直接合成”，不提供兑换页入口
   {
     path: '/exchange/item/god-herb',
     name: 'ExchangeItemGodHerb',
@@ -473,6 +466,16 @@ const routes = [
     path: '/spirit/warehouse',
     name: 'SpiritWarehouse',
     component: SpiritWarehousePage,
+  },
+  {
+    path: '/spirit/warehouse/sell-confirm',
+    name: 'SpiritWarehouseSellConfirm',
+    component: SpiritWarehouseSellConfirmPage,
+  },
+  {
+    path: '/spirit/warehouse/sell-result',
+    name: 'SpiritWarehouseSellResult',
+    component: SpiritWarehouseSellResultPage,
   },
   {
     path: '/spirit/:id',

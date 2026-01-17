@@ -2,6 +2,7 @@
 import { computed, ref, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import http from '@/services/http'
+import MainMenuLinks from '@/features/main/components/MainMenuLinks.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -50,9 +51,7 @@ const loadRankings = async () => {
   try {
     let url = `/ranking/list?type=${currentType.value}&page=${currentPage.value}&size=${pageSize}`
     if (currentType.value === 'power') {
-      if (powerRank.value === 'arena') {
-        url += `&power_scope=arena`
-      } else if (powerRank.value && powerRank.value !== 'total') {
+      if (powerRank.value && powerRank.value !== 'total') {
         url += `&rank=${encodeURIComponent(powerRank.value)}`
       }
     }
@@ -232,7 +231,7 @@ watch(
       </template>
     </div>
 
-    <!-- 战力：二级段位导航（严格模仿参考页：黄阶...北斗｜竞技擂台｜ 总排行） -->
+      <!-- 战力：二级段位导航（仅保留分段 + 总排行；按需求删除“竞技擂台”） -->
     <template v-if="currentType === 'power' && arenaZones.length">
       <div class="section zone-row">
         <span v-for="z in arenaZones" :key="z.name">
@@ -244,14 +243,6 @@ watch(
           </template>
           <span>｜</span>
         </span>
-
-        <template v-if="powerRank === 'arena'">
-          <span>竞技擂台</span>
-        </template>
-        <template v-else>
-          <a class="link" @click="selectPowerRank('arena')">竞技擂台</a>
-        </template>
-        <span>｜</span>
 
         <template v-if="powerRank === 'total'">
           <span>总排行</span>
@@ -347,6 +338,9 @@ watch(
       <button @click="jumpToPage" class="jump-btn">跳转</button>
     </div>
 
+    <!-- 主页菜单（严格复刻主页内容与UI） -->
+    <MainMenuLinks />
+
     <!-- 返回首页 -->
     <div class="section">
       <a class="link" @click="goHome">返回游戏首页</a>
@@ -363,11 +357,11 @@ watch(
 <style scoped>
 .ranking-page {
   padding: 10px;
-  font-size: 17px;
+  font-size: 19px;
   background: #FFFFFF;
   min-height: 100vh;
   padding: 12px 16px;
-  font-size: 16px;
+  font-size: 18px;
   line-height: 1.8;
   font-family: SimSun, "宋体", serif;
 }
@@ -419,7 +413,7 @@ watch(
 
 .vip-icon {
   margin: 0 2px;
-  font-size: 12px;
+  font-size: 13px;
 }
 
 .pager {

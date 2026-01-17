@@ -2,6 +2,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import http from '@/services/http'
+import MainMenuLinks from '@/features/main/components/MainMenuLinks.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -220,14 +221,14 @@ onMounted(() => {
   <div class="shop-page">
     <!-- 分类Tab -->
     <div class="tabs">
-      <template v-for="(cat, idx) in categories" :key="cat.key">
-        <a 
-          class="tab-link" 
+      <span v-for="(cat, idx) in categories" :key="cat.key">
+        <a
+          class="tab-link"
           :class="{ active: currentCategory === cat.key }"
           @click="switchCategory(cat.key)"
         >{{ cat.name }}</a>
         <span v-if="idx < categories.length - 1" class="divider">|</span>
-      </template>
+      </span>
     </div>
 
     <!-- 货币显示 -->
@@ -314,6 +315,9 @@ onMounted(() => {
       </div>
     </div>
 
+    <!-- 主页菜单（严格复刻主页内容与UI） -->
+    <MainMenuLinks />
+
     <!-- 返回 -->
     <div class="footer-section">
       <a class="link" @click="goHome">返回游戏首页</a>
@@ -327,7 +331,7 @@ onMounted(() => {
   background: #ffffff;
   min-height: 100vh;
   padding: 12px 16px;
-  font-size: 16px;
+  font-size: 18px;
   line-height: 1.8;
   font-family: SimSun, "宋体", serif;
 }
@@ -419,13 +423,13 @@ onMounted(() => {
 
 .page-input {
   width: 40px;
-  font-size: 18px;
+  font-size: 20px;
   border: 1px solid #CCCCCC;
   padding: 1px 4px;
 }
 
 .page-btn {
-  font-size: 18px;
+  font-size: 20px;
   padding: 1px 8px;
   background: #ffffff;
   border: 1px solid #CCCCCC;
@@ -451,6 +455,6 @@ onMounted(() => {
 }
 
 .small {
-  font-size: 17px;
+  font-size: 19px;
 }
 </style>

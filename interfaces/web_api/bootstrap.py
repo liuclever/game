@@ -32,6 +32,7 @@ from infrastructure.db.month_card_repo_mysql import MySQLMonthCardRepo
 from infrastructure.db.immortalize_pool_repo_mysql import MySQLImmortalizePoolRepo
 from infrastructure.db.player_effect_repo_mysql import MySQLPlayerEffectRepo
 from infrastructure.db.player_gift_claim_repo_mysql import MySQLPlayerGiftClaimRepo
+from infrastructure.db.player_exchange_claim_repo_mysql import MySQLPlayerExchangeClaimRepo
 from infrastructure.db.tree_repo_mysql import MySQLTreeRepo
 from infrastructure.db.dragonpalace_repo_mysql import MySQLDragonPalaceRepo
 from infrastructure.memory.beast_repo_inmemory import InMemoryBeastRepo
@@ -63,6 +64,7 @@ from application.services.refine_pot_service import RefinePotService
 from application.services.month_card_service import MonthCardService
 from application.services.immortalize_pool_service import ImmortalizePoolService
 from application.services.home_gift_service import HomeGiftService
+from application.services.exchange_service import ExchangeService
 from application.services.tree_service import TreeService
 from application.services.dragonpalace_service import DragonPalaceService
 from application.services.world_chat_service import WorldChatService
@@ -101,6 +103,7 @@ class ServiceContainer:
         self.immortalize_config = ImmortalizeConfig()
         self.player_effect_repo = MySQLPlayerEffectRepo()
         self.player_gift_claim_repo = MySQLPlayerGiftClaimRepo()
+        self.player_exchange_claim_repo = MySQLPlayerExchangeClaimRepo()
         self.tree_repo = MySQLTreeRepo()
         self.dragonpalace_repo = MySQLDragonPalaceRepo()
 
@@ -142,6 +145,8 @@ class ServiceContainer:
             tower_state_repo=self.tower_state_repo,
             player_beast_repo=self.player_beast_repo,
         )
+        # 依赖注入回填：让背包可以直接开启灵石（使用 SpiritService.open_stone）
+        self.inventory_service.set_spirit_service(self.spirit_service)
         self.drop_service = DropService(
             item_repo=self.item_repo, 
             inventory_service=self.inventory_service
@@ -231,6 +236,12 @@ class ServiceContainer:
             inventory_service=self.inventory_service,
             player_repo=self.player_repo,
             item_repo=self.item_repo,
+        )
+        self.exchange_service = ExchangeService(
+            inventory_service=self.inventory_service,
+            player_repo=self.player_repo,
+            player_beast_repo=self.player_beast_repo,
+            exchange_claim_repo=self.player_exchange_claim_repo,
         )
         # 古树（每周幸运数字）
         self.tree_service = TreeService(

@@ -73,9 +73,10 @@ const equippedBoneSlots = ref({})
 // /api/inventory/list 返回的 items 数组
 const bagItems = ref([])
 
+const EVOLVE_STONE_COST = 10
 const SHEN_NI_LIN_ITEM_ID = 3010
 
-const SHEN_NI_LIN_NAME = '神逆鳞'
+const SHEN_NI_LIN_NAME = '神·逆鳞'
 const EVOLVE_GOD_HERB_NAME = '进化神草'
 const EVOLVE_CRYSTAL_NAME = '进化水晶'
 
@@ -88,6 +89,17 @@ const formatNumber = (n) => {
 
 const normalizeName = (s) => String(s || '').replace(/[·\s]/g, '')
 
+// 玩家等级段 -> 进化石（xx）映射
+// 20-29: 黄阶，30-39: 玄阶，40-49: 地阶，50-59: 天阶，60-69: 飞马，70-79: 天龙，80-100: 战神
+const EVOLVE_STONE_CONFIG = {
+  20: { itemId: 3001, name: '黄阶进化石', bracket: '20-29' },
+  30: { itemId: 3002, name: '玄阶进化石', bracket: '30-39' },
+  40: { itemId: 3003, name: '地阶进化石', bracket: '40-49' },
+  50: { itemId: 3004, name: '天阶进化石', bracket: '50-59' },
+  60: { itemId: 3005, name: '飞马进化石', bracket: '60-69' },
+  70: { itemId: 3006, name: '天龙进化石', bracket: '70-79' },
+  80: { itemId: 3007, name: '战神进化石', bracket: '80-100' },
+}
 
 const FULL_BONE_SLOT_COUNT = 7
 const BONE_STAGE_NAMES = {
@@ -243,6 +255,27 @@ const getBagQty = (itemId, itemName) => {
   return Number(bagQtyByNameMap.value[key] || 0)
 }
 
+const evolveStoneKey = computed(() => {
+  if (playerLevel.value === null || playerLevel.value === undefined) return null
+  const lvl = Number(playerLevel.value) || 0
+  if (lvl >= 80) return 80
+  const start = Math.floor(lvl / 10) * 10
+  if (start < 20) return null
+  return start
+})
+
+const requiredEvolveStone = computed(() => {
+  const key = evolveStoneKey.value
+  if (!key) return null
+  return EVOLVE_STONE_CONFIG[key] || null
+})
+
+const evolveStoneQty = computed(() => {
+  const itemId = requiredEvolveStone.value?.itemId
+  const name = requiredEvolveStone.value?.name
+  return getBagQty(itemId, name)
+})
+
 const shenNiLinQty = computed(() => getBagQty(SHEN_NI_LIN_ITEM_ID, SHEN_NI_LIN_NAME))
 const evolveGodHerbQty = computed(() => getBagQty(null, EVOLVE_GOD_HERB_NAME))
 const evolveCrystalQty = computed(() => getBagQty(null, EVOLVE_CRYSTAL_NAME))
@@ -265,6 +298,13 @@ const requiredGoldCost = computed(() => {
   if (evolveTransition.value === '灵界->神界') return 2000000
   if (evolveTransition.value === '神界->天界') return 5000000
   return 0
+})
+
+const evolveStoneOk = computed(() => {
+  if (evolveTransition.value !== '地界->灵界') return true
+  const itemId = requiredEvolveStone.value?.itemId
+  if (!itemId) return false
+  return evolveStoneQty.value >= EVOLVE_STONE_COST
 })
 
 const shenNiLinOk = computed(() => {
@@ -305,6 +345,7 @@ const canEvolve = computed(() => {
 
   // 材料条件（按境界段）
   if (evolveTransition.value === '地界->灵界') {
+    if (!evolveStoneOk.value) return false
     if (!shenNiLinOk.value) return false
     return true
   }
@@ -363,6 +404,14 @@ const evolveConditions = computed(() => {
   const mats = []
 
   if (evolveTransition.value === '地界->灵界') {
+    const evolveStoneText = requiredEvolveStone.value
+      ? `进化材料要求：消耗${requiredEvolveStone.value.name}×${EVOLVE_STONE_COST}（当前：${evolveStoneQty.value}）`
+      : ''
+
+    if (evolveStoneText) {
+      mats.push({ ok: evolveStoneOk.value, text: evolveStoneText })
+    }
+
     mats.push({
       ok: shenNiLinOk.value,
       text: `进化材料要求：消耗${SHEN_NI_LIN_NAME}×${requiredShenNiLinCost.value}（当前：${shenNiLinQty.value}）`,

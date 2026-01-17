@@ -151,11 +151,6 @@ const viewBlacklistedUser = (user) => {
 const unblocking = ref({})
 const unblockUser = async (user) => {
   if (unblocking.value[user.user_id]) return
-  
-  if (!confirm(`确定要取消拉黑 ${user.nickname} 吗？`)) {
-    return
-  }
-  
   unblocking.value[user.user_id] = true
   try {
     const res = await http.post('/mail/unblock', { target_id: user.user_id })
