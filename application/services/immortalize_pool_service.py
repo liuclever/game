@@ -120,7 +120,6 @@ class ImmortalizePoolService:
         if end and now < end:
             raise ImmortalizeError("化仙阵正在运行中")
 
-<<<<<<< HEAD
         # 检查并扣除7种结晶各1个
         if not self.inventory_service:
             raise ImmortalizeError("系统错误：背包服务未初始化")
@@ -162,8 +161,6 @@ class ImmortalizePoolService:
         except InventoryError as exc:
             raise ImmortalizeError(f"扣除结晶失败：{str(exc)}") from exc
 
-=======
->>>>>>> new/daily-book
         duration_hours = self.config.get_formation_duration_hours()
         pool.formation_level = pool.pool_level
         pool.formation_started_at = now
