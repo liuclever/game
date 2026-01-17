@@ -1,0 +1,8 @@
+{
+    "mode": "produce",
+    "_mode_description": "可选值: 'test' (测试模式) 或 'production' (正式模式)",
+    "test_mode_features": {
+        "register_with_default_beasts": true,
+        "_description": "测试模式下注册账号时赠送5只默认幻兽"
+    }
+}
