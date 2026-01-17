@@ -113,7 +113,8 @@ const spiritName = computed(() => {
 // 判断战灵是否被锁定
 const isLocked = computed(() => {
   if (!spirit.value || !spirit.value.lines) return false
-  return spirit.value.lines.some(ln => ln.locked)
+  // 与后端规则保持一致：仅“已解锁词条 locked=true”视为锁定
+  return spirit.value.lines.some(ln => ln && ln.unlocked && ln.locked)
 })
 
 // 获取属性显示名称
@@ -169,10 +170,6 @@ const sellSpirit = async () => {
   
   if (isLocked.value) {
     alert('该战灵已锁定，无法出售')
-    return
-  }
-  
-  if (!confirm(`确定要出售 ${spiritName.value} 吗？`)) {
     return
   }
   
@@ -303,7 +300,7 @@ const goToSpiritPage = () => {
   background: #ffffff;
   min-height: 100vh;
   padding: 8px 12px;
-  font-size: 16px;
+  font-size: 18px;
   line-height: 1.6;
   font-family: SimSun, "宋体", serif;
 }
@@ -354,6 +351,6 @@ const goToSpiritPage = () => {
 }
 
 .small {
-  font-size: 17px;
+  font-size: 19px;
 }
 </style>

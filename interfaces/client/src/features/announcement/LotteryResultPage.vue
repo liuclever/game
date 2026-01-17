@@ -69,7 +69,7 @@ const goHome = () => {
   background: #ffffff;
   min-height: 100vh;
   padding: 12px 16px;
-  font-size: 16px;
+  font-size: 18px;
   line-height: 1.8;
   font-family: SimSun, "宋体", serif;
 }
@@ -79,7 +79,7 @@ const goHome = () => {
 }
 
 .title {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: bold;
   color: #CC3300;
   margin-bottom: 12px;

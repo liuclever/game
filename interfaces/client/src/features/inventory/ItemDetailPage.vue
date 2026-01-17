@@ -49,10 +49,6 @@ const recycleItem = async () => {
     return
   }
 
-  if (!confirm(`确定要回收 ${item.value.name}×${qty} 吗？`)) {
-    return
-  }
-
   try {
     const res = await http.post('/inventory/recycle', {
       id: item.value.id,
@@ -75,7 +71,7 @@ const recycleItem = async () => {
 import { getItemUseRoute, getItemUseHint } from '@/utils/itemUseRoutes'
 
 // 跳转到使用选择页或特殊使用窗口
-const goToUse = () => {
+const goToUse = async () => {
   if (!item.value || !item.value.can_use_or_open) {
     showMessage('该道具无法使用', 'info')
     return
@@ -84,10 +80,8 @@ const goToUse = () => {
   // 检查是否有特殊的使用路由
   const useRoute = getItemUseRoute(item.value.item_id, item.value.name)
   if (useRoute) {
-    const tip = getItemUseHint(item.value.item_id, item.value.name)
-    if (confirm(tip)) {
-      router.push(useRoute)
-    }
+    // 按需求：去除提示/弹框，直接跳转到对应功能页
+    router.push(useRoute)
   } else {
     // 没有特殊路由的道具，跳转到使用选择页
     router.push({ path: '/inventory/item/use', query: { id: item.value.id } })
@@ -174,7 +168,7 @@ onMounted(() => {
   background: #ffffff;
   min-height: 100vh;
   padding: 8px 12px;
-  font-size: 17px;
+  font-size: 19px;
   line-height: 1.8;
   font-family: SimSun, "宋体", serif;
 }
@@ -185,14 +179,14 @@ onMounted(() => {
 
 .title {
   font-weight: bold;
-  font-size: 18px;
+  font-size: 20px;
   margin-bottom: 12px;
 }
 
 .item-name {
   color: #CC3300;
   font-weight: bold;
-  font-size: 20px;
+  font-size: 22px;
   margin-bottom: 8px;
 }
 
@@ -223,14 +217,14 @@ onMounted(() => {
 .quantity-input {
   width: 80px;
   padding: 4px 8px;
-  font-size: 16px;
+  font-size: 18px;
   border: 1px solid #CCCCCC;
   margin: 8px 0;
 }
 
 .hint {
   color: #666;
-  font-size: 14px;
+  font-size: 15px;
   margin-top: 4px;
 }
 
@@ -284,7 +278,7 @@ onMounted(() => {
 .divider-text {
   padding: 0 12px;
   color: #666;
-  font-size: 14px;
+  font-size: 15px;
 }
 
 .gray {

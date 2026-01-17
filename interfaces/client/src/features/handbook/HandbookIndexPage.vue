@@ -147,7 +147,7 @@ onMounted(() => load())
   background: #ffffff;
   min-height: 100vh;
   padding: 12px 16px;
-  font-size: 16px;
+  font-size: 18px;
   line-height: 1.8;
   font-family: SimSun, "宋体", serif;
 }
@@ -195,7 +195,7 @@ onMounted(() => load())
 }
 
 .pet-name {
-  font-size: 16px;
+  font-size: 18px;
 }
 
 .link {
@@ -220,12 +220,12 @@ onMounted(() => load())
 .page-input {
   width: 50px;
   margin: 0 8px;
-  font-size: 14px;
+  font-size: 15px;
 }
 
 .btn {
   padding: 4px 10px;
-  font-size: 14px;
+  font-size: 15px;
 }
 
 .red {

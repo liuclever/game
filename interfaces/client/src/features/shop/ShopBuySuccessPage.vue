@@ -40,7 +40,7 @@ const goHome = () => {
   background: #ffffff;
   min-height: 100vh;
   padding: 8px 12px;
-  font-size: 17px;
+  font-size: 19px;
   line-height: 1.8;
   font-family: SimSun, "宋体", serif;
 }
@@ -83,6 +83,6 @@ const goHome = () => {
 }
 
 .small {
-  font-size: 17px;
+  font-size: 19px;
 }
 </style>

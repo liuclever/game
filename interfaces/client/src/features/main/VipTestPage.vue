@@ -67,9 +67,6 @@ const resetGifts = async () => {
 }
 
 const resetPlayer = async () => {
-  if (!confirm('确定要重置玩家所有数据吗？这将清空背包、幻兽、VIP等所有数据！')) {
-    return
-  }
   try {
     const res = await http.post('/vip-test/reset-player')
     message.value = res.data?.message || '重置成功'

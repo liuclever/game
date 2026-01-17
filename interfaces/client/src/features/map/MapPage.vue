@@ -164,9 +164,6 @@ const resetDungeon = async (dungeon) => {
     alert(`移动中，无法重置副本（剩余${remainingSeconds.value}秒）`)
     return
   }
-  if (!confirm(`确认重置副本【${dungeon.name}】？`)) {
-    return
-  }
   try {
     const res = await http.post('/dungeon/reset', { dungeon_name: dungeon.name })
     if (res.data.ok) {

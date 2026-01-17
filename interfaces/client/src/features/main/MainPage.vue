@@ -688,9 +688,12 @@ const handleLink = (name) => {
     </div>
     <div class="section" v-if="isLoggedIn">
       今日幸运果实数字
-      <a class="link" @click="goTree">
-         {{ treeClaimedToday ? '已领取' : '未领取' }}
-      </a>
+      <template v-if="treeClaimedToday">
+        <span class="gray">已领取</span>
+      </template>
+      <template v-else>
+        <a class="link" @click="goTree">未领取</a>
+      </template>
       <span class="gray" v-if="treeStatusError">（{{ treeStatusError }}）</span>
     </div>
     <div class="section">
@@ -845,7 +848,7 @@ const handleLink = (name) => {
   background: #ffffff;
   min-height: 100vh;
   padding: 12px 16px;
-  font-size: 16px;
+  font-size: 18px;
   line-height: 1.8;
   font-family: SimSun, "宋体", serif;
 }
@@ -952,7 +955,7 @@ const handleLink = (name) => {
 }
 
 .small {
-  font-size: 17px;
+  font-size: 19px;
 }
 
 .chat-box {
@@ -964,7 +967,7 @@ const handleLink = (name) => {
 
 .chat-msg {
   margin: 2px 0;
-  font-size: 18px;
+  font-size: 20px;
 }
 
 .footer {

@@ -102,7 +102,7 @@ onMounted(() => {
   background: #ffffff;
   min-height: 100vh;
   padding: 10px 12px;
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.8;
   font-family: SimSun, "宋体", serif;
 }
@@ -136,7 +136,7 @@ onMounted(() => {
 }
 
 .small {
-  font-size: 11px;
+  font-size: 12px;
 }
 
 /* 消息提示样式 */

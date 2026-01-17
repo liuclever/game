@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import http from '@/services/http'
+import { uiConfirm } from '@/stores/uiOverlayStore'
 
 const isOpen = ref(false)
 const isMinimized = ref(true)
@@ -109,7 +110,7 @@ const resetGifts = async () => {
 }
 
 const resetPlayer = async () => {
-  if (!confirm('确定要重置玩家所有数据吗？')) return
+  if (!(await uiConfirm('确定要重置玩家所有数据吗？'))) return
   try {
     const res = await http.post('/vip-test/reset-player')
     message.value = res.data?.message || '重置成功'

@@ -244,6 +244,51 @@ def sell(spirit_id: int):
         return jsonify({"ok": False, "error": str(e)}), 400
 
 
+@spirit_bp.post("/warehouse/sell-batch")
+def sell_batch():
+    """灵件室一键出售：按元素批量出售当前分类下所有未锁定战灵（未装备）。"""
+    user_id = get_current_user_id()
+    if not user_id:
+        return jsonify({"ok": False, "error": "请先登录"})
+
+    data = request.get_json(silent=True) or {}
+    element = str(data.get("element", "") or "").strip()
+
+    try:
+        all_spirits = services.spirit_service.get_spirits(user_id)
+        # 未装备
+        warehouse_spirits = [s.spirit for s in all_spirits if s.spirit.beast_id is None]
+        if element:
+            warehouse_spirits = [sp for sp in warehouse_spirits if str(sp.element) == element]
+
+        sell_ids = []
+        for sp in warehouse_spirits:
+            # 约定：任意已解锁词条 locked=True 视为该战灵锁定，不可出售
+            locked = False
+            try:
+                for ln in (sp.lines or []):
+                    if getattr(ln, "unlocked", False) and getattr(ln, "locked", False):
+                        locked = True
+                        break
+            except Exception:
+                locked = False
+            if not locked:
+                sell_ids.append(int(sp.id))
+
+        total_gain = 0
+        sold_count = 0
+        for sid in sell_ids:
+            r = services.spirit_service.sell(user_id, sid)
+            total_gain += int((r or {}).get("gained_spirit_power", 0) or 0)
+            sold_count += 1
+
+        return jsonify({"ok": True, "sold_count": sold_count, "gained_spirit_power": total_gain})
+    except SpiritError as e:
+        return jsonify({"ok": False, "error": str(e)}), 400
+    except Exception:
+        return jsonify({"ok": False, "error": "出售失败"}), 400
+
+
 @spirit_bp.get("/page-data")
 def get_spirit_page_data():
     """获取战灵页面所需的所有数据（幻兽列表 + 灵力 + 仓库信息）"""

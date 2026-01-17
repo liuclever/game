@@ -353,11 +353,11 @@ watch(
 <style scoped>
 .ranking-page {
   padding: 10px;
-  font-size: 17px;
+  font-size: 19px;
   background: #FFFFFF;
   min-height: 100vh;
   padding: 12px 16px;
-  font-size: 16px;
+  font-size: 18px;
   line-height: 1.8;
   font-family: SimSun, "宋体", serif;
 }
@@ -409,7 +409,7 @@ watch(
 
 .vip-icon {
   margin: 0 2px;
-  font-size: 12px;
+  font-size: 13px;
 }
 
 .pager {

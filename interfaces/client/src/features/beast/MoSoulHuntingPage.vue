@@ -89,9 +89,6 @@ const doHunting = async (hunter) => {
   }
   
   const costText = getCostText(hunter)
-  if (!confirm(`确定花费${costText}让${hunter.name}猎魂吗？`)) {
-    return
-  }
   
   try {
     const res = await http.post('/mosoul/hunting/hunt', {
@@ -153,10 +150,6 @@ const doOneKeyHunting = async () => {
       alert('铜钱不足，无法进行一键猎魂')
       return
     }
-  }
-  
-  if (!confirm('确定进行一键猎魂吗？系统将自动执行10次猎魂，优先选择已解锁的最高级猎魂师。')) {
-    return
   }
   
   batchHunting.value = true

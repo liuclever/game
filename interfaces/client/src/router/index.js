@@ -40,6 +40,8 @@ import BoneSelectPage from '@/features/beast/BoneSelectPage.vue'
 import BeastSpiritPage from '@/features/beast/BeastSpiritPage.vue'
 import SpiritEmbedPage from '@/features/beast/SpiritEmbedPage.vue'
 import SpiritWarehousePage from '@/features/beast/SpiritWarehousePage.vue'
+import SpiritWarehouseSellConfirmPage from '@/features/beast/SpiritWarehouseSellConfirmPage.vue'
+import SpiritWarehouseSellResultPage from '@/features/beast/SpiritWarehouseSellResultPage.vue'
 import SpiritDetailPage from '@/features/beast/SpiritDetailPage.vue'
 import SpiritRefinePage from '@/features/beast/SpiritRefinePage.vue'
 import SpiritKeyInsufficientPage from '@/features/beast/SpiritKeyInsufficientPage.vue'
@@ -465,6 +467,16 @@ const routes = [
     path: '/spirit/warehouse',
     name: 'SpiritWarehouse',
     component: SpiritWarehousePage,
+  },
+  {
+    path: '/spirit/warehouse/sell-confirm',
+    name: 'SpiritWarehouseSellConfirm',
+    component: SpiritWarehouseSellConfirmPage,
+  },
+  {
+    path: '/spirit/warehouse/sell-result',
+    name: 'SpiritWarehouseSellResult',
+    component: SpiritWarehouseSellResultPage,
   },
   {
     path: '/spirit/:id',

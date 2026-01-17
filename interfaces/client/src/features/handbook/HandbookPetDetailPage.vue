@@ -185,7 +185,7 @@ onMounted(() => load())
   background: #ffffff;
   min-height: 100vh;
   padding: 14px 14px;
-  font-size: 18px;
+  font-size: 20px;
   line-height: 1.8;
   font-family: SimSun, "宋体", serif;
 }

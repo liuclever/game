@@ -146,11 +146,7 @@ const doUpgrade = async () => {
     alert('升级条件不满足')
     return
   }
-  
-  if (!confirm(`确定要升级化仙池到${upgradeInfo.value.toLevel}级吗？`)) {
-    return
-  }
-  
+
   upgrading.value = true
   try {
     const res = await http.post('/immortalize/upgrade')

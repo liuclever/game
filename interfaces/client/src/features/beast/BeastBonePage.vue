@@ -141,9 +141,7 @@ const enhanceBone = (slotKey) => {
 // 一键卸下
 const unequipAll = async () => {
   if (!selectedBeastId.value) return
-  
-  if (!confirm('确定要卸下所有战骨吗？')) return
-  
+
   try {
     const res = await http.post(`/bone/unequip-all/${selectedBeastId.value}`)
     if (res.data.ok) {

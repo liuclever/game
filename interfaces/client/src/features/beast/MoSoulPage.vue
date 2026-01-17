@@ -95,10 +95,6 @@ const useMoSoul = (slotIndex) => {
 
 // 卸下魔魂
 const unequipMoSoul = async (mosoul) => {
-  if (!confirm(`确定要卸下【${mosoul.name}】吗？`)) {
-    return
-  }
-  
   try {
     const res = await http.post(`/mosoul/unequip/${mosoul.id}`)
     if (res.data.ok) {

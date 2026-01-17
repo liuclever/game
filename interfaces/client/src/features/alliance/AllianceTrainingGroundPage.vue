@@ -103,9 +103,6 @@ const joinRoom = async (roomId) => {
 
 const endTraining = async (roomId) => {
   if (saving.value) return
-  if (!confirm('确定要结束修行吗？结束后方可领取奖励。')) {
-    return
-  }
   saving.value = true
   try {
     const res = await http.post('/alliance/training-ground/end', { roomId })

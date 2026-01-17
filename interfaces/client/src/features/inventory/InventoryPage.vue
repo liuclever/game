@@ -190,17 +190,15 @@ const viewItemDetail = (item) => {
   router.push({ path: '/inventory/item/detail', query: { id: item.id } })
 }
 
-import { getItemUseRoute, getItemUseHint } from '@/utils/itemUseRoutes'
+import { getItemUseRoute } from '@/utils/itemUseRoutes'
 
 // 跳转到使用选择页或特殊使用窗口
-const openUseSelect = (item) => {
+const openUseSelect = async (item) => {
   // 检查是否有特殊的使用路由
   const useRoute = getItemUseRoute(item.item_id, item.name)
   if (useRoute) {
-    const tip = getItemUseHint(item.item_id, item.name)
-    if (confirm(tip)) {
-      router.push(useRoute)
-    }
+    // 按需求：去除提示/弹框，直接跳转到对应功能页
+    router.push(useRoute)
   } else {
     // 没有特殊路由的道具，跳转到使用选择页
     router.push({ path: '/inventory/item/use', query: { id: item.id } })
@@ -440,7 +438,7 @@ const handleLink = (name) => {
   background: #ffffff;
   min-height: 100vh;
   padding: 8px 12px;
-  font-size: 17px;
+  font-size: 19px;
   line-height: 1.8;
   font-family: SimSun, "宋体", serif;
 }
@@ -488,7 +486,7 @@ const handleLink = (name) => {
 }
 
 .small {
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .items-list {
@@ -498,13 +496,13 @@ const handleLink = (name) => {
 
 .page-input {
   width: 40px;
-  font-size: 12px;
+  font-size: 13px;
   border: 1px solid #CCCCCC;
   padding: 1px 4px;
 }
 
 .page-btn {
-  font-size: 12px;
+  font-size: 13px;
   padding: 1px 8px;
   background: #F0F0F0;
   border: 1px solid #CCCCCC;

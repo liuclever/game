@@ -119,7 +119,6 @@ const goLast = () => {
 
 // 删除私信会话
 const deletePmSender = async (sender) => {
-  if (!confirm(`确定删除与 ${sender.name} 的所有私信吗？`)) return
   try {
     const res = await http.delete('/mail/private-message/conversation', { params: { target_id: sender.user_id } })
     if (res.data.ok) {

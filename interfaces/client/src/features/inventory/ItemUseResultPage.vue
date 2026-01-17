@@ -71,7 +71,7 @@ onMounted(() => {
   background: #ffffff;
   min-height: 100vh;
   padding: 8px 12px;
-  font-size: 17px;
+  font-size: 19px;
   line-height: 1.8;
   font-family: SimSun, "宋体", serif;
 }
@@ -82,14 +82,14 @@ onMounted(() => {
 
 .title {
   font-weight: bold;
-  font-size: 18px;
+  font-size: 20px;
   margin-bottom: 12px;
 }
 
 .success-message {
   color: #155724;
   font-weight: bold;
-  font-size: 18px;
+  font-size: 20px;
   padding: 12px;
   background: #d4edda;
   border: 1px solid #c3e6cb;

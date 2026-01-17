@@ -67,11 +67,9 @@ const useItem = async () => {
   // 检查是否有特殊的使用路由
   const useRoute = getItemUseRoute(item.value.item_id, item.value.name)
   if (useRoute) {
-    // 不能在背包直接使用：弹窗提示并引导跳转
-    const tip = getItemUseHint(item.value.item_id, item.value.name)
-    if (confirm(tip)) {
-      router.push(useRoute)
-    }
+    // 按需求：去除提示/弹框，直接跳转到对应功能页
+    getItemUseHint(item.value.item_id, item.value.name) // 保留调用以维持兼容（不展示）
+    router.push(useRoute)
     return
   }
 
@@ -166,7 +164,7 @@ onMounted(() => {
   background: #ffffff;
   min-height: 100vh;
   padding: 8px 12px;
-  font-size: 17px;
+  font-size: 19px;
   line-height: 1.8;
   font-family: SimSun, "宋体", serif;
 }
@@ -177,14 +175,14 @@ onMounted(() => {
 
 .title {
   font-weight: bold;
-  font-size: 18px;
+  font-size: 20px;
   margin-bottom: 12px;
 }
 
 .item-name {
   color: #CC3300;
   font-weight: bold;
-  font-size: 18px;
+  font-size: 20px;
   margin-bottom: 8px;
 }
 
@@ -204,14 +202,14 @@ onMounted(() => {
 .quantity-input {
   width: 80px;
   padding: 4px 8px;
-  font-size: 16px;
+  font-size: 18px;
   border: 1px solid #CCCCCC;
   margin: 8px 0;
 }
 
 .hint {
   color: #666;
-  font-size: 14px;
+  font-size: 15px;
   margin-top: 4px;
 }
 

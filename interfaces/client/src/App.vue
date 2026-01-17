@@ -1,6 +1,8 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import UiToast from '@/components/UiToast.vue'
+import UiDialog from '@/components/UiDialog.vue'
 // import DebugPanel from '@/components/DebugPanel.vue'
 
 const router = useRouter()
@@ -28,6 +30,8 @@ router.afterEach(() => {
         <div class="loading-text">加载中...</div>
       </div>
     </transition>
+    <UiToast />
+    <UiDialog />
     <!-- <DebugPanel /> -->
   </div>
 </template>

@@ -51,7 +51,6 @@ const search = async () => {
 
 const join = async (a) => {
   if (!a?.id) return
-  if (!confirm(`确定加入【${a.name}】吗？`)) return
   try {
     const res = await http.post('/alliance/join', { alliance_id: a.id })
     if (res.data?.ok) {

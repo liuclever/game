@@ -132,7 +132,7 @@ onMounted(() => {
   background: #ffffff;
   min-height: 100vh;
   padding: 8px 12px;
-  font-size: 16px;
+  font-size: 18px;
   line-height: 1.8;
   font-family: SimSun, "宋体", serif;
 }
@@ -161,12 +161,12 @@ onMounted(() => {
   width: 50px;
   padding: 2px 4px;
   border: 1px solid #999;
-  font-size: 16px;
+  font-size: 18px;
 }
 
 .buy-btn {
   padding: 2px 8px;
-  font-size: 18px;
+  font-size: 20px;
   cursor: pointer;
 }
 
@@ -199,6 +199,6 @@ onMounted(() => {
 }
 
 .small {
-  font-size: 17px;
+  font-size: 19px;
 }
 </style>

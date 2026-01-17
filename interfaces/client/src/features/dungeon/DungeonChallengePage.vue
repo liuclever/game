@@ -20,10 +20,6 @@ const dungeonInfo = ref({
 })
 
 const handleReset = async () => {
-  if (!confirm(`重置副本将回到第1层，需要消耗200元宝。当前已重置次数: ${dungeonInfo.value.resets_today}/${dungeonInfo.value.vip_limit}\n是否确定重置？`)) {
-    return
-  }
-
   try {
     isLoading.value = true
     const res = await fetch('/api/dungeon/reset', {
