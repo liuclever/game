@@ -298,16 +298,30 @@ class TowerBattleService:
         )
     
     def calc_damage(self, attacker_attack: int, defender_defense: int) -> int:
-        """计算伤害（旧方法，兼容用）"""
-        base_damage = attacker_attack - defender_defense
-        return max(1, int(base_damage))
+        """计算伤害（新公式）
+        
+        - 当 (攻击 - 防御) ≥ 0 时：伤害 = (攻击 - 防御) × 0.069（四舍五入）
+        - 当 (攻击 - 防御) < 0 时：固定扣血 5 点
+        """
+        diff = attacker_attack - defender_defense
+        
+        if diff >= 0:
+            damage = round(diff * 0.069)
+        else:
+            damage = 5
+        
+        return max(1, damage)
     
     def calc_damage_with_type(
         self,
         attacker,  # PlayerBeast 或 TowerGuardian
         defender,  # PlayerBeast 或 TowerGuardian
     ) -> int:
-        """根据特性计算伤害"""
+        """根据特性计算伤害（新公式）
+        
+        - 当 (攻击 - 防御) ≥ 0 时：伤害 = (攻击 - 防御) × 0.069（四舍五入）
+        - 当 (攻击 - 防御) < 0 时：固定扣血 5 点
+        """
         # 判断攻击方是法系还是物系
         if attacker.is_magic_type():
             # 法系：法攻 - 法防
@@ -318,8 +332,14 @@ class TowerBattleService:
             attack_value = attacker.physical_attack
             defense_value = defender.physical_defense
         
-        damage = attack_value - defense_value
-        return max(1, int(damage))
+        diff = attack_value - defense_value
+        
+        if diff >= 0:
+            damage = round(diff * 0.069)
+        else:
+            damage = 5
+        
+        return max(1, damage)
     
     def _to_pvp_beasts_from_players(self, player_beasts: List[PlayerBeast]) -> List[PvpBeast]:
         """将玩家幻兽转换为 PvpBeast，并应用技能系统的增益/负面效果。"""
