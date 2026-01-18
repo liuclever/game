@@ -97,7 +97,7 @@ const applyAutoResult = (result, state) => {
 
   // 根据停止原因设置状态
   if (stoppedReason.value === 'all_dead') {
-    autoEnabled.value = false
+    // 挑战失败，但不关闭自动闯塔，允许继续挑战
     battleResult.value = '挑战失败'
   } else if (stoppedReason.value === 'max_floor') {
     autoEnabled.value = false
@@ -170,20 +170,79 @@ const continueChallenge = async () => {
   error.value = ''
   
   try {
+    // 继续挑战就是重新调用自动闯塔，从当前失败的层继续
+    // 传递 is_continue: true 表示不消耗闯塔次数
     const res = await http.post('/tower/auto', {
       tower_type: towerType.value,
       use_buff: buffEnabled.value,
+      is_continue: true,  // 关键：继续挑战不消耗次数
     })
     
     if (res.data.ok) {
       const result = res.data.result
       const state = res.data.state
       
-      applyAutoResult(result, state)
+      // 合并新的战斗结果到现有结果
+      // 累加奖励
+      rewards.value.gold += result.total_rewards.gold || 0
+      rewards.value.exp += result.total_rewards.exp || 0
+      rewards.value.items.push(...(result.total_rewards.items || []))
+      
+      // 添加新的战斗记录
+      const now = new Date()
+      const newActivities = (result.battles || []).map((battle, index) => {
+        const time = new Date(now.getTime() + index * 1000)
+        const timeStr = `${(time.getMonth() + 1).toString().padStart(2, '0')}.${time.getDate().toString().padStart(2, '0')} ${time.getHours().toString().padStart(2, '0')}:${time.getMinutes().toString().padStart(2, '0')}`
+
+        return {
+          time: timeStr,
+          floor: battle.floor,
+          result: battle.is_victory ? '完美胜利' : '挑战失败',
+          isVictory: battle.is_victory,
+          battleIndex: allBattles.value.length + index,
+        }
+      })
+      
+      // 添加到战斗列表
+      allBattles.value.push(...(result.battles || []))
+      activities.value = [...newActivities.reverse(), ...activities.value]
+      
+      // 更新当前状态
+      endFloor.value = result.end_floor
+      stoppedReason.value = result.stopped_reason
+      
+      // 设置最后一场战斗的守塔幻兽和结果
+      if (result.battles && result.battles.length > 0) {
+        const lastBattle = result.battles[result.battles.length - 1]
+        if (lastBattle.guardians && lastBattle.guardians.length > 0) {
+          guardian.value = lastBattle.guardians[0]
+        }
+        battleResult.value = lastBattle.is_victory ? '完美胜利' : '挑战失败'
+      }
+      
+      // 根据停止原因设置状态
+      if (stoppedReason.value === 'all_dead') {
+        battleResult.value = '挑战失败'
+      } else if (stoppedReason.value === 'max_floor') {
+        battleResult.value = '已通关'
+      } else if (stoppedReason.value === 'daily_limit') {
+        battleResult.value = '次数用尽'
+      }
       
       // 更新缓存
       const cacheKey = `autoTowerResult:${towerType.value}`
-      sessionStorage.setItem(cacheKey, JSON.stringify({ result, state }))
+      sessionStorage.setItem(cacheKey, JSON.stringify({ 
+        result: {
+          start_floor: currentFloor.value,
+          end_floor: endFloor.value,
+          battles: allBattles.value,
+          total_rewards: rewards.value,
+          stopped_reason: stoppedReason.value,
+        }, 
+        state 
+      }))
+      
+      showMessage('继续挑战成功', 'success')
     } else {
       error.value = res.data.error || '挑战失败'
     }

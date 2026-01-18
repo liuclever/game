@@ -228,6 +228,11 @@ const learnSkill = () => {
   router.push(`/beast/${beast.value.id}/skill-book`)
 }
 
+const viewSkill = (skillName) => {
+  // 使用技能名称作为key跳转到技能详情页
+  router.push(`/handbook/skill/${encodeURIComponent(skillName)}`)
+}
+
 const viewBattleBone = () => {
   router.push(`/beast/${beast.value.id}/bone`)
 }
@@ -323,7 +328,7 @@ const goHome = () => {
     <div class="section">
       技能:
       <template v-for="(skill, index) in beast.skills" :key="index">
-        <a class="link">{{ skill }}</a>
+        <a class="link" @click="viewSkill(skill)">{{ skill }}</a>
         <template v-if="index < beast.skills.length - 1"> | </template>
       </template>
       | <a class="link" @click="learnSkill">打书</a>

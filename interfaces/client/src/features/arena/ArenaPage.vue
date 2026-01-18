@@ -44,6 +44,9 @@ const dynamicType = ref('arena')
 
 // 擂台动态
 const arenaDynamics = ref([])
+const currentPage = ref(1)
+const totalPages = ref(0)
+const hasMore = ref(false)
 
 // 加载擂台信息
 const loadArenaInfo = async () => {
@@ -81,14 +84,38 @@ const loadArenaInfo = async () => {
 }
 
 // 加载动态
-const loadDynamics = async () => {
+const loadDynamics = async (page = 1) => {
   try {
-    const res = await http.get(`/arena/dynamics?type=${dynamicType.value}`)
+    const res = await http.get(`/arena/dynamics?type=${dynamicType.value}&page=${page}`)
     if (res.data.ok) {
       arenaDynamics.value = res.data.dynamics
+      currentPage.value = res.data.page || 1
+      totalPages.value = res.data.totalPages || 0
+      hasMore.value = res.data.hasMore || false
     }
   } catch (e) {
     console.error('加载擂台动态失败', e)
+  }
+}
+
+// 上一页
+const prevPage = () => {
+  if (currentPage.value > 1) {
+    loadDynamics(currentPage.value - 1)
+  }
+}
+
+// 下一页
+const nextPage = () => {
+  if (hasMore.value) {
+    loadDynamics(currentPage.value + 1)
+  }
+}
+
+// 跳转到指定页
+const goToPage = (page) => {
+  if (page >= 1 && page <= totalPages.value) {
+    loadDynamics(page)
   }
 }
 
@@ -330,6 +357,7 @@ const goHome = () => {
     </div>
 
     <!-- 动态列表 -->
+    <div v-if="arenaDynamics.length === 0" class="section gray">暂无动态</div>
     <div v-for="(d, index) in arenaDynamics" :key="index" class="section">
       <span class="gray">({{ d.time }})</span> 
       <a class="link username" @click="viewPlayer(d.playerId)">{{ d.player }}</a> 
@@ -344,12 +372,36 @@ const goHome = () => {
         <a class="link" @click="viewBattle(d)"> 查看</a>
       </template>
     </div>
+
+    <!-- 分页控制 -->
+    <div v-if="totalPages > 0" class="section pagination">
+      <a 
+        class="link" 
+        :class="{ disabled: currentPage === 1 }"
+        @click="prevPage"
+      >上一页</a>
+      <span class="gray"> 第{{ currentPage }}/{{ totalPages }}页 </span>
+      <a 
+        class="link"
+        :class="{ disabled: !hasMore }"
+        @click="nextPage"
+      >下一页</a>
+      <template v-if="totalPages > 1">
+        <span class="gray"> | 跳转到: </span>
+        <a 
+          v-for="p in totalPages" 
+          :key="p"
+          class="link page-num"
+          :class="{ active: p === currentPage }"
+          @click="goToPage(p)"
+        >{{ p }}</a>
+      </template>
+    </div>
     </template>
 
     <!-- 皇城 -->
     <div class="section spacer">
-      皇城:<a class="link" @click="handleLink('召唤之王挑战赛')">召唤之王挑战赛</a>. 
-      <a class="link" @click="router.push('/arena/streak')">连胜竞技场</a>
+      皇城:<a class="link" @click="handleLink('召唤之王挑战赛')">召唤之王挑战赛</a>
     </div>
 
     <!-- 导航菜单 -->
@@ -383,7 +435,7 @@ const goHome = () => {
     </div>
     <div class="section">
       <a class="link" @click="handleLink('兑换')">兑换</a>. 
-      <span class="link readonly">签到</span>. 
+      <a class="link" @click="router.push('/signin')">签到</a>. 
       <span class="link readonly">论坛</span>. 
       <a class="link" @click="handleLink('VIP')">VIP</a>. 
       <span class="link readonly">安全锁</span>
@@ -495,5 +547,32 @@ const goHome = () => {
   border: 1px solid #228b22;
   border-radius: 4px;
   margin: 10px 0;
+}
+
+.pagination {
+  margin-top: 15px;
+  padding: 10px 0;
+  border-top: 1px solid #eee;
+}
+
+.pagination .page-num {
+  margin: 0 5px;
+  padding: 2px 6px;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+}
+
+.pagination .page-num.active {
+  background: #ff6600;
+  color: #fff;
+  border-color: #ff6600;
+}
+
+.pagination .page-num:hover {
+  background: #f0f0f0;
+}
+
+.pagination .page-num.active:hover {
+  background: #ff6600;
 }
 </style>

@@ -29,11 +29,8 @@ const zhenyaoInfo = ref({
   hellUsed: 0,          // 炼狱层今日已用次数
   trialLimit: 10,       // 试炼层每日上限
   hellLimit: 10,        // 炼狱层每日上限
-  zhenyaoFu: 0,         // 镇妖符数量（从背包获取）
+  zhenyaoFu: 0,         // 镇妖符数量（从后端获取）
 })
-
-// 镇妖符物品ID
-const ZHENYAO_FU_ITEM_ID = 6001
 
 // 层数列表
 const floors = ref([])
@@ -49,29 +46,10 @@ const dynamicType = ref('all')  // 'all' = 全服动态, 'personal' = 个人动�
 // 动态列表（预留）
 const dynamics = ref([])
 
-// 加载镇妖符数量
-const loadZhenyaoFuCount = async () => {
-  try {
-    const res = await http.get('/inventory/item-count', {
-      params: { item_id: ZHENYAO_FU_ITEM_ID }
-    })
-    if (res.data.ok) {
-      return res.data.count || 0
-    }
-  } catch (e) {
-    console.error('加载镇妖符数量失败', e)
-  }
-  return 0
-}
-
 // 加载镇妖信息
 const loadZhenyaoInfo = async () => {
   try {
-    // 并行加载镇妖信息和镇妖符数量
-    const [zhenyaoRes, zhenyaoFuCount] = await Promise.all([
-      http.get('/zhenyao/info'),
-      loadZhenyaoFuCount()
-    ])
+    const zhenyaoRes = await http.get('/zhenyao/info')
     
     zhenyaoInfo.value = {
       canZhenyao: zhenyaoRes.data.can_zhenyao,
@@ -85,7 +63,7 @@ const loadZhenyaoInfo = async () => {
       hellUsed: zhenyaoRes.data.hell_used || 0,
       trialLimit: zhenyaoRes.data.trial_limit || 10,
       hellLimit: zhenyaoRes.data.hell_limit || 10,
-      zhenyaoFu: zhenyaoFuCount,  // 从背包获取实时数量
+      zhenyaoFu: zhenyaoRes.data.zhenyao_fu_count || 0,  // 使用后端返回的实时数量
     }
     if (!zhenyaoRes.data.can_zhenyao) {
       error.value = zhenyaoRes.data.error
@@ -291,7 +269,7 @@ const handleLink = (name) => {
 
     <!-- 标题 -->
     <div class="section title">
-      【镇妖】 <a class="link" @click="handleLink('简介')">简介</a> |<a class="link" @click="handleLink('刷新结算')">刷新结算</a>
+      【聚魂阵】 <a class="link" @click="handleLink('简介')">简介</a> |<a class="link" @click="handleLink('刷新结算')">刷新结算</a>
     </div>
 
     <!-- 错误提示 -->

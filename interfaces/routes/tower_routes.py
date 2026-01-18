@@ -122,6 +122,7 @@ def tower_auto_challenge():
     data = request.get_json() or {}
     tower_type = data.get("tower_type", "tongtian")
     use_buff = data.get("use_buff", True)
+    is_continue = data.get("is_continue", False)  # 是否是继续挑战
     
     player_beasts = get_team_player_beasts(user_id=user_id)
     
@@ -131,6 +132,7 @@ def tower_auto_challenge():
             tower_type=tower_type,
             player_beasts=player_beasts,
             use_buff=use_buff,
+            is_continue=is_continue,
         )
         return jsonify({
             "ok": True,
@@ -254,118 +256,6 @@ def get_player_beast_detail(beast_id: int):
         return jsonify({"ok": True, "beast": beast_data.to_dict()})
 
 
-# ===== 鼓舞系统 =====
-INSPIRE_DURATION_SECONDS = 30 * 60
-INSPIRE_PILL_ITEM_ID = 8001
-
-
-@tower_bp.get("/tower/inspire/status")
-def get_inspire_status():
-    """获取鼓舞状态"""
-    user_id = get_current_user_id()
-    if not user_id:
-        return jsonify({"ok": False, "error": "请先登录"})
-    
-    from infrastructure.db.connection import execute_query
-    from datetime import datetime
-    
-    try:
-        rows = execute_query(
-            "SELECT inspire_expire_time FROM player WHERE user_id = %s", (user_id,)
-        )
-    except Exception as e:
-        if "Unknown column" in str(e) and "inspire_expire_time" in str(e):
-            rows = []
-        else:
-            raise
-    
-    active = False
-    remaining_seconds = 0
-    
-    if rows and rows[0].get('inspire_expire_time'):
-        expire_time = rows[0]['inspire_expire_time']
-        if isinstance(expire_time, datetime):
-            now = datetime.now()
-            if expire_time > now:
-                active = True
-                remaining_seconds = int((expire_time - now).total_seconds())
-    
-    pill_count = 0
-    inv_rows = execute_query(
-        "SELECT quantity FROM player_inventory WHERE user_id = %s AND item_id = %s",
-        (user_id, INSPIRE_PILL_ITEM_ID)
-    )
-    if inv_rows:
-        pill_count = inv_rows[0].get('quantity', 0)
-    
-    return jsonify({
-        "ok": True,
-        "active": active,
-        "remaining_seconds": remaining_seconds,
-        "inspire_pill_count": pill_count,
-    })
-
-
-@tower_bp.post("/tower/inspire/use")
-def use_inspire_pill():
-    """使用鼓舞丹"""
-    user_id = get_current_user_id()
-    if not user_id:
-        return jsonify({"ok": False, "error": "请先登录"})
-    
-    from infrastructure.db.connection import execute_query, execute_update
-    from datetime import datetime, timedelta
-    
-    try:
-        rows = execute_query(
-            "SELECT inspire_expire_time FROM player WHERE user_id = %s", (user_id,)
-        )
-    except Exception as e:
-        if "Unknown column" in str(e) and "inspire_expire_time" in str(e):
-            return jsonify({
-                "ok": False,
-                "error": "数据库缺少 inspire_expire_time 字段，请先执行数据库更新脚本后再使用鼓舞丹",
-            }), 400
-        raise
-    
-    if rows and rows[0].get('inspire_expire_time'):
-        expire_time = rows[0]['inspire_expire_time']
-        if isinstance(expire_time, datetime) and expire_time > datetime.now():
-            return jsonify({"ok": False, "error": "鼓舞效果正在生效中，无法叠加使用！"})
-    
-    inv_rows = execute_query(
-        "SELECT quantity FROM player_inventory WHERE user_id = %s AND item_id = %s",
-        (user_id, INSPIRE_PILL_ITEM_ID)
-    )
-    
-    if not inv_rows or inv_rows[0].get('quantity', 0) <= 0:
-        return jsonify({"ok": False, "error": "鼓舞丹不足！"})
-    
-    execute_update(
-        "UPDATE player_inventory SET quantity = quantity - 1 WHERE user_id = %s AND item_id = %s",
-        (user_id, INSPIRE_PILL_ITEM_ID)
-    )
-    
-    expire_time = datetime.now() + timedelta(seconds=INSPIRE_DURATION_SECONDS)
-    try:
-        execute_update(
-            "UPDATE player SET inspire_expire_time = %s WHERE user_id = %s",
-            (expire_time, user_id)
-        )
-    except Exception as e:
-        if "Unknown column" in str(e) and "inspire_expire_time" in str(e):
-            return jsonify({
-                "ok": False,
-                "error": "数据库缺少 inspire_expire_time 字段，请先执行数据库更新脚本后再使用鼓舞丹",
-            }), 400
-        raise
-    
-    return jsonify({
-        "ok": True,
-        "message": "使用鼓舞丹成功！战力提升10%，持续30分钟。"
-    })
-
-
 # ===== 镇妖接口 =====
 @tower_bp.get("/zhenyao/info")
 def get_zhenyao_info():
@@ -377,8 +267,21 @@ def get_zhenyao_info():
     info = services.zhenyao_service.get_zhenyao_info(user_id=user_id)
     
     # 获取今日已用次数
-    from application.services.zhenyao_service import TRIAL_DAILY_LIMIT, HELL_DAILY_LIMIT
+    from application.services.zhenyao_service import TRIAL_DAILY_LIMIT, HELL_DAILY_LIMIT, ZHENYAO_FU_ITEM_ID
     trial_used, hell_used = services.zhenyao_service.daily_count_repo.get_today_count(user_id)
+    
+    # 获取背包中的实时镇妖符数量
+    zhenyao_fu_count = 0
+    try:
+        from infrastructure.db.connection import execute_query
+        inv_rows = execute_query(
+            "SELECT quantity FROM player_inventory WHERE user_id = %s AND item_id = %s",
+            (user_id, ZHENYAO_FU_ITEM_ID)
+        )
+        if inv_rows:
+            zhenyao_fu_count = inv_rows[0].get('quantity', 0)
+    except Exception:
+        zhenyao_fu_count = 0
     
     return jsonify({
         "ok": info.can_zhenyao,
@@ -393,6 +296,7 @@ def get_zhenyao_info():
         "hell_used": hell_used,
         "trial_limit": TRIAL_DAILY_LIMIT,
         "hell_limit": HELL_DAILY_LIMIT,
+        "zhenyao_fu_count": zhenyao_fu_count,  # 添加实时镇妖符数量
         "error": info.error_msg,
     })
 

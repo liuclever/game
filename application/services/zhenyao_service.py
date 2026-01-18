@@ -806,8 +806,12 @@ class ZhenyaoService:
         }
     
     def _calc_damage(self, attacker, defender) -> int:
-        """计算伤害"""
-        # 基础伤害 = 攻击力 - 防御力/2
+        """计算伤害（新公式）
+        
+        - 当 (攻击 - 防御) ≥ 0 时：伤害 = (攻击 - 防御) × 0.069（四舍五入）
+        - 当 (攻击 - 防御) < 0 时：固定扣血 5 点
+        """
+        # 判断攻击类型
         if attacker.nature and "法系" in attacker.nature:
             attack = attacker.magic_attack
             defense = defender.magic_defense
@@ -815,10 +819,12 @@ class ZhenyaoService:
             attack = attacker.physical_attack
             defense = defender.physical_defense
         
-        base_damage = max(1, attack - defense // 2)
+        diff = attack - defense
         
-        # 随机浮动 ±20%
-        damage = int(base_damage * (0.8 + random.random() * 0.4))
+        if diff >= 0:
+            damage = round(diff * 0.069)
+        else:
+            damage = 5
         
         return max(1, damage)
     

@@ -108,6 +108,11 @@ const goBack = () => {
   router.back()
 }
 
+// 查看技能详情
+const viewSkill = (skillName) => {
+  router.push(`/handbook/skill/${encodeURIComponent(skillName)}`)
+}
+
 // 返回首页
 const goHome = () => {
   router.push('/')
@@ -156,7 +161,7 @@ onMounted(() => {
       <div class="section">
         技能: 
         <template v-for="(skill, idx) in safeSkills" :key="idx">
-          <a class="link">{{ skill }}</a>
+          <a class="link" @click="viewSkill(skill)">{{ skill }}</a>
           <template v-if="idx < safeSkills.length - 1"> | </template>
         </template>
       </div>

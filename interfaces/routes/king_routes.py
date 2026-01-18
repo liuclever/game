@@ -120,6 +120,13 @@ def get_king_info():
         if elapsed < KING_CHALLENGE_COOLDOWN:
             cooldown_remaining = int(KING_CHALLENGE_COOLDOWN - elapsed)
     
+    # 查询当前召唤之王（正赛冠军）
+    king_rows = execute_query(
+        "SELECT user_id, nickname FROM player WHERE is_summon_king = 1 LIMIT 1"
+    )
+    summon_king_name = king_rows[0]['nickname'] if king_rows else None
+    summon_king_id = king_rows[0]['user_id'] if king_rows else None
+    
     return jsonify({
         "ok": True,
         "areaName": f"{area_index}赛区",
@@ -131,6 +138,8 @@ def get_king_info():
         "challengers": challengers,
         "cooldownRemaining": cooldown_remaining,
         "isRegistered": my_rank_info.get('is_registered', 0) == 1,
+        "summonKingName": summon_king_name,
+        "summonKingId": summon_king_id,
     })
 
 
@@ -140,6 +149,11 @@ def king_challenge():
     user_id = get_current_user_id()
     if not user_id:
         return jsonify({"ok": False, "error": "请先登录"})
+    
+    # 检查等级限制
+    player = services.player_repo.get_by_id(user_id)
+    if not player or player.level < 20:
+        return jsonify({"ok": False, "error": "需要达到20级才能参加挑战赛"})
     
     data = request.get_json() or {}
     target_user_id = data.get("targetUserId")
@@ -324,6 +338,11 @@ def king_register():
     user_id = get_current_user_id()
     if not user_id:
         return jsonify({"ok": False, "error": "请先登录"})
+    
+    # 检查等级限制
+    player = services.player_repo.get_by_id(user_id)
+    if not player or player.level < 20:
+        return jsonify({"ok": False, "error": "需要达到20级才能参加挑战赛"})
     
     today = datetime.now()
     if today.weekday() != 0:
@@ -551,3 +570,55 @@ def get_battle_report(log_id):
     except Exception as e:
         print(f"解析战报失败: {e}")
         return jsonify({"ok": False, "error": f"战报数据格式错误: {str(e)}"})
+
+
+@king_bp.get("/final_stage_info")
+def get_final_stage_info_route():
+    """获取正赛对阵信息"""
+    user_id = get_current_user_id()
+    if not user_id:
+        return jsonify({"ok": False, "error": "请先登录"})
+    
+    season = get_current_season()
+    from domain.services.king_final_service import get_final_stage_info
+    
+    stage_info = get_final_stage_info(season)
+    
+    # 查询玩家的最佳成绩
+    my_stages = execute_query(
+        """SELECT stage FROM king_final_stage 
+           WHERE season = %s AND user_id = %s 
+           ORDER BY 
+             CASE stage 
+               WHEN 'champion' THEN 7
+               WHEN '2' THEN 6
+               WHEN '4' THEN 5
+               WHEN '8' THEN 4
+               WHEN '16' THEN 3
+               WHEN '32' THEN 2
+               ELSE 1
+             END DESC
+           LIMIT 1""",
+        (season, user_id)
+    )
+    
+    my_best_stage = my_stages[0]['stage'] if my_stages else None
+    
+    stage_name_map = {
+        '32': '32强',
+        '16': '16强',
+        '8': '8强',
+        '4': '4强',
+        '2': '亚军',
+        'champion': '冠军'
+    }
+    
+    my_achievement = stage_name_map.get(my_best_stage, '未参加正赛')
+    
+    return jsonify({
+        "ok": True,
+        "stages": stage_info,
+        "myAchievement": my_achievement,
+        "myBestStage": my_best_stage,
+        "stageStatus": {}
+    })

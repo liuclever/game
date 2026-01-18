@@ -150,12 +150,9 @@ onMounted(() => {
       </div>
     </template>
     
-<<<<<<< HEAD
-=======
     <!-- 主页菜单（严格复刻主页内容与UI） -->
     <MainMenuLinks />
 
->>>>>>> new/daily-book
     <!-- 返回链接 -->
     <div class="section">
       <a class="link" @click="goBack">返回游戏首页</a>

@@ -673,6 +673,13 @@ class InventoryService:
         # ========== 背包内开启灵石：六系灵石(未开)(7101-7106) ==========
         # 规则：开启消耗灵石，获得对应元素随机种族战灵（由 SpiritService 严格按配置执行）
         if int(item_template.id) in (7101, 7102, 7103, 7104, 7105, 7106):
+            # 检查等级要求（35级）
+            if self.player_repo:
+                player = self.player_repo.get_by_id(user_id)
+                player_level = int(getattr(player, "level", 0) or 0) if player else 0
+                if player_level < 35:
+                    raise InventoryError("战灵系统需要35级才能解锁，无法开启灵石")
+            
             if not self.spirit_service:
                 raise InventoryError("系统错误：SpiritService 未配置")
             id_to_element = {

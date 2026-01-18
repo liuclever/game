@@ -386,7 +386,7 @@ const handleLink = (name) => {
 
     <!-- 皇城 -->
     <div class="section spacer">
-      皇城:<span class="link readonly">召唤之王挑战赛</span>
+      皇城:<a class="link" @click="handleLink('召唤之王挑战赛')">召唤之王挑战赛</a>
     </div>
 
     <!-- 主页菜单（严格复刻主页内容与UI） -->

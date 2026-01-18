@@ -1,0 +1,48 @@
+修复召唤之王正赛前端展示问题并添加等级限制
+
+问题：
+- 用户反馈"感觉正赛逻辑没有实现"
+- 前端调用 /api/king/final_stage_info 接口但后端未实现
+- 导致前端正赛页面无法显示对阵信息
+- 缺少20级等级限制
+- 召唤之王显示写死为"低调"，应该动态显示当前冠军
+- 擂台动态需要分页功能（每页10行，最多5页）
+
+修复内容：
+1. 新增 GET /api/king/final_stage_info 接口
+   - 获取所有正赛阶段对阵信息
+   - 查询玩家最佳成绩（32强/16强/8强/4强/亚军/冠军）
+   - 返回格式化数据供前端展示
+
+2. 添加20级等级限制
+   - 报名接口检查玩家等级
+   - 挑战接口检查玩家等级
+   - 未达20级提示"需要达到20级才能参加挑战赛"
+
+3. 召唤之王动态显示
+   - GET /api/king/info 接口返回当前召唤之王昵称和ID
+   - 前端显示为蓝色超链接，点击跳转到玩家信息页面
+   - 无冠军时显示"虚位以待"
+   - 每周正赛结束后自动易位
+
+4. 擂台动态分页功能
+   - 每页显示10条记录
+   - 最多显示5页（共50条）
+   - 添加上一页/下一页/页码跳转控制
+   - 支持擂台动态和个人动态独立分页
+
+说明：
+- 正赛核心逻辑（晋级、对战、奖励）早已完整实现
+- 本次只是补充前端展示接口和等级检查
+- 修复后用户可正常查看正赛对阵和战绩
+
+文件：
+- interfaces/routes/king_routes.py
+- interfaces/client/src/features/king/SummonKingChallengePage.vue
+- interfaces/routes/arena_routes.py
+- infrastructure/db/arena_battle_repo_mysql.py
+- interfaces/client/src/features/arena/ArenaPage.vue
+- 召唤之王正赛问题诊断.md
+- 召唤之王正赛修复完成报告.md
+- 召唤之王动态显示功能说明.md
+- 擂台动态分页功能说明.md

@@ -82,43 +82,73 @@ class DamageCalculator(ABC):
 
 
 class SimpleDamageCalculator(DamageCalculator):
-    """简单伤害计算：攻击 - 防御"""
+    """简单伤害计算：新的扣血公式
+    
+    - 当 (攻击 - 防御) ≥ 0 时：伤害 = (攻击 - 防御) × 0.069（四舍五入）
+    - 当 (攻击 - 防御) < 0 时：固定扣血 5 点
+    """
     
     def calculate(self, attacker: BeastStats, defender: BeastStats) -> int:
         if attacker.is_magic_type():
-            damage = attacker.magic_attack - defender.magic_defense
+            diff = attacker.magic_attack - defender.magic_defense
         else:
-            damage = attacker.physical_attack - defender.physical_defense
-        return max(1, int(damage))
+            diff = attacker.physical_attack - defender.physical_defense
+        
+        if diff >= 0:
+            # 伤害 = (攻击 - 防御) × 0.069，四舍五入
+            damage = round(diff * 0.069)
+        else:
+            # 固定扣血 5 点
+            damage = 5
+        
+        return max(1, damage)
 
 
 class RandomDamageCalculator(DamageCalculator):
-    """带随机浮动的伤害计算"""
+    """带随机浮动的伤害计算（已废弃，使用新公式）
+    
+    - 当 (攻击 - 防御) ≥ 0 时：伤害 = (攻击 - 防御) × 0.069（四舍五入）
+    - 当 (攻击 - 防御) < 0 时：固定扣血 5 点
+    """
     
     def __init__(self, variance: float = 0.1):
-        self.variance = variance
+        self.variance = variance  # 保留参数以兼容旧代码
     
     def calculate(self, attacker: BeastStats, defender: BeastStats) -> int:
         if attacker.is_magic_type():
-            base_damage = attacker.magic_attack - defender.magic_defense
+            diff = attacker.magic_attack - defender.magic_defense
         else:
-            base_damage = attacker.physical_attack - defender.physical_defense
+            diff = attacker.physical_attack - defender.physical_defense
         
-        # 添加随机浮动
-        factor = 1 + random.uniform(-self.variance, self.variance)
-        damage = base_damage * factor
-        return max(1, int(damage))
+        if diff >= 0:
+            # 伤害 = (攻击 - 防御) × 0.069，四舍五入
+            damage = round(diff * 0.069)
+        else:
+            # 固定扣血 5 点
+            damage = 5
+        
+        return max(1, damage)
 
 
 class BattlePowerCalculator(DamageCalculator):
-    """基于战力的伤害计算（临时，用于测试）"""
+    """基于战力的伤害计算（临时，用于测试）
+    
+    注意：这是测试用的简化计算，实际战斗请使用 SimpleDamageCalculator
+    """
     
     def calculate(self, attacker: BeastStats, defender: BeastStats) -> int:
         # 简单按战力比例计算
         attacker_power = attacker.attack + attacker.physical_attack + attacker.magic_attack
         defender_power = defender.defense + defender.physical_defense + defender.magic_defense
-        damage = max(1, attacker_power - defender_power // 2)
-        return damage
+        
+        diff = attacker_power - defender_power // 2
+        
+        if diff >= 0:
+            damage = round(diff * 0.069)
+        else:
+            damage = 5
+        
+        return max(1, damage)
 
 
 class BattleEngine:

@@ -719,20 +719,6 @@ const handleLink = (name) => {
       </template>
       <span class="gray" v-if="treeStatusError">（{{ treeStatusError }}）</span>
     </div>
-    <div class="section">
-      任务: 通关【回音之谷】 <a class="link" @click="handleLink('前往')">前往</a>
-    </div>
-    <div class="section" v-if="isLoggedIn">
-      当前地图:<span class="bold">{{ currentLocation }}</span>
-      <template v-if="moving">
-        <span class="gray">（移动中→{{ movingTo }} 剩余{{ remainingSeconds }}秒）</span>
-      </template>
-      <a class="link" @click="handleLink('移动')">移动</a>
-    </div>
-
-    <div class="section">
-      开启新城市地图[<a class="link" @click="handleLink('定老城')">定老城</a>]<a class="link" @click="handleLink('移动')">移动</a>
-    </div>
 
     <!-- 召唤大陆联盟排行 -->
     <div class="section title">【召唤大陆联盟排行】</div>
@@ -842,6 +828,12 @@ const handleLink = (name) => {
     <!-- 聊天区 -->
     <div class="section title">【聊天区】</div>
     <ChatPanel />
+
+    <!-- 皇城：召唤之王挑战赛 -->
+    <div class="section title">【皇城】</div>
+    <div class="section indent">
+      <a class="link" @click="handleLink('召唤之王挑战赛')">召唤之王挑战赛</a>
+    </div>
 
     <!-- 导航菜单 -->
     <div class="section">

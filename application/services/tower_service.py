@@ -88,21 +88,38 @@ class TowerBattleService:
         return int(getattr(player, "vip_level", 0) or 0)
 
     def _get_daily_limit_by_vip(self, vip_level: int) -> int:
-        v = int(vip_level or 0)
-        if v >= 9:
-            return 4
-        if v >= 8:
-            return 3
-        if v >= 6:
-            return 2
-        return 1
+        """获取每日闯塔次数限制
+        
+        所有玩家统一：每日4次闯塔机会
+        - 第1次：免费
+        - 第2-4次：每次花费200元宝重置
+        """
+        return 4
 
     def _ensure_paid_reset_if_needed(self, user_id: int, state: TowerState) -> int:
-        vip_level = self._get_player_vip_level(user_id)
-        free_limit = self._get_daily_limit_by_vip(vip_level)
-        if int(state.today_count or 0) < free_limit:
+        """检查并执行付费重置
+        
+        闯塔次数规则：
+        - 第1次：免费（today_count = 0）
+        - 第2次：花费200元宝重置（today_count = 1）
+        - 第3次：花费200元宝重置（today_count = 2）
+        - 第4次：花费200元宝重置（today_count = 3）
+        - 第5次及以上：不允许（today_count >= 4）
+        
+        Returns:
+            int: 本次重置花费的元宝数量（0表示免费）
+        """
+        current_count = int(state.today_count or 0)
+        
+        # 第1次免费
+        if current_count == 0:
             return 0
-
+        
+        # 第5次及以上不允许
+        if current_count >= 4:
+            raise TowerError("今日闯塔次数已用完（最多4次）")
+        
+        # 第2-4次需要花费200元宝重置
         if self.player_repo is None:
             raise TowerError("系统错误：PlayerRepo 未配置")
 
@@ -112,19 +129,28 @@ class TowerBattleService:
 
         cost = 200
         if int(getattr(player, "yuanbao", 0) or 0) < cost:
-            raise TowerError("元宝不足，需要200元宝重置闯塔")
+            raise TowerError(f"元宝不足，需要{cost}元宝重置闯塔（第{current_count + 1}次）")
 
+        # 扣除元宝
         player.yuanbao = int(getattr(player, "yuanbao", 0) or 0) - cost
         self.player_repo.save(player)
 
+        # 重置当前层数到第1层
         state.current_floor = 1
+        
         return cost
 
     def _ensure_can_challenge_today(self, user_id: int, state: TowerState) -> int:
-        vip_level = self._get_player_vip_level(user_id)
-        daily_limit = self._get_daily_limit_by_vip(vip_level)
-        if int(state.today_count or 0) >= daily_limit:
-            raise TowerError(f"今日闯塔次数已用完（{daily_limit}次）")
+        """检查今日是否还能闯塔
+        
+        每日最多4次闯塔机会
+        """
+        daily_limit = 4  # 固定为4次
+        current_count = int(state.today_count or 0)
+        
+        if current_count >= daily_limit:
+            raise TowerError(f"今日闯塔次数已用完（最多{daily_limit}次）")
+        
         return daily_limit
     
     def roll_special_reward(self, tower_type: str, floor: int) -> Optional[Dict]:
@@ -206,6 +232,13 @@ class TowerBattleService:
     
     def get_tower_info(self, user_id: int, tower_type: str = "tongtian") -> dict:
         """获取闯塔信息"""
+        # 战灵塔需要35级才能解锁
+        if tower_type == "zhanling":
+            player = self.player_repo.get_by_id(user_id)
+            player_level = int(getattr(player, "level", 0) or 0) if player else 0
+            if player_level < 35:
+                raise TowerError("战灵塔需要35级才能解锁")
+        
         state = self.state_repo.get_by_user_id(user_id, tower_type)
         state.reset_daily_if_needed()
         
@@ -298,16 +331,30 @@ class TowerBattleService:
         )
     
     def calc_damage(self, attacker_attack: int, defender_defense: int) -> int:
-        """计算伤害（旧方法，兼容用）"""
-        base_damage = attacker_attack - defender_defense
-        return max(1, int(base_damage))
+        """计算伤害（新公式）
+        
+        - 当 (攻击 - 防御) ≥ 0 时：伤害 = (攻击 - 防御) × 0.069（四舍五入）
+        - 当 (攻击 - 防御) < 0 时：固定扣血 5 点
+        """
+        diff = attacker_attack - defender_defense
+        
+        if diff >= 0:
+            damage = round(diff * 0.069)
+        else:
+            damage = 5
+        
+        return max(1, damage)
     
     def calc_damage_with_type(
         self,
         attacker,  # PlayerBeast 或 TowerGuardian
         defender,  # PlayerBeast 或 TowerGuardian
     ) -> int:
-        """根据特性计算伤害"""
+        """根据特性计算伤害（新公式）
+        
+        - 当 (攻击 - 防御) ≥ 0 时：伤害 = (攻击 - 防御) × 0.069（四舍五入）
+        - 当 (攻击 - 防御) < 0 时：固定扣血 5 点
+        """
         # 判断攻击方是法系还是物系
         if attacker.is_magic_type():
             # 法系：法攻 - 法防
@@ -318,8 +365,14 @@ class TowerBattleService:
             attack_value = attacker.physical_attack
             defense_value = defender.physical_defense
         
-        damage = attack_value - defense_value
-        return max(1, int(damage))
+        diff = attack_value - defense_value
+        
+        if diff >= 0:
+            damage = round(diff * 0.069)
+        else:
+            damage = 5
+        
+        return max(1, damage)
     
     def _to_pvp_beasts_from_players(self, player_beasts: List[PlayerBeast]) -> List[PvpBeast]:
         """将玩家幻兽转换为 PvpBeast，并应用技能系统的增益/负面效果。"""
@@ -540,6 +593,13 @@ class TowerBattleService:
         """
         手动挑战一层
         """
+        # 战灵塔需要35级才能解锁
+        if tower_type == "zhanling":
+            player = self.player_repo.get_by_id(user_id)
+            player_level = int(getattr(player, "level", 0) or 0) if player else 0
+            if player_level < 35:
+                raise TowerError("战灵塔需要35级才能解锁")
+        
         state = self.state_repo.get_by_user_id(user_id, tower_type)
         state.reset_daily_if_needed()
 
@@ -600,21 +660,41 @@ class TowerBattleService:
         tower_type: str,
         player_beasts: List[PlayerBeast],
         use_buff: bool = True,
+        is_continue: bool = False,
     ) -> AutoChallengeResult:
         """
         自动闯塔 - 一次性计算所有层
+        
+        Args:
+            user_id: 用户ID
+            tower_type: 塔类型
+            player_beasts: 玩家幻兽列表
+            use_buff: 是否使用buff
+            is_continue: 是否是继续挑战（True时不消耗次数）
         """
+        # 战灵塔需要35级才能解锁
+        if tower_type == "zhanling":
+            player = self.player_repo.get_by_id(user_id)
+            player_level = int(getattr(player, "level", 0) or 0) if player else 0
+            if player_level < 35:
+                raise TowerError("战灵塔需要35级才能解锁")
+        
         state = self.state_repo.get_by_user_id(user_id, tower_type)
         state.reset_daily_if_needed()
 
-        # 今日次数限制（不自动扣元宝重置）
-        self._ensure_can_challenge_today(user_id=user_id, state=state)
+        # 只有首次进入自动闯塔时才处理次数和重置逻辑
+        if not is_continue:
+            # 检查今日次数限制
+            self._ensure_can_challenge_today(user_id=user_id, state=state)
+            
+            # 检查并执行付费重置（第2-4次需要花费200元宝）
+            reset_cost = self._ensure_paid_reset_if_needed(user_id=user_id, state=state)
+            
+            # 增加今日闯塔次数
+            state.today_count += 1
 
         config = self.config_repo.get_tower_config(tower_type)
         max_floor = config.get("max_floor", 120)
-
-        # 点击自动闯塔时今日次数+1
-        state.today_count += 1
         
         # 应用buff
         if use_buff:

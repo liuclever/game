@@ -19,6 +19,11 @@
         当前连胜: {{ currentStreak }}次. 今日最高: {{ maxStreakToday }}次
       </div>
 
+      <!-- 活力消耗提示 -->
+      <div class="section">
+        战斗消耗活力: {{ energyCost }}点（{{ maxStreakToday >= 6 ? '已达成6连胜' : '未达成6连胜' }}）
+      </div>
+
       <!-- 对手列表 -->
       <div class="section">
         <div class="section indent">
@@ -46,6 +51,16 @@
           <a class="link" @click="claimReward(level)" v-if="canClaim(level) && !claimedRewards.includes(level)">领取</a>
           <span v-else-if="claimedRewards.includes(level)">[已领取]</span>
           <span v-else>[未达成]</span>
+        </div>
+      </div>
+
+      <!-- 连胜大奖 -->
+      <div class="section">
+        <div class="section indent">
+          连胜大奖（全服连胜王专属，每日限领1次）: 铜钱60万+追魂法宝1+金袋5+招财神符1. 
+          <a class="link" @click="claimGrandPrize" v-if="isStreakKing && !claimedGrandPrize">领取</a>
+          <span v-else-if="claimedGrandPrize">[已领取]</span>
+          <span v-else-if="!isStreakKing">[仅连胜王可领取]</span>
         </div>
       </div>
 
@@ -101,6 +116,7 @@ export default {
       refreshSeconds: 300,
       streakKing: { nickname: '暂无', streak: 0 },
       claimedRewards: [],
+      claimedGrandPrize: false,
       ranking: [],
       history: [],
       showRanking: false,
@@ -109,6 +125,16 @@ export default {
       battleResult: null,
       refreshTimer: null
     };
+  },
+  computed: {
+    isStreakKing() {
+      // 检查当前用户是否是连胜王
+      return this.streakKing.user_id && this.streakKing.user_id === this.$root.userId;
+    },
+    energyCost() {
+      // 计算活力消耗：未达成6连胜之前消耗100活力，达成6连胜之后消耗15活力
+      return this.maxStreakToday >= 6 ? 15 : 100;
+    }
   },
   mounted() {
     this.loadInfo();
@@ -130,6 +156,7 @@ export default {
           this.refreshSeconds = res.data.refresh_seconds;
           this.streakKing = res.data.streak_king;
           this.claimedRewards = res.data.claimed_rewards;
+          this.claimedGrandPrize = res.data.claimed_grand_prize || false;
         } else {
           if (res.data.error.includes('开放时间')) {
             this.isOpen = false;
@@ -232,9 +259,53 @@ export default {
         
         if (res.data.ok) {
           this.claimedRewards.push(level);
+          this.battleResult = {
+            victory: true,
+            message: res.data.message || '领取成功！'
+          };
+          setTimeout(() => {
+            this.battleResult = null;
+          }, 3000);
+        } else {
+          this.battleResult = {
+            victory: false,
+            message: res.data.error || '领取失败'
+          };
         }
       } catch (err) {
         console.error('领取奖励失败', err);
+        this.battleResult = {
+          victory: false,
+          message: err.response?.data?.error || '领取失败，请稍后重试'
+        };
+      }
+    },
+    
+    async claimGrandPrize() {
+      try {
+        const res = await axios.post('/api/arena-streak/claim-grand-prize');
+        
+        if (res.data.ok) {
+          this.claimedGrandPrize = true;
+          this.battleResult = {
+            victory: true,
+            message: res.data.message || '恭喜！领取连胜大奖成功！'
+          };
+          setTimeout(() => {
+            this.battleResult = null;
+          }, 5000);
+        } else {
+          this.battleResult = {
+            victory: false,
+            message: res.data.error || '领取失败'
+          };
+        }
+      } catch (err) {
+        console.error('领取连胜大奖失败', err);
+        this.battleResult = {
+          victory: false,
+          message: err.response?.data?.error || '领取失败，请稍后重试'
+        };
       }
     },
     
@@ -271,9 +342,19 @@ export default {
         if (this.refreshSeconds > 0) {
           this.refreshSeconds--;
         } else {
-          this.loadInfo();
+          // 倒计时到0时，自动刷新对手列表（不消耗元宝）
+          this.autoRefresh();
         }
       }, 1000);
+    },
+    
+    async autoRefresh() {
+      // 自动刷新（倒计时到0时触发，不消耗元宝）
+      try {
+        await this.loadInfo();
+      } catch (err) {
+        console.error('自动刷新失败', err);
+      }
     },
     
     canClaim(level) {
@@ -282,12 +363,12 @@ export default {
     
     getRewardText(level) {
       const rewards = {
-        1: '铜钱1000+双倍卡1+结晶1',
-        2: '铜钱5000+强力捕捉球1+结晶1',
-        3: '铜钱1万+化仙丹1+结晶1',
-        4: '铜钱5万+活力草1+结晶1',
+        1: '铜钱1000+双倍卡1+随机结晶1',
+        2: '铜钱5000+强力捕捉球1+随机结晶1',
+        3: '铜钱1万+化仙丹1+随机结晶1',
+        4: '铜钱5万+活力草1+随机结晶1',
         5: '铜钱10万+活力草2+小喇叭2',
-        6: '铜钱15万+重生丹2+神·逆鳞碎片1'
+        6: '铜钱15万+重生丹2+神·逆鳞碎片5'
       };
       return rewards[level] || '';
     },

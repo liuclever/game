@@ -217,45 +217,25 @@ def _is_low_rank_level(player_level: int) -> bool:
 def calc_damage(attacker: PvpBeast, defender: PvpBeast, attacker_player_level: int) -> int:
     """按照需求文档计算一次攻击的扣血量。
 
-    - 正常情况（攻减防 >= 0）:
-        damage = (攻减防) * rand(0.069, 0.071) * 防御档位倍数
-    - 当攻减防 < 0 时：
-        完全采用区间伤害 250~300 或 20~40 乘以系数，不再乘防御档位倍数。
-        若攻击方玩家等级在 [20, 39]，再整体 *0.3。
+    新的扣血公式：
+    - 当 (攻击 - 防御) ≥ 0 时：
+        伤害 = (攻击 - 防御) × 0.069（四舍五入）
+    - 当 (攻击 - 防御) < 0 时：
+        固定扣血 5 点
 
-    最终伤害向下取整，至少为 1。
+    最终伤害至少为 1。
     """
 
     diff, defense_value, _ = _pick_attack_and_defense(attacker, defender)
 
     # 攻 - 防 >= 0 的情况
     if diff >= 0:
-        rand_factor = random.uniform(0.069, 0.071)  # 浮点数随机
-        mul = _defense_multiplier(defense_value)
-        raw = diff * rand_factor * mul
-        dmg = int(raw)
+        # 伤害 = (攻击 - 防御) × 0.069，四舍五入
+        raw = diff * 0.069
+        dmg = round(raw)  # 四舍五入
     else:
-        # 攻 - 防 < 0 的特殊规则
-        # diff 为负数，按其绝对值决定区间
-        d = abs(diff)
-        base: float
-
-        if d <= 1000:
-            base = random.randint(250, 300)
-        elif d <= 2000:
-            base = random.randint(250, 300) * 0.7
-        elif d <= 3000:
-            base = random.randint(250, 300) * 0.5
-        elif d <= 4000:
-            base = random.randint(250, 300) * 0.3
-        else:
-            base = random.randint(20, 40)
-
-        # 低阶玩家（黄阶/玄阶）再 *0.3
-        if _is_low_rank_level(attacker_player_level):
-            base *= 0.3
-
-        dmg = int(base)
+        # 攻 - 防 < 0 的情况：固定扣血 5 点
+        dmg = 5
 
     return max(1, dmg)
 
