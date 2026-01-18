@@ -387,8 +387,6 @@ def get_beast_detail(beast_id: int):
                 beast.race = tpl.race
             except Exception:
                 pass
-    # 保存更新后的属性到数据库
-    services.player_beast_repo.update_beast(beast)
     
     beast_dict = beast.to_dict()
     # 添加升级所需经验
@@ -410,7 +408,25 @@ def get_beast_detail(beast_id: int):
                     if _norm(getattr(tpl, "name", "")) == key:
                         template = tpl
                         break
-        beast_dict["template_id"] = template.id if template else None
+        # 若能通过名称匹配到模板：补齐 template_id + race（历史/测试数据常见）
+        if template:
+            beast_dict["template_id"] = template.id
+            try:
+                if not getattr(beast, "template_id", 0):
+                    beast.template_id = template.id
+            except Exception:
+                pass
+            try:
+                if (not getattr(beast, "race", "")) and getattr(template, "race", ""):
+                    beast.race = template.race
+                    beast_dict["race"] = beast.race
+            except Exception:
+                pass
+        else:
+            beast_dict["template_id"] = None
+
+    # 保存更新后的属性到数据库（包含可能补齐的 race/template_id）
+    services.player_beast_repo.update_beast(beast)
     
     print("DEBUG magic_attack_aptitude =", beast.magic_attack_aptitude)
     # 计算资质星级

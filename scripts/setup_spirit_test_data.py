@@ -15,7 +15,8 @@
 import argparse
 import os
 import sys
-from datetime import datetime
+import json
+from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -36,6 +37,7 @@ from infrastructure.db.player_beast_repo_mysql import MySQLPlayerBeastRepo
 
 from application.services.inventory_service import InventoryService
 from application.services.spirit_service import SpiritService
+from infrastructure.config.spirit_system_config import get_spirit_system_config
 
 
 ALL_ELEMENTS = ["earth", "fire", "water", "wood", "metal", "god"]
@@ -44,6 +46,37 @@ ELEMENT_NAME = {"earth": "土", "fire": "火", "water": "水", "wood": "木", "m
 SPIRIT_KEY_ITEM_ID = 6006
 SPIRIT_CRYSTAL_ITEM_ID = 6101
 STONE_ITEM_IDS = {"earth": 7101, "fire": 7102, "water": 7103, "wood": 7104, "metal": 7105, "god": 7106}
+
+def _load_spirit_system_json() -> dict:
+    base_dir = Path(__file__).resolve().parents[1]
+    path = base_dir / "configs" / "spirit_system.json"
+    with path.open("r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def _get_all_races() -> list[str]:
+    """按配置获取所有种族（默认：虫族/兽族/水族/羽族）。"""
+    try:
+        cfg = _load_spirit_system_json()
+        races = cfg.get("races", []) or []
+        races = [str(x) for x in races if str(x).strip()]
+        if races:
+            return races
+    except Exception:
+        pass
+    return ["虫族", "兽族", "水族", "羽族"]
+
+
+def _get_all_attr_keys() -> list[str]:
+    """按配置获取词条属性 key 列表（如 hp_pct/physical_attack_pct/...）。"""
+    cfg = get_spirit_system_config()
+    pool = cfg.get_attr_pool() or []
+    keys: list[str] = []
+    for p in pool:
+        k = str((p or {}).get("key") or "").strip()
+        if k:
+            keys.append(k)
+    return keys
 
 
 def get_player_row(user_id: int) -> dict | None:
@@ -81,7 +114,21 @@ def main():
     parser.add_argument("--key_qty", type=int, default=200, help="战灵钥匙数量（默认200）")
     parser.add_argument("--crystal_qty", type=int, default=200, help="灵力水晶数量（默认200）")
     parser.add_argument("--stone_qty", type=int, default=50, help="每系灵石数量（默认50）")
-    parser.add_argument("--spirits_per_element", type=int, default=3, help="每系生成战灵样本数量（默认3）")
+    parser.add_argument(
+        "--gen_mode",
+        type=str,
+        default="coverage_race_attr",
+        choices=["coverage_race_attr", "random_per_element"],
+        help="战灵样本生成模式：coverage_race_attr=覆盖每个种族×每个属性；random_per_element=按元素随机生成",
+    )
+    parser.add_argument(
+        "--coverage_element",
+        type=str,
+        default="",
+        choices=["", "earth", "fire", "water", "wood", "metal", "god"],
+        help="coverage_race_attr 模式：若指定元素，则在该元素内覆盖生成（例如 god 表示生成 神灵·各族×各属性）",
+    )
+    parser.add_argument("--spirits_per_element", type=int, default=3, help="random_per_element 模式：每系生成战灵样本数量（默认3）")
     parser.add_argument("--dry_run", action="store_true", help="仅打印，不写入数据库")
     args = parser.parse_args()
 
@@ -154,21 +201,80 @@ def main():
             print(f"[ok] +{qty}  item={item_id}  {name}")
 
     # 5) 生成战灵样本（在灵件室）
-    per = int(args.spirits_per_element)
-    if per < 0:
-        per = 0
-    if per > 30:
-        per = 30
+    # 仓库容量保护：脚本直接写 player_spirit，需自行避免溢出
+    system_cfg = get_spirit_system_config()
+    capacity = int(system_cfg.get_warehouse_capacity() or 100)
+    rows = execute_query("SELECT COUNT(*) AS cnt FROM player_spirit WHERE user_id=%s", (user_id,))
+    existing_cnt = int(rows[0].get("cnt", 0) or 0) if rows else 0
+    free_slots = max(capacity - existing_cnt, 0)
 
-    if per > 0:
-        for element in ALL_ELEMENTS:
+    if free_slots <= 0:
+        print(f"[skip] 灵件室已满：{existing_cnt}/{capacity}，跳过生成战灵样本")
+    else:
+        if args.gen_mode == "random_per_element":
+            per = int(args.spirits_per_element)
+            if per < 0:
+                per = 0
+            if per > 30:
+                per = 30
+
+            if per > 0:
+                for element in ALL_ELEMENTS:
+                    need = min(per, free_slots)
+                    if need <= 0:
+                        break
+                    if dry_run:
+                        print(f"[dry-run] 生成战灵样本 {ELEMENT_NAME[element]}灵 × {need}")
+                        free_slots -= need
+                        continue
+                    for _ in range(need):
+                        sp = spirit_service._roll_new_spirit(user_id=user_id, element_key=element)
+                        spirit_repo.save(sp)
+                    free_slots -= need
+                    print(f"[ok] 生成战灵样本 {ELEMENT_NAME[element]}灵 × {need}")
+        else:
+            # 覆盖生成：每个种族 × 每个属性 key 至少 1 份（元素按轮转分配）
+            races = _get_all_races()
+            attr_keys = _get_all_attr_keys()
+            tasks: list[tuple[str, str, str]] = []
+            fixed_element = str(args.coverage_element or "").strip()
+            if fixed_element:
+                for race in races:
+                    for ak in attr_keys:
+                        tasks.append((fixed_element, race, ak))
+            else:
+                idx = 0
+                for race in races:
+                    for ak in attr_keys:
+                        element = ALL_ELEMENTS[idx % len(ALL_ELEMENTS)]
+                        tasks.append((element, race, ak))
+                        idx += 1
+
+            if len(tasks) > free_slots:
+                print(f"[warn] 计划生成 {len(tasks)} 个战灵样本，但剩余容量仅 {free_slots}，将截断为 {free_slots} 个")
+                tasks = tasks[:free_slots]
+
             if dry_run:
-                print(f"[dry-run] 生成战灵样本 {ELEMENT_NAME[element]}灵 × {per}")
-                continue
-            for _ in range(per):
-                sp = spirit_service._roll_new_spirit(user_id=user_id, element_key=element)
-                spirit_repo.save(sp)
-            print(f"[ok] 生成战灵样本 {ELEMENT_NAME[element]}灵 × {per}")
+                print(f"[dry-run] 覆盖生成战灵样本：{len(tasks)} 个（种族×属性），元素轮转分配")
+                for (element, race, ak) in tasks:
+                    print(f"  - {ELEMENT_NAME[element]}灵·{race}  line1={ak}")
+            else:
+                print(f"[ok] 覆盖生成战灵样本：{len(tasks)} 个（种族×属性），元素轮转分配")
+                for (element, race, ak) in tasks:
+                    sp = spirit_service._roll_new_spirit(user_id=user_id, element_key=element)
+                    # 覆盖：种族 & 第一条属性 key（保持“初始仅1条解锁”以测试钥匙激活流程）
+                    sp.race = race
+                    if not sp.lines:
+                        sp.get_line(1)
+                    sp.lines[0].attr_key = ak
+                    sp.lines[0].unlocked = True
+                    sp.lines[0].locked = False
+                    # 保证第2/3条保持未激活
+                    sp.get_line(2).unlocked = False
+                    sp.get_line(2).locked = False
+                    sp.get_line(3).unlocked = False
+                    sp.get_line(3).locked = False
+                    spirit_repo.save(sp)
 
     # 6) 汇总
     if not dry_run:
@@ -180,6 +286,10 @@ def main():
             cnt = inventory_service.get_item_count(user_id, item_id, include_temp=True)
             nm = item_repo.get_by_id(item_id).name if item_repo.get_by_id(item_id) else str(item_id)
             print(f"背包物品：{nm}({item_id}) = {cnt}")
+        # 汇总战灵（总数/按元素）
+        rows = execute_query("SELECT COUNT(*) AS cnt FROM player_spirit WHERE user_id=%s", (user_id,))
+        total_sp = int(rows[0].get("cnt", 0) or 0) if rows else 0
+        print(f"战灵总数：{total_sp}/{capacity}")
         for element in ALL_ELEMENTS:
             rows = execute_query("SELECT COUNT(*) AS cnt FROM player_spirit WHERE user_id=%s AND element=%s", (user_id, element))
             c = int(rows[0].get("cnt", 0) or 0) if rows else 0

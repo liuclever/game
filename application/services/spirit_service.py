@@ -176,15 +176,18 @@ class SpiritService:
         if beast is None or getattr(beast, "user_id", 0) != user_id:
             raise SpiritError("幻兽不存在")
 
+        # 只能镶嵌本种族的战灵
+        beast_race = str(getattr(beast, "race", "") or "").strip()
+        spirit_race = str(getattr(sp, "race", "") or "").strip()
+        if not beast_race:
+            # 避免因历史/测试数据 race 缺失而绕过“同种族”规则
+            raise SpiritError("幻兽种族缺失，无法镶嵌（请刷新或联系管理员修复数据）")
+        if beast_race and spirit_race and beast_race != spirit_race:
+            raise SpiritError("只能镶嵌本种族的战灵")
+
         acc = self.get_account(user_id)
         if sp.element not in (acc.unlocked_elements or []):
             raise SpiritError("该元素孔位未解锁")
-
-        # 种族匹配
-        beast_race = getattr(beast, "race", "") or ""
-        # 若幻兽种族为空（历史数据缺失），不阻断装备；否则严格匹配
-        if sp.race and beast_race and sp.race != beast_race:
-            raise SpiritError("战灵种族与幻兽不匹配")
 
         # 同一只幻兽同一元素只能装备一枚：先卸下旧的
         for old in self.spirit_repo.get_by_beast_id(beast_id):

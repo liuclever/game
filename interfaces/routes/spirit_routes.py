@@ -13,6 +13,69 @@ def get_current_user_id() -> int:
     return session.get('user_id', 0)
 
 
+def _norm_beast_name(name: str) -> str:
+    """用于按名称兜底匹配模板（去空白/去间隔符）。"""
+    return "".join(ch for ch in str(name or "") if ch not in {" ", "\t", "\r", "\n", "·"})
+
+
+def _fill_beast_race_and_template_if_missing(beast) -> str:
+    """兜底：若 beast.race/template_id 缺失，尝试从模板补齐并回写。
+
+    返回：最终 beast.race（可能仍为空字符串）。
+    """
+    try:
+        if getattr(beast, "race", "") and int(getattr(beast, "template_id", 0) or 0) > 0:
+            return str(getattr(beast, "race", "") or "")
+    except Exception:
+        pass
+
+    tpl = None
+    try:
+        tpl = services.beast_template_repo.get_by_id(int(getattr(beast, "template_id", 0) or 0))
+    except Exception:
+        tpl = None
+
+    if tpl is None:
+        try:
+            name = str(getattr(beast, "name", "") or "")
+            tpl = services.beast_template_repo.get_by_name(name)
+            if tpl is None:
+                key = _norm_beast_name(name)
+                if key:
+                    for it in services.beast_template_repo.get_all().values():
+                        if _norm_beast_name(getattr(it, "name", "")) == key:
+                            tpl = it
+                            break
+        except Exception:
+            tpl = None
+
+    if tpl is None:
+        return str(getattr(beast, "race", "") or "")
+
+    changed = False
+    try:
+        if not int(getattr(beast, "template_id", 0) or 0):
+            beast.template_id = tpl.id
+            changed = True
+    except Exception:
+        pass
+
+    try:
+        if (not getattr(beast, "race", "")) and getattr(tpl, "race", ""):
+            beast.race = tpl.race
+            changed = True
+    except Exception:
+        pass
+
+    try:
+        if changed:
+            services.player_beast_repo.update_beast(beast)
+    except Exception:
+        pass
+
+    return str(getattr(beast, "race", "") or "")
+
+
 @spirit_bp.get("/account")
 def get_account():
     user_id = get_current_user_id()
@@ -78,9 +141,33 @@ def list_warehouse_spirits():
     if not user_id:
         return jsonify({"ok": False, "error": "请先登录"})
 
+    # 可选过滤参数：用于“镶嵌”场景只返回同种族/同元素战灵
+    element = str(request.args.get("element", "") or "").strip()
+    race = str(request.args.get("race", "") or "").strip()
+    try:
+        beast_id = int(request.args.get("beast_id", 0) or 0)
+    except Exception:
+        beast_id = 0
+
+    if beast_id > 0:
+        beast = services.player_beast_repo.get_by_id(beast_id)
+        if beast is None or getattr(beast, "user_id", 0) != user_id:
+            return jsonify({"ok": False, "error": "幻兽不存在"}), 400
+        beast_race = _fill_beast_race_and_template_if_missing(beast).strip()
+        if beast_race:
+            race = beast_race
+        else:
+            # 规则要求“只能镶嵌本种族”，若幻兽种族缺失则禁止进入镶嵌选择
+            return jsonify({"ok": False, "error": "幻兽种族缺失，无法镶嵌（请刷新或联系管理员修复数据）"}), 400
+
     # 获取所有战灵，筛选出未装备的（beast_id 为 None）
     all_spirits = services.spirit_service.get_spirits(user_id)
     warehouse_spirits = [s for s in all_spirits if s.spirit.beast_id is None]
+
+    if element:
+        warehouse_spirits = [s for s in warehouse_spirits if str(s.spirit.element) == element]
+    if race:
+        warehouse_spirits = [s for s in warehouse_spirits if str(s.spirit.race) == race]
 
     # 获取仓库容量配置
     from infrastructure.config.spirit_system_config import get_spirit_system_config
@@ -313,6 +400,40 @@ def get_spirit_page_data():
 
     # 获取所有幻兽
     all_beasts = services.player_beast_repo.get_all_by_user(user_id)
+
+    # 兜底：历史/测试数据可能缺少 race 或 template_id，尽量补齐并回写
+    for b in all_beasts or []:
+        try:
+            if getattr(b, "race", ""):
+                continue
+            tpl = None
+            try:
+                tpl = services.beast_template_repo.get_by_id(getattr(b, "template_id", 0) or 0)
+            except Exception:
+                tpl = None
+            if tpl is None:
+                name = str(getattr(b, "name", "") or "")
+                tpl = services.beast_template_repo.get_by_name(name)
+                if tpl is None:
+                    def _norm(s: str) -> str:
+                        return "".join(ch for ch in str(s or "") if ch not in {" ", "\t", "\r", "\n", "·"})
+
+                    key = _norm(name)
+                    if key:
+                        for it in services.beast_template_repo.get_all().values():
+                            if _norm(getattr(it, "name", "")) == key:
+                                tpl = it
+                                break
+            if tpl and getattr(tpl, "race", ""):
+                try:
+                    if not getattr(b, "template_id", 0):
+                        b.template_id = tpl.id
+                except Exception:
+                    pass
+                b.race = tpl.race
+                services.player_beast_repo.update_beast(b)
+        except Exception:
+            pass
 
     beast_list = [
         {

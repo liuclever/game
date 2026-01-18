@@ -212,7 +212,7 @@ const goHome = () => {
   background: #ffffff;
   min-height: 100vh;
   padding: 8px 12px;
-  font-size: 18px;
+  font-size: 19.8px; /* +10% */
   line-height: 1.6;
   font-family: SimSun, "宋体", serif;
 }
@@ -288,6 +288,6 @@ const goHome = () => {
 }
 
 .small {
-  font-size: 19px;
+  font-size: 20.9px; /* +10% */
 }
 </style>

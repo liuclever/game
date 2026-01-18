@@ -2,6 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import http from '@/services/http'
+import MainMenuLinks from '@/features/main/components/MainMenuLinks.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -51,17 +52,21 @@ const loadData = async () => {
       return
     }
     
-    // 获取灵件室中的战灵
-    const spiritsRes = await http.get('/spirit/warehouse')
+    // 获取灵件室中的战灵（后端按元素+幻兽种族过滤，避免前端拿到跨种族数据）
+    const spiritsRes = await http.get('/spirit/warehouse', {
+      params: {
+        beast_id: beastId.value,
+        element: elementKey.value,
+      },
+    })
     if (spiritsRes.data.ok) {
-      // 筛选匹配当前元素和种族的战灵
+      // 双保险：前端仍按元素 + 幻兽同种族过滤（只能镶嵌本种族）
       const allSpirits = spiritsRes.data.spirits || []
       availableSpirits.value = allSpirits.filter(sp => {
         // 元素必须匹配
         if (sp.element !== elementKey.value) return false
-        // 种族必须匹配（或者战灵是通用种族）
-        // 若幻兽种族缺失（历史数据），则不做种族过滤，避免“明明有战灵但提示没有”
-        if (beast.value?.race && sp.race && sp.race !== beast.value.race) return false
+        // 种族必须匹配
+        if (beast.value?.race && sp.race !== beast.value.race) return false
         return true
       })
     } else {
@@ -81,6 +86,7 @@ onMounted(() => {
 
 // ========== 计算属性 ==========
 const elementName = computed(() => elementNames[elementKey.value] || elementKey.value)
+const beastRaceLabel = computed(() => (beast.value?.race ? String(beast.value.race) : '未知种族'))
 
 // 计算战灵的已解锁属性条数
 const getUnlockedLineCount = (spirit) => {
@@ -132,7 +138,7 @@ const goToSpiritDetail = (spiritId) => {
     <template v-else>
       <!-- 幻兽信息 -->
       <div class="section title-section">
-        【{{ beast?.name }}({{ beast?.race }})】
+        【{{ beast?.name }}({{ beastRaceLabel }})】
       </div>
       
       <!-- 可选战灵列表 -->
@@ -152,6 +158,8 @@ const goToSpiritDetail = (spiritId) => {
       <div class="section spacer">
         <a class="link" @click="goBack">返回战灵首页</a>
       </div>
+      <!-- 底部菜单（同款） -->
+      <MainMenuLinks />
       <div class="section">
         <a class="link" @click="goHome">返回游戏首页</a>
       </div>
@@ -165,7 +173,7 @@ const goToSpiritDetail = (spiritId) => {
   background: #ffffff;
   min-height: 100vh;
   padding: 8px 12px;
-  font-size: 18px;
+  font-size: 19.8px; /* +10% */
   line-height: 1.6;
   font-family: SimSun, "宋体", serif;
 }
@@ -227,6 +235,6 @@ const goToSpiritDetail = (spiritId) => {
 }
 
 .small {
-  font-size: 19px;
+  font-size: 20.9px; /* +10% */
 }
 </style>
