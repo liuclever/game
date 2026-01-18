@@ -69,7 +69,7 @@ const claimReward = async (reward) => {
     const res = await http.post('/task/reward/claim', { key: reward.key })
     if (res.data?.ok) {
       reward.claimed = true
-      alert(`领取成功：${reward.name} x${reward.amount}`)
+      // 领取成功，不显示弹窗
     } else {
       throw new Error(res.data?.error || '领取失败')
     }
