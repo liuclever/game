@@ -251,7 +251,8 @@ const goBack = () => {
 }
 
 const goMap = () => {
-  router.push('/map')
+  // 直接刷新页面到地图首页
+  window.location.href = window.location.origin + '/map'
 }
 
 const openAdvanceModal = () => {
