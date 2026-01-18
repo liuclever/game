@@ -105,15 +105,20 @@ class CultivationService:
         self.player_effect_repo = player_effect_repo
 
     def _apply_incense_bonus(self, user_id: int, reward: CultivationReward) -> CultivationReward:
-        if reward.prestige <= 0:
-            return reward
         if not self.player_effect_repo:
             return reward
         if not self.player_effect_repo.is_active(user_id, NINGSHEN_INCENSE_EFFECT_KEY, now=datetime.now()):
             return reward
 
-        # +20% prestige, effect does not stack
-        reward.prestige = int(reward.prestige * 1.2 + 0.5)
+        # 文档要求：凝神香使“修行声望”和“幻兽经验”+20%（不叠加）
+        if reward.prestige > 0:
+            reward.prestige = int(reward.prestige * 1.2 + 0.5)
+        for g in (reward.beast_exp_gains or []):
+            try:
+                if int(getattr(g, "exp_gain", 0) or 0) > 0:
+                    g.exp_gain = int(g.exp_gain * 1.2 + 0.5)
+            except Exception:
+                continue
         return reward
 
     def _get_incense_remaining_seconds(self, user_id: int, now: Optional[datetime] = None) -> int:

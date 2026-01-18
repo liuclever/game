@@ -42,8 +42,6 @@ const copperBookData = ref({
 })
 
 const prestigeData = ref({
-  freeClaimed: false,
-  canClaimFree: false,
   boughtToday: 0,
   canBuy: true,
   yuanbao: 0,
@@ -266,8 +264,6 @@ const loadPrestigeStatus = async () => {
   try {
     const res = await http.get('/announcement/prestige/status')
     if (res.data.ok) {
-      prestigeData.value.freeClaimed = res.data.free_claimed
-      prestigeData.value.canClaimFree = res.data.can_claim_free
       prestigeData.value.boughtToday = res.data.bought_today || 0
       prestigeData.value.canBuy = res.data.can_buy
       prestigeData.value.yuanbao = res.data.yuanbao || 0
@@ -275,26 +271,6 @@ const loadPrestigeStatus = async () => {
     }
   } catch (e) {
     console.error('加载声望助力状态失败', e)
-  }
-}
-
-const claimPrestigeFree = async () => {
-  if (prestigeData.value.claiming) return
-  
-  prestigeData.value.claiming = true
-  try {
-    const res = await http.post('/announcement/prestige/claim-free')
-    if (res.data.ok) {
-      alert(res.data.message)
-      prestigeData.value.freeClaimed = true
-      prestigeData.value.canClaimFree = false
-    } else {
-      alert(res.data.error || '领取失败')
-    }
-  } catch (e) {
-    alert(e.response?.data?.error || '领取失败')
-  } finally {
-    prestigeData.value.claiming = false
   }
 }
 
@@ -577,15 +553,10 @@ watch(() => route.params.id, () => {
         <div class="section">
           当前元宝：<span class="gold">{{ prestigeData.yuanbao }}</span>
         </div>
-
-        <!-- 免费声望石 -->
-        <div class="section">
-          ①<a class="link" @click="claimPrestigeFree" v-if="!prestigeData.freeClaimed && !prestigeData.claiming">任务</a><span class="gray" v-else>{{ prestigeData.freeClaimed ? '已领取' : '领取中...' }}</span>
-        </div>
         
         <!-- 购买声望礼盒 -->
         <div class="section">
-          ②购买声望礼盒（50级及以下每天限购4个）：打开一个礼盒获得5000声望，一个礼盒2588元宝
+          购买声望礼盒（50级及以下每天限购4个）：打开一个礼盒获得5000声望，一个礼盒2588元宝
         </div>
         <div class="section indent">
           今日已购买：{{ prestigeData.boughtToday }}/4 
