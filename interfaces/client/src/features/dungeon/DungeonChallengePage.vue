@@ -246,13 +246,11 @@ const advanceDungeon = async (diceValue = null) => {
 }
 
 const goBack = () => {
-  // 直接刷新页面到首页
-  window.location.href = window.location.origin + '/'
+  router.push('/')
 }
 
 const goMap = () => {
-  // 直接刷新页面到地图首页
-  window.location.href = window.location.origin + '/map'
+  router.push('/map')
 }
 
 const openAdvanceModal = () => {

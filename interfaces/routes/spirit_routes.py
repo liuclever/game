@@ -13,11 +13,23 @@ def get_current_user_id() -> int:
     return session.get('user_id', 0)
 
 
+def check_spirit_level_requirement(user_id: int) -> bool:
+    """检查玩家是否达到战灵系统解锁等级（35级）"""
+    player = services.player_repo.get_by_id(user_id)
+    if not player:
+        return False
+    player_level = int(getattr(player, "level", 0) or 0)
+    return player_level >= 35
+
+
 @spirit_bp.get("/account")
 def get_account():
     user_id = get_current_user_id()
     if not user_id:
         return jsonify({"ok": False, "error": "请先登录"})
+
+    if not check_spirit_level_requirement(user_id):
+        return jsonify({"ok": False, "error": "战灵系统需要35级才能解锁"})
 
     acc = services.spirit_service.get_account(user_id)
     return jsonify({"ok": True, "account": acc.to_dict()})
@@ -78,6 +90,9 @@ def list_warehouse_spirits():
     if not user_id:
         return jsonify({"ok": False, "error": "请先登录"})
 
+    if not check_spirit_level_requirement(user_id):
+        return jsonify({"ok": False, "error": "战灵系统需要35级才能解锁"})
+
     # 获取所有战灵，筛选出未装备的（beast_id 为 None）
     all_spirits = services.spirit_service.get_spirits(user_id)
     warehouse_spirits = [s for s in all_spirits if s.spirit.beast_id is None]
@@ -137,6 +152,9 @@ def open_stone():
     user_id = get_current_user_id()
     if not user_id:
         return jsonify({"ok": False, "error": "请先登录"})
+
+    if not check_spirit_level_requirement(user_id):
+        return jsonify({"ok": False, "error": "战灵系统需要35级才能解锁"})
 
     data = request.get_json() or {}
     element = str(data.get("element", "") or "")
@@ -296,11 +314,15 @@ def get_spirit_page_data():
     if not user_id:
         return jsonify({"ok": False, "error": "请先登录"})
 
-    # 获取玩家战灵账户
-    acc = services.spirit_service.get_account(user_id)
-
     player = services.player_repo.get_by_id(user_id)
     player_level = int(getattr(player, "level", 0) or 0) if player else 0
+
+    # 检查等级要求
+    if player_level < 35:
+        return jsonify({"ok": False, "error": "战灵系统需要35级才能解锁", "playerLevel": player_level, "requiredLevel": 35})
+
+    # 获取玩家战灵账户
+    acc = services.spirit_service.get_account(user_id)
 
     # 获取所有战灵数量
     spirits = services.spirit_service.get_spirits(user_id)
@@ -425,6 +447,9 @@ def get_beast_equipped_spirits(beast_id: int):
     user_id = get_current_user_id()
     if not user_id:
         return jsonify({"ok": False, "error": "请先登录"})
+
+    if not check_spirit_level_requirement(user_id):
+        return jsonify({"ok": False, "error": "战灵系统需要35级才能解锁"})
 
     # 获取该幻兽装备的所有战灵
     spirits = services.spirit_repo.get_by_beast_id(beast_id)
