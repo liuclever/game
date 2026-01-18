@@ -246,7 +246,8 @@ const advanceDungeon = async (diceValue = null) => {
 }
 
 const goBack = () => {
-  router.push('/')
+  // 使用 window.location 强制刷新，避免白屏问题
+  window.location.href = '/'
 }
 
 const goMap = () => {
