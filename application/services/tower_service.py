@@ -634,9 +634,17 @@ class TowerBattleService:
         tower_type: str,
         player_beasts: List[PlayerBeast],
         use_buff: bool = True,
+        is_continue: bool = False,
     ) -> AutoChallengeResult:
         """
         自动闯塔 - 一次性计算所有层
+        
+        Args:
+            user_id: 用户ID
+            tower_type: 塔类型
+            player_beasts: 玩家幻兽列表
+            use_buff: 是否使用buff
+            is_continue: 是否是继续挑战（True时不消耗次数）
         """
         # 战灵塔需要35级才能解锁
         if tower_type == "zhanling":
@@ -654,8 +662,9 @@ class TowerBattleService:
         config = self.config_repo.get_tower_config(tower_type)
         max_floor = config.get("max_floor", 120)
 
-        # 点击自动闯塔时今日次数+1
-        state.today_count += 1
+        # 只有首次进入自动闯塔时才增加次数，继续挑战不增加
+        if not is_continue:
+            state.today_count += 1
         
         # 应用buff
         if use_buff:

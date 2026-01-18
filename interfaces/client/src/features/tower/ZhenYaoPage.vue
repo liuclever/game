@@ -46,8 +46,8 @@ const dynamicType = ref('all')  // 'all' = 全服动态, 'personal' = 个人动�
 // 动态列表（预留）
 const dynamics = ref([])
 
-// 加载层列表
-const loadFloors = async () => {
+// 加载镇妖信息
+const loadZhenyaoInfo = async () => {
   try {
     const zhenyaoRes = await http.get('/zhenyao/info')
     

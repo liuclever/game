@@ -122,6 +122,7 @@ def tower_auto_challenge():
     data = request.get_json() or {}
     tower_type = data.get("tower_type", "tongtian")
     use_buff = data.get("use_buff", True)
+    is_continue = data.get("is_continue", False)  # 是否是继续挑战
     
     player_beasts = get_team_player_beasts(user_id=user_id)
     
@@ -131,6 +132,7 @@ def tower_auto_challenge():
             tower_type=tower_type,
             player_beasts=player_beasts,
             use_buff=use_buff,
+            is_continue=is_continue,
         )
         return jsonify({
             "ok": True,

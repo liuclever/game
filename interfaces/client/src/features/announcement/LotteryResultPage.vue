@@ -1,10 +1,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-<<<<<<< HEAD
-=======
 import MainMenuLinks from '@/features/main/components/MainMenuLinks.vue'
->>>>>>> new/daily-book
 
 const router = useRouter()
 const route = useRoute()
@@ -58,12 +55,9 @@ const goHome = () => {
     </template>
     
     <div class="divider"></div>
-<<<<<<< HEAD
-=======
 
     <!-- 主页菜单（严格复刻主页内容与UI） -->
     <MainMenuLinks />
->>>>>>> new/daily-book
     
     <div class="section nav-links">
       <a class="link" @click="goBack">返回轮盘抽奖</a>
@@ -79,11 +73,7 @@ const goHome = () => {
   background: #ffffff;
   min-height: 100vh;
   padding: 12px 16px;
-<<<<<<< HEAD
-  font-size: 16px;
-=======
   font-size: 18px;
->>>>>>> new/daily-book
   line-height: 1.8;
   font-family: SimSun, "宋体", serif;
 }
@@ -93,11 +83,7 @@ const goHome = () => {
 }
 
 .title {
-<<<<<<< HEAD
-  font-size: 18px;
-=======
   font-size: 20px;
->>>>>>> new/daily-book
   font-weight: bold;
   color: #CC3300;
   margin-bottom: 12px;
