@@ -673,9 +673,6 @@ const handleLink = (name) => {
       <a class="link" @click="goLogin">点击登录</a>
     </div>
     <div class="section">
-      每日必做 <span class="red bold">12/14</span><a class="link" @click="handleLink('查看')">查看</a>
-    </div>
-    <div class="section">
       今日
       <template v-if="isLoggedIn">
         <span v-if="hasSignedToday" class="link readonly">已签到</span>

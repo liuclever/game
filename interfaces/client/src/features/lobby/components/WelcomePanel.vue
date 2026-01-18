@@ -79,10 +79,6 @@ onMounted(() => load())
       </template>
     </div>
     <div class="mt">
-      每日必做 <span class="strong">12/14</span> 项
-      <span class="link" @click="goToDailyTasks">查看</span>
-    </div>
-    <div class="mt">
       今日
       <template v-if="loading">加载中...</template>
       <template v-else-if="errorMsg"><span class="red">{{ errorMsg }}</span></template>
