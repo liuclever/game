@@ -97,6 +97,13 @@ const goBack = () => {
   router.push(`/beast/${beastId.value}`)
 }
 
+// 查看技能详情
+const viewSkill = (skillName) => {
+  // 从技能书名称中提取技能名称（去掉"书"字）
+  const cleanSkillName = skillName.replace(/书$/, '')
+  router.push(`/handbook/skill/${encodeURIComponent(cleanSkillName)}`)
+}
+
 // 返回首页
 const goHome = () => {
   router.push('/')
@@ -132,7 +139,7 @@ const pageTitle = computed(() => {
       </div>
       
       <div v-for="book in skillBooks" :key="book.id" class="section book-item">
-        技能书:<a class="link skill-name">{{ book.name }}</a>×{{ book.quantity }}
+        技能书:<a class="link skill-name" @click="viewSkill(book.name)">{{ book.name }}</a>×{{ book.quantity }}
         <a class="link use-btn" @click="useSkillBook(book)">使用</a>
       </div>
     </template>

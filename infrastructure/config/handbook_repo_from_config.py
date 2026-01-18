@@ -237,7 +237,18 @@ class ConfigHandbookRepo(IHandbookRepo):
         key = str(skill_key or "").strip()
         if not key:
             return None
-        return self._skills_by_key.get(key)
+        
+        # 首先尝试通过key查找
+        skill = self._skills_by_key.get(key)
+        if skill:
+            return skill
+        
+        # 如果通过key找不到，尝试通过名称查找
+        for skill_info in self._skills_by_key.values():
+            if skill_info.name == key:
+                return skill_info
+        
+        return None
 
     def get_doc_text(self) -> List[str]:
         self._ensure_latest()
