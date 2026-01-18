@@ -1,0 +1,69 @@
+修改闯塔次数限制和添加战报分页功能
+
+## 修改内容
+
+### 1. 修改闯塔次数限制 ⭐
+**统一规则**：
+- 所有玩家每日4次闯塔机会（移除VIP等级限制）
+- 第1次：免费
+- 第2-4次：每次花费200元宝重置
+- 第5次及以上：不允许
+
+**后端修改**：
+- _get_daily_limit_by_vip()：固定返回4次
+- _ensure_paid_reset_if_needed()：基于today_count判断是否付费
+- _ensure_can_challenge_today()：固定限制为4次
+- auto_challenge()：添加付费重置检查
+
+**前端修改**：
+- TowerPage.vue：添加次数提示（第1次免费/第X次需200元宝/今日已用完）
+
+### 2. 添加战报分页功能 ⭐
+**功能**：
+- 每页显示10个回合
+- 支持无限页数
+- 显示扣血数值（包含在回合描述中）
+- 添加页码跳转功能
+
+**前端修改**：
+- BattleReportPage.vue：添加分页逻辑和UI
+- 分页控制：首页、上页、下页、末页
+- 页码跳转：输入页码直接跳转
+- 显示统计：第X/Y页（共Z回合）
+
+## 修改的文件
+
+### 后端
+- application/services/tower_service.py - 修改次数限制和付费重置逻辑
+
+### 前端
+- interfaces/client/src/features/tower/TowerPage.vue - 添加次数提示
+- interfaces/client/src/features/tower/BattleReportPage.vue - 添加分页功能
+
+### 文档
+- 闯塔次数限制修改说明.md - 详细说明
+- 战报分页功能说明.md - 详细说明
+
+## 技术细节
+
+### 闯塔次数规则
+```
+today_count = 0: 第1次，免费
+today_count = 1: 第2次，扣200元宝
+today_count = 2: 第3次，扣200元宝
+today_count = 3: 第4次，扣200元宝
+today_count >= 4: 不允许
+```
+
+### 战报分页
+```
+每页10个回合
+总页数 = ceil(总回合数 / 10)
+当前页回合 = rounds.slice((page-1)*10, page*10)
+```
+
+## 测试建议
+1. 测试闯塔次数限制（第1次免费，第2-4次付费）
+2. 测试元宝不足时的提示
+3. 测试战报分页功能（翻页、跳转）
+4. 测试长战斗的分页显示

@@ -244,6 +244,9 @@ const handleLink = (name) => {
     </div>
     <div class="section">
       今日闯塔:{{ towerInfo.todayCount }}/{{ towerInfo.dailyLimit }}
+      <span class="gray" v-if="towerInfo.todayCount === 0">(第1次免费)</span>
+      <span class="gray" v-else-if="towerInfo.todayCount < towerInfo.dailyLimit">(第{{ towerInfo.todayCount + 1 }}次需200元宝)</span>
+      <span class="red" v-else>(今日已用完)</span>
     </div>
     <div class="section">
       最高纪录:{{ Math.min(towerInfo.maxFloorRecord, towerInfo.maxFloor) }}层

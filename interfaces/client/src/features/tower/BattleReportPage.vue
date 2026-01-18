@@ -34,6 +34,11 @@ const beastsUsed = ref([])
 // 战斗回合记录
 const rounds = ref([])
 
+// 分页相关
+const currentPage = ref(1)
+const pageSize = 10  // 每页显示10个回合
+const jumpPage = ref(1)
+
 // 塔层名称
 const towerName = computed(() => {
   return `${towerNameDisplay.value}${floor.value}层`
@@ -69,6 +74,46 @@ const winnerRemainingHp = computed(() => {
     return lastRound.attacker_hp || 0
   }
 })
+
+// 分页后的回合数据
+const pagedRounds = computed(() => {
+  const start = (currentPage.value - 1) * pageSize
+  const end = start + pageSize
+  return rounds.value.slice(start, end)
+})
+
+// 总页数
+const totalPages = computed(() => {
+  return Math.max(1, Math.ceil(rounds.value.length / pageSize))
+})
+
+// 翻页函数
+const nextPage = () => {
+  if (currentPage.value < totalPages.value) {
+    currentPage.value++
+  }
+}
+
+const prevPage = () => {
+  if (currentPage.value > 1) {
+    currentPage.value--
+  }
+}
+
+const firstPage = () => {
+  currentPage.value = 1
+}
+
+const lastPage = () => {
+  currentPage.value = totalPages.value
+}
+
+const goToPage = () => {
+  const page = parseInt(jumpPage.value)
+  if (page >= 1 && page <= totalPages.value) {
+    currentPage.value = page
+  }
+}
 
 // 加载战斗数据
 onMounted(async () => {
@@ -129,9 +174,27 @@ const goHome = () => {
     <!-- 轮次 -->
     <div class="section">第1轮</div>
 
-    <!-- 回合记录 -->
-    <div v-for="r in rounds" :key="r.round" class="section">
+    <!-- 回合记录（分页显示） -->
+    <div v-for="r in pagedRounds" :key="r.round" class="section">
       [回合{{ r.round }}]: {{ r.action }}
+    </div>
+
+    <!-- 分页控制 -->
+    <div class="section pagination" v-if="totalPages > 1">
+      <a class="link" @click="firstPage">首页</a> | 
+      <a class="link" @click="prevPage">上页</a> | 
+      <a class="link" @click="nextPage">下页</a> | 
+      <a class="link" @click="lastPage">末页</a>
+    </div>
+    <div class="section pagination" v-if="totalPages > 1">
+      第{{ currentPage }}/{{ totalPages }}页 (共{{ rounds.length }}回合)
+      <input 
+        type="text" 
+        v-model="jumpPage" 
+        class="page-input"
+        placeholder="页码"
+      />
+      <button class="page-btn" @click="goToPage">跳转</button>
     </div>
 
     <!-- 战斗结果 -->
@@ -178,6 +241,33 @@ const goHome = () => {
 
 .spacer {
   margin-top: 16px;
+}
+
+.pagination {
+  margin: 8px 0;
+  padding: 4px 0;
+  border-top: 1px dashed #CCCCCC;
+  border-bottom: 1px dashed #CCCCCC;
+}
+
+.page-input {
+  width: 50px;
+  font-size: 13px;
+  border: 1px solid #CCCCCC;
+  padding: 2px 4px;
+  margin: 0 4px;
+}
+
+.page-btn {
+  font-size: 13px;
+  padding: 2px 8px;
+  background: #F0F0F0;
+  border: 1px solid #CCCCCC;
+  cursor: pointer;
+}
+
+.page-btn:hover {
+  background: #E0E0E0;
 }
 
 .link {
