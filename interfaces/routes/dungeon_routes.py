@@ -452,6 +452,9 @@ def get_progress():
 
     dungeon_name = request.args.get('dungeon_name', '镇妖塔')
     
+    # 每日重置上限：5次
+    DAILY_RESET_LIMIT = 5
+    
     sql = """
         SELECT current_floor, total_floors, floor_cleared, floor_event_type, resets_today, last_reset_date, loot_claimed
         FROM player_dungeon_progress 
@@ -481,15 +484,6 @@ def get_progress():
         player = services.player_repo.get_by_id(user_id)
         dice_count = player.dice if player else 0
         
-        # 获取VIP重置上限
-        vip_limit = 0
-        if player:
-            vip_privileges = load_vip_privileges()
-            for lv in vip_privileges.get('vip_levels', []):
-                if lv['level'] == player.vip_level:
-                    vip_limit = lv['privileges'].get('dungeon_reset_limit', 0)
-                    break
-        
         return jsonify({
             "ok": True,
             "current_floor": row['current_floor'],
@@ -499,21 +493,12 @@ def get_progress():
             "dice": dice_count,
             "energy": f"{player.energy}/{player.max_energy}",
             "resets_today": resets_today,
-            "vip_limit": vip_limit,
+            "reset_limit": DAILY_RESET_LIMIT,
             "loot_claimed": loot_claimed
         })
     else:
         player = services.player_repo.get_by_id(user_id)
         dice_count = player.dice if player else 0
-        
-        # 获取VIP重置上限
-        vip_limit = 0
-        if player:
-            vip_privileges = load_vip_privileges()
-            for lv in vip_privileges.get('vip_levels', []):
-                if lv['level'] == player.vip_level:
-                    vip_limit = lv['privileges'].get('dungeon_reset_limit', 0)
-                    break
         
         return jsonify({
             "ok": True,
@@ -523,7 +508,7 @@ def get_progress():
             "floor_event_type": "beast",
             "dice": dice_count,
             "resets_today": 0,
-            "vip_limit": vip_limit,
+            "reset_limit": DAILY_RESET_LIMIT,
             "loot_claimed": True
         })
 
@@ -551,13 +536,9 @@ def reset_dungeon():
     if not player:
         return jsonify({"ok": False, "error": "玩家不存在"}), 404
     
-    # 获取VIP重置上限
-    vip_privileges = load_vip_privileges()
-    vip_limit = 0
-    for lv in vip_privileges.get('vip_levels', []):
-        if lv['level'] == player.vip_level:
-            vip_limit = lv['privileges'].get('dungeon_reset_limit', 0)
-            break
+    # 每日重置上限：5次
+    DAILY_RESET_LIMIT = 5
+    RESET_COST = 200  # 元宝
             
     # 检查当前重置次数
     sql = "SELECT resets_today, last_reset_date FROM player_dungeon_progress WHERE user_id = %s AND dungeon_name = %s"
@@ -567,18 +548,19 @@ def reset_dungeon():
     if results:
         resets_today = results[0].get('resets_today', 0)
         last_reset_date = results[0].get('last_reset_date')
+        # 如果是新的一天，重置计数
         if last_reset_date and str(last_reset_date) != str(date.today()):
             resets_today = 0
             
-    if resets_today >= vip_limit:
-        return jsonify({"ok": False, "error": f"今日重置次数已达上限({vip_limit})，提升VIP等级可增加次数"}), 400
+    if resets_today >= DAILY_RESET_LIMIT:
+        return jsonify({"ok": False, "error": f"今日重置次数已达上限({DAILY_RESET_LIMIT}次)"}), 400
         
     # 检查元宝
-    if player.yuanbao < 200:
-        return jsonify({"ok": False, "error": "元宝不足，重置副本需要200元宝"}), 400
+    if player.yuanbao < RESET_COST:
+        return jsonify({"ok": False, "error": f"元宝不足，重置副本需要{RESET_COST}元宝"}), 400
         
     # 扣除元宝
-    player.yuanbao -= 200
+    player.yuanbao -= RESET_COST
     services.player_repo.save(player)
     
     # 重置进度
@@ -597,7 +579,7 @@ def reset_dungeon():
     
     return jsonify({
         "ok": True,
-        "message": "重置成功！已从第一层开始挑战",
+        "message": f"重置成功！消耗{RESET_COST}元宝，已从第一层开始挑战",
         "current_floor": 1,
         "resets_today": resets_today + 1,
         "yuanbao": player.yuanbao
@@ -1374,14 +1356,13 @@ def event_climb():
     
     services.player_repo.save(player)
     
-    if success:
-        # 成功后标记本层已通关
-        execute_update("""
-            UPDATE player_dungeon_progress 
-            SET floor_cleared = TRUE, updated_at = CURRENT_TIMESTAMP
-            WHERE user_id = %s AND dungeon_name = %s
-        """, (user_id, dungeon_name))
-        
+    # 无论成功失败，都标记本层已通关，允许玩家继续前进
+    execute_update("""
+        UPDATE player_dungeon_progress 
+        SET floor_cleared = TRUE, updated_at = CURRENT_TIMESTAMP
+        WHERE user_id = %s AND dungeon_name = %s
+    """, (user_id, dungeon_name))
+    
     return jsonify({
         "ok": True,
         "success": success,
@@ -1416,14 +1397,13 @@ def event_vitality_spring():
     
     services.player_repo.save(player)
     
-    if success:
-        # 成功后标记本层已通关
-        execute_update("""
-            UPDATE player_dungeon_progress 
-            SET floor_cleared = TRUE, updated_at = CURRENT_TIMESTAMP
-            WHERE user_id = %s AND dungeon_name = %s
-        """, (user_id, dungeon_name))
-        
+    # 无论成功失败，都标记本层已通关，允许玩家继续前进
+    execute_update("""
+        UPDATE player_dungeon_progress 
+        SET floor_cleared = TRUE, updated_at = CURRENT_TIMESTAMP
+        WHERE user_id = %s AND dungeon_name = %s
+    """, (user_id, dungeon_name))
+    
     return jsonify({
         "ok": True,
         "success": success,

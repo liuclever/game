@@ -16,7 +16,7 @@ const dungeonInfo = ref({
   map_path: '前进|迷踪|放弃操作',
   floor_status: ['怪', '怪', '精', '怪', 'boss'],
   resets_today: 0,
-  vip_limit: 0
+  reset_limit: 5
 })
 
 const handleReset = async () => {
@@ -108,7 +108,7 @@ const fetchDungeonProgress = async () => {
       dungeonInfo.value.dice = data.dice || 0
       dungeonInfo.value.energy = data.energy || ''
       dungeonInfo.value.resets_today = data.resets_today || 0
-      dungeonInfo.value.vip_limit = data.vip_limit || 0
+      dungeonInfo.value.reset_limit = data.reset_limit || 5
       
       const eventType = data.floor_event_type || 'beast'
       
@@ -634,6 +634,9 @@ onUnmounted(() => {
       活力:{{ dungeonInfo.energy }}
     </div>
 
+    <div class="section">
+      今日重置:{{ dungeonInfo.resets_today }}/{{ dungeonInfo.reset_limit }}次 <span class="gray">(每次200元宝)</span>
+    </div>
 
     <div class="section">
       本层:{{ dungeonInfo.current_event }}
