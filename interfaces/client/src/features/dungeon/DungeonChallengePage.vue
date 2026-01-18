@@ -246,8 +246,8 @@ const advanceDungeon = async (diceValue = null) => {
 }
 
 const goBack = () => {
-  // 使用 window.location 强制刷新，避免白屏问题
-  window.location.href = '/'
+  // 直接刷新页面到首页
+  window.location.href = window.location.origin + '/'
 }
 
 const goMap = () => {
