@@ -94,6 +94,23 @@ def get_info():
     if last_refresh:
         elapsed = (datetime.now() - last_refresh).total_seconds()
         refresh_seconds = max(0, 300 - int(elapsed))
+        
+        # 如果倒计时已到0（超过5分钟），自动更新刷新时间
+        if refresh_seconds == 0:
+            today = datetime.now().date()
+            execute_update(
+                "UPDATE arena_streak SET last_refresh_time = NOW() WHERE user_id = %s AND record_date = %s",
+                (user_id, today)
+            )
+            refresh_seconds = 300
+    else:
+        # 首次进入，设置刷新时间
+        today = datetime.now().date()
+        execute_update(
+            "UPDATE arena_streak SET last_refresh_time = NOW() WHERE user_id = %s AND record_date = %s",
+            (user_id, today)
+        )
+        refresh_seconds = 300
     
     # 获取当前连胜王
     today = datetime.now().date()
@@ -123,7 +140,8 @@ def get_info():
             "nickname": streak_king[0]['nickname'] if streak_king else "暂无",
             "streak": streak_king[0]['max_streak_today'] if streak_king else 0
         },
-        "claimed_rewards": record['claimed_rewards']
+        "claimed_rewards": record['claimed_rewards'],
+        "claimed_grand_prize": record.get('claimed_grand_prize', 0)
     })
 
 @arena_streak_bp.post('/refresh')
@@ -328,36 +346,198 @@ def claim_reward():
     if record['max_streak_today'] < streak_level:
         return jsonify({"ok": False, "error": f"需要达到{streak_level}连胜"})
     
-    # 奖励配置
+    # 七种结晶 (item_id: 1001-1007)
+    CRYSTAL_POOL = [1001, 1002, 1003, 1004, 1005, 1006, 1007]
+    
+    # 奖励配置（包含铜钱和道具）
     rewards_config = {
-        1: {"copper": 1000, "items": "双倍卡x1+结晶x1"},
-        2: {"copper": 5000, "items": "强力捕捉球x1+结晶x1"},
-        3: {"copper": 10000, "items": "化仙丹x1+结晶x1"},
-        4: {"copper": 50000, "items": "活力草x1+结晶x1"},
-        5: {"copper": 100000, "items": "活力草x2+小喇叭x2"},
-        6: {"copper": 150000, "items": "重生丹x2+神·逆鳞碎片x1"}
+        1: {
+            "copper": 1000,
+            "items": [
+                {"id": 6024, "name": "双倍卡", "quantity": 1},  # 双倍卡
+                {"id": "random_crystal", "name": "结晶", "quantity": 1}  # 随机结晶
+            ]
+        },
+        2: {
+            "copper": 5000,
+            "items": [
+                {"id": 4003, "name": "强力捕捉球", "quantity": 1},  # 强力捕捉球
+                {"id": "random_crystal", "name": "结晶", "quantity": 1}  # 随机结晶
+            ]
+        },
+        3: {
+            "copper": 10000,
+            "items": [
+                {"id": 6015, "name": "化仙丹", "quantity": 1},  # 化仙丹
+                {"id": "random_crystal", "name": "结晶", "quantity": 1}  # 随机结晶
+            ]
+        },
+        4: {
+            "copper": 50000,
+            "items": [
+                {"id": 4001, "name": "活力草", "quantity": 1},  # 活力草
+                {"id": "random_crystal", "name": "结晶", "quantity": 1}  # 随机结晶
+            ]
+        },
+        5: {
+            "copper": 100000,
+            "items": [
+                {"id": 4001, "name": "活力草", "quantity": 2},  # 活力草x2
+                {"id": 6012, "name": "小喇叭", "quantity": 2}  # 小喇叭x2
+            ]
+        },
+        6: {
+            "copper": 150000,
+            "items": [
+                {"id": 6017, "name": "重生丹", "quantity": 2},  # 重生丹x2
+                {"id": 3011, "name": "神·逆鳞碎片", "quantity": 1}  # 神·逆鳞碎片
+            ]
+        }
     }
     
     reward = rewards_config.get(streak_level)
     if not reward:
         return jsonify({"ok": False, "error": "无效的奖励等级"})
     
-    # 发放奖励
-    execute_update(
-        "UPDATE player SET gold = gold + %s WHERE user_id = %s",
-        (reward['copper'], user_id)
-    )
+    try:
+        from interfaces.web_api.bootstrap import services
+        
+        # 1. 发放铜钱
+        execute_update(
+            "UPDATE player SET gold = gold + %s WHERE user_id = %s",
+            (reward['copper'], user_id)
+        )
+        
+        # 2. 发放道具到背包
+        reward_items = []
+        for item_cfg in reward['items']:
+            item_id = item_cfg['id']
+            quantity = item_cfg['quantity']
+            
+            # 处理随机结晶
+            if item_id == "random_crystal":
+                item_id = random.choice(CRYSTAL_POOL)
+                # 获取结晶名称
+                from infrastructure.config.item_repo_from_config import ItemRepoFromConfig
+                item_repo = ItemRepoFromConfig()
+                crystal_item = item_repo.get_by_id(item_id)
+                item_name = crystal_item.name if crystal_item else f"结晶{item_id}"
+            else:
+                item_name = item_cfg['name']
+            
+            # 添加到背包
+            services.inventory_service.add_item(user_id, item_id, quantity)
+            reward_items.append(f"{item_name}×{quantity}")
+        
+        # 3. 记录已领取
+        claimed = record['claimed_rewards']
+        claimed.append(streak_level)
+        today = datetime.now().date()
+        execute_update(
+            "UPDATE arena_streak SET claimed_rewards = %s WHERE user_id = %s AND record_date = %s",
+            (json.dumps(claimed), user_id, today)
+        )
+        
+        # 构建奖励文本
+        items_text = "、".join(reward_items)
+        message = f"领取成功！获得铜钱×{reward['copper']}、{items_text}"
+        
+        return jsonify({
+            "ok": True,
+            "message": message
+        })
     
-    # 记录已领取
-    claimed = record['claimed_rewards']
-    claimed.append(streak_level)
+    except Exception as e:
+        import traceback
+        print(f"领取连胜奖励失败: {e}")
+        print(traceback.format_exc())
+        return jsonify({"ok": False, "error": f"领取失败：{str(e)}"})
+
+
+@arena_streak_bp.post('/claim-grand-prize')
+def claim_grand_prize():
+    """领取连胜大奖（每天只有全服连胜次数最多的玩家可以领取一次）
+    
+    奖励内容：
+    - 铜钱×600,000
+    - 追魂法宝×1 (item_id: 6019)
+    - 金袋×5 (item_id: 6005)
+    - 招财神符×1 (item_id: 6004)
+    """
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({"ok": False, "error": "请先登录"})
+    
+    # 获取今日记录
+    record = get_today_record(user_id)
+    
+    # 检查是否已领取
+    if record.get('claimed_grand_prize'):
+        return jsonify({"ok": False, "error": "今日已领取过连胜大奖"})
+    
+    # 获取今日全服连胜王
     today = datetime.now().date()
-    execute_update(
-        "UPDATE arena_streak SET claimed_rewards = %s WHERE user_id = %s AND record_date = %s",
-        (json.dumps(claimed), user_id, today)
+    streak_king = execute_query(
+        """SELECT user_id, max_streak_today 
+           FROM arena_streak 
+           WHERE record_date = %s 
+           ORDER BY max_streak_today DESC LIMIT 1""",
+        (today,)
     )
     
-    return jsonify({
-        "ok": True,
-        "message": f"领取成功！获得铜钱{reward['copper']}+{reward['items']}"
-    })
+    if not streak_king:
+        return jsonify({"ok": False, "error": "今日暂无连胜记录"})
+    
+    king_user_id = streak_king[0]['user_id']
+    king_streak = streak_king[0]['max_streak_today']
+    
+    # 检查是否是连胜王
+    if king_user_id != user_id:
+        return jsonify({"ok": False, "error": "只有全服连胜次数最多的玩家才能领取大奖"})
+    
+    # 检查连胜次数是否大于0
+    if king_streak <= 0:
+        return jsonify({"ok": False, "error": "连胜次数不足，无法领取大奖"})
+    
+    # 发放奖励
+    try:
+        from interfaces.web_api.bootstrap import services
+        
+        # 1. 发放铜钱
+        execute_update(
+            "UPDATE player SET gold = gold + 600000 WHERE user_id = %s",
+            (user_id,)
+        )
+        
+        # 2. 发放道具到背包
+        # 追魂法宝×1 (item_id: 6019)
+        services.inventory_service.add_item(user_id, 6019, 1)
+        
+        # 金袋×5 (item_id: 6005)
+        services.inventory_service.add_item(user_id, 6005, 5)
+        
+        # 招财神符×1 (item_id: 6004)
+        services.inventory_service.add_item(user_id, 6004, 1)
+        
+        # 3. 标记已领取
+        execute_update(
+            "UPDATE arena_streak SET claimed_grand_prize = 1 WHERE user_id = %s AND record_date = %s",
+            (user_id, today)
+        )
+        
+        return jsonify({
+            "ok": True,
+            "message": f"恭喜！领取连胜大奖成功！\n获得：铜钱×600,000、追魂法宝×1、金袋×5、招财神符×1",
+            "rewards": {
+                "铜钱": 600000,
+                "追魂法宝": 1,
+                "金袋": 5,
+                "招财神符": 1
+            }
+        })
+    
+    except Exception as e:
+        import traceback
+        print(f"领取连胜大奖失败: {e}")
+        print(traceback.format_exc())
+        return jsonify({"ok": False, "error": f"领取失败：{str(e)}"})
