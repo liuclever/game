@@ -377,8 +377,21 @@ def get_zhenyao_info():
     info = services.zhenyao_service.get_zhenyao_info(user_id=user_id)
     
     # 获取今日已用次数
-    from application.services.zhenyao_service import TRIAL_DAILY_LIMIT, HELL_DAILY_LIMIT
+    from application.services.zhenyao_service import TRIAL_DAILY_LIMIT, HELL_DAILY_LIMIT, ZHENYAO_FU_ITEM_ID
     trial_used, hell_used = services.zhenyao_service.daily_count_repo.get_today_count(user_id)
+    
+    # 获取背包中的实时镇妖符数量
+    zhenyao_fu_count = 0
+    try:
+        from infrastructure.db.connection import execute_query
+        inv_rows = execute_query(
+            "SELECT quantity FROM player_inventory WHERE user_id = %s AND item_id = %s",
+            (user_id, ZHENYAO_FU_ITEM_ID)
+        )
+        if inv_rows:
+            zhenyao_fu_count = inv_rows[0].get('quantity', 0)
+    except Exception:
+        zhenyao_fu_count = 0
     
     return jsonify({
         "ok": info.can_zhenyao,
@@ -393,6 +406,7 @@ def get_zhenyao_info():
         "hell_used": hell_used,
         "trial_limit": TRIAL_DAILY_LIMIT,
         "hell_limit": HELL_DAILY_LIMIT,
+        "zhenyao_fu_count": zhenyao_fu_count,  # 添加实时镇妖符数量
         "error": info.error_msg,
     })
 
