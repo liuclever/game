@@ -2,6 +2,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import http from '@/services/http'
+import MainMenuLinks from '@/features/main/components/MainMenuLinks.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -137,7 +138,7 @@ const unequipSpirit = async (elementKey) => {
 }
 
 const showIntro = () => {
-  alert('战灵简介：战灵可以提升幻兽的百分比属性加成，每只幻兽可装备6个元素位置的战灵（土、火、水、木、金、神）。战灵需要与幻兽种族匹配才能装备。')
+  alert('战灵简介：战灵可以提升幻兽的百分比属性加成，每只幻兽可装备6个元素位置的战灵（土、火、水、木、金、神）。')
 }
 
 const viewWarehouse = () => {
@@ -227,6 +228,8 @@ const goToSpiritDetail = (spiritId) => {
       <div class="section spacer">
         <a class="link" @click="goBack">返回前页</a>
       </div>
+      <!-- 底部菜单（同款） -->
+      <MainMenuLinks />
       <div class="section">
         <a class="link" @click="goHome">返回游戏首页</a>
       </div>
@@ -240,7 +243,7 @@ const goToSpiritDetail = (spiritId) => {
   background: #ffffff;
   min-height: 100vh;
   padding: 8px 12px;
-  font-size: 16px;
+  font-size: 17.6px; /* +10% */
   line-height: 1.6;
   font-family: SimSun, "宋体", serif;
 }
@@ -320,6 +323,6 @@ const goToSpiritDetail = (spiritId) => {
 }
 
 .small {
-  font-size: 17px;
+  font-size: 18.7px; /* +10% */
 }
 </style>
