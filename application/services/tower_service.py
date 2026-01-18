@@ -206,6 +206,13 @@ class TowerBattleService:
     
     def get_tower_info(self, user_id: int, tower_type: str = "tongtian") -> dict:
         """获取闯塔信息"""
+        # 战灵塔需要35级才能解锁
+        if tower_type == "zhanling":
+            player = self.player_repo.get_by_id(user_id)
+            player_level = int(getattr(player, "level", 0) or 0) if player else 0
+            if player_level < 35:
+                raise TowerError("战灵塔需要35级才能解锁")
+        
         state = self.state_repo.get_by_user_id(user_id, tower_type)
         state.reset_daily_if_needed()
         
@@ -560,6 +567,13 @@ class TowerBattleService:
         """
         手动挑战一层
         """
+        # 战灵塔需要35级才能解锁
+        if tower_type == "zhanling":
+            player = self.player_repo.get_by_id(user_id)
+            player_level = int(getattr(player, "level", 0) or 0) if player else 0
+            if player_level < 35:
+                raise TowerError("战灵塔需要35级才能解锁")
+        
         state = self.state_repo.get_by_user_id(user_id, tower_type)
         state.reset_daily_if_needed()
 
@@ -624,6 +638,13 @@ class TowerBattleService:
         """
         自动闯塔 - 一次性计算所有层
         """
+        # 战灵塔需要35级才能解锁
+        if tower_type == "zhanling":
+            player = self.player_repo.get_by_id(user_id)
+            player_level = int(getattr(player, "level", 0) or 0) if player else 0
+            if player_level < 35:
+                raise TowerError("战灵塔需要35级才能解锁")
+        
         state = self.state_repo.get_by_user_id(user_id, tower_type)
         state.reset_daily_if_needed()
 
