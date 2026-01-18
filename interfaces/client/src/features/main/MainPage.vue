@@ -829,6 +829,12 @@ const handleLink = (name) => {
     <div class="section title">【聊天区】</div>
     <ChatPanel />
 
+    <!-- 皇城：召唤之王挑战赛 -->
+    <div class="section title">【皇城】</div>
+    <div class="section indent">
+      <a class="link" @click="handleLink('召唤之王挑战赛')">召唤之王挑战赛</a>
+    </div>
+
     <!-- 导航菜单 -->
     <div class="section">
       <a class="link" @click="goBeast">幻兽</a>. <a class="link" @click="goInventory">背包</a>. <a class="link" @click="handleLink('商城')">商城</a>. <a class="link" @click="handleLink('赞助')">赞助</a>. <a class="link" @click="handleLink('礼包')">礼包</a>
