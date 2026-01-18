@@ -189,75 +189,24 @@ def _pick_attack_and_defense(attacker: PvpBeast, defender: PvpBeast) -> tuple[in
     return diff, df, atk_type
 
 
-def _defense_multiplier(defense_value: int) -> float:
-    """根据防御档位返回相关倍数（攻减防 >= 0 的情况）。"""
-
-    if defense_value < 0:
-        defense_value = 0
-
-    if defense_value < 1000:
-        return 3.8
-    if defense_value < 2000:
-        return 2.0
-    if defense_value < 3000:
-        return 1.6
-    if defense_value < 4000:
-        return 1.3
-    if defense_value < 5000:
-        return 1.1
-    return 1.0
-
-
-def _is_low_rank_level(player_level: int) -> bool:
-    """黄阶(20-29) 或 玄阶(30-39) 视为低阶，用于负数伤害再额外 *0.3。"""
-
-    return 20 <= player_level <= 39
-
-
 def calc_damage(attacker: PvpBeast, defender: PvpBeast, attacker_player_level: int) -> int:
-    """按照需求文档计算一次攻击的扣血量。
+    """按照新需求计算一次攻击的扣血量。
 
-    - 正常情况（攻减防 >= 0）:
-        damage = (攻减防) * rand(0.069, 0.071) * 防御档位倍数
-    - 当攻减防 < 0 时：
-        完全采用区间伤害 250~300 或 20~40 乘以系数，不再乘防御档位倍数。
-        若攻击方玩家等级在 [20, 39]，再整体 *0.3。
-
-    最终伤害向下取整，至少为 1。
+    ①第一种情况（己方物攻/法攻-对方物防/法防≥0）：
+      对方扣血数值＝（己方攻击数值-对方防御数值）×0.069（四舍五入）
+    ②第二种情况（相减为＜0）：
+      对方固定扣血5点
     """
 
     diff, defense_value, _ = _pick_attack_and_defense(attacker, defender)
 
-    # 攻 - 防 >= 0 的情况
     if diff >= 0:
-        rand_factor = random.uniform(0.069, 0.071)  # 浮点数随机
-        mul = _defense_multiplier(defense_value)
-        raw = diff * rand_factor * mul
-        dmg = int(raw)
+        # 情况①：(攻-防) × 0.069，四舍五入
+        dmg = round(diff * 0.069)
+        return max(1, dmg)
     else:
-        # 攻 - 防 < 0 的特殊规则
-        # diff 为负数，按其绝对值决定区间
-        d = abs(diff)
-        base: float
-
-        if d <= 1000:
-            base = random.randint(250, 300)
-        elif d <= 2000:
-            base = random.randint(250, 300) * 0.7
-        elif d <= 3000:
-            base = random.randint(250, 300) * 0.5
-        elif d <= 4000:
-            base = random.randint(250, 300) * 0.3
-        else:
-            base = random.randint(20, 40)
-
-        # 低阶玩家（黄阶/玄阶）再 *0.3
-        if _is_low_rank_level(attacker_player_level):
-            base *= 0.3
-
-        dmg = int(base)
-
-    return max(1, dmg)
+        # 情况②：固定扣血5点
+        return 5
 
 
 # ============================================================

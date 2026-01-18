@@ -82,14 +82,27 @@ class DamageCalculator(ABC):
 
 
 class SimpleDamageCalculator(DamageCalculator):
-    """简单伤害计算：攻击 - 防御"""
+    """简单伤害计算：新扣血公式
+    
+    ①第一种情况（己方物攻/法攻-对方物防/法防≥0）：
+      对方扣血数值＝（己方攻击数值-对方防御数值）×0.069（四舍五入）
+    ②第二种情况（相减为＜0）：
+      对方固定扣血5点
+    """
     
     def calculate(self, attacker: BeastStats, defender: BeastStats) -> int:
         if attacker.is_magic_type():
-            damage = attacker.magic_attack - defender.magic_defense
+            diff = attacker.magic_attack - defender.magic_defense
         else:
-            damage = attacker.physical_attack - defender.physical_defense
-        return max(1, int(damage))
+            diff = attacker.physical_attack - defender.physical_defense
+        
+        if diff >= 0:
+            # 情况①：(攻-防) × 0.069，四舍五入
+            damage = round(diff * 0.069)
+            return max(1, damage)
+        else:
+            # 情况②：固定扣血5点
+            return 5
 
 
 class RandomDamageCalculator(DamageCalculator):
