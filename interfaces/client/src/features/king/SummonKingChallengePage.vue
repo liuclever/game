@@ -23,6 +23,8 @@ const challenging = ref(false)
 const error = ref('')
 const isRegistered = ref(false)
 const cooldownRemaining = ref(0)
+const summonKingName = ref(null)
+const summonKingId = ref(null)
 
 // 可挑战的玩家列表
 const challengers = ref([])
@@ -71,6 +73,8 @@ const loadKingInfo = async () => {
       challengers.value = res.data.challengers || []
       isRegistered.value = res.data.isRegistered || false
       cooldownRemaining.value = res.data.cooldownRemaining || 0
+      summonKingName.value = res.data.summonKingName || null
+      summonKingId.value = res.data.summonKingId || null
       
       if (cooldownRemaining.value > 0) {
         startCooldownTimer()
@@ -273,7 +277,11 @@ onUnmounted(() => {
 
     <div class="section title">【召唤之王挑战赛】 <a class="link" @click="goIntro">简介</a></div>
 
-    <div class="section">召唤之王：<span class="blue">低调</span></div>
+    <div class="section">
+      召唤之王：
+      <a v-if="summonKingName" class="link blue" @click="viewPlayer(summonKingId)">{{ summonKingName }}</a>
+      <span v-else class="gray">虚位以待</span>
+    </div>
 
     <!-- 报名按钮（仅星期一显示） -->
     <div class="section" v-if="isMonday() && !isRegistered">

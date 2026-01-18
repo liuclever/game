@@ -196,6 +196,18 @@ def battle():
         if not attacker or not defender:
             return jsonify({"ok": False, "error": "玩家不存在"})
         
+        # 检查活力消耗
+        # 规则：未达成6连胜之前消耗100活力，达成6连胜之后消耗15活力
+        max_streak = record.get('max_streak_today', 0)
+        energy_cost = 15 if max_streak >= 6 else 100
+        
+        current_energy = getattr(attacker, 'energy', 0) or 0
+        if current_energy < energy_cost:
+            return jsonify({
+                "ok": False, 
+                "error": f"活力不足，需要{energy_cost}点活力（当前{current_energy}点）"
+            })
+        
         # 获取双方幻兽队伍
         attacker_beasts = services.player_beast_repo.get_team_beasts(user_id)
         defender_beasts = services.player_beast_repo.get_team_beasts(opponent_id)
@@ -204,6 +216,10 @@ def battle():
             return jsonify({"ok": False, "error": "你没有出战幻兽"})
         if not defender_beasts:
             return jsonify({"ok": False, "error": "对方没有出战幻兽"})
+        
+        # 扣除活力
+        attacker.energy = current_energy - energy_cost
+        services.player_repo.save(attacker)
         
         # 转换为PVP战斗快照
         attacker_pvp_beasts = services.beast_pvp_service.to_pvp_beasts(attacker_beasts)
@@ -248,7 +264,7 @@ def battle():
             )
             
             battle_data['current_streak'] = new_streak
-            battle_data['message'] = f"胜利！当前连胜{new_streak}次"
+            battle_data['message'] = f"胜利！当前连胜{new_streak}次（消耗活力{energy_cost}点）"
             
             return jsonify({
                 "ok": True,
@@ -266,13 +282,18 @@ def battle():
             )
             
             battle_data['current_streak'] = 0
-            battle_data['message'] = "失败！连胜归零"
+            battle_data['message'] = f"失败！连胜归零（消耗活力{energy_cost}点）"
             
             return jsonify({
                 "ok": True,
                 "victory": False,
                 "battle": battle_data
             })
+    
+    except Exception as e:
+        # 记录错误日志
+        import traceback
+        print(f"连胜竞技场战斗错误: {e}")
     
     except Exception as e:
         # 记录错误日志
@@ -390,7 +411,7 @@ def claim_reward():
             "copper": 150000,
             "items": [
                 {"id": 6017, "name": "重生丹", "quantity": 2},  # 重生丹x2
-                {"id": 3011, "name": "神·逆鳞碎片", "quantity": 1}  # 神·逆鳞碎片
+                {"id": 3011, "name": "神·逆鳞碎片", "quantity": 5}  # 神·逆鳞碎片x5
             ]
         }
     }

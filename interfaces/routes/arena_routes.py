@@ -598,12 +598,42 @@ def get_arena_dynamics():
     user_id = get_current_user_id()
     dynamic_type = request.args.get("type", "arena")  # arena | personal
     arena_type = request.args.get("arena_type", None)
-    limit = int(request.args.get("limit", 20))
-
+    page = int(request.args.get("page", 1))  # 当前页码，默认第1页
+    page_size = 10  # 每页10条
+    max_pages = 5  # 最多5页
+    max_records = max_pages * page_size  # 最多50条记录
+    
+    # 限制页码范围
+    if page < 1:
+        page = 1
+    if page > max_pages:
+        return jsonify({"ok": True, "dynamics": [], "page": page, "totalPages": 0, "hasMore": False})
+    
+    # 先查询总记录数（限制在50条内）
     if dynamic_type == "personal" and user_id:
-        logs = ARENA_BATTLE_REPO.get_user_battles(user_id, limit)
+        total_logs = ARENA_BATTLE_REPO.get_user_battles(user_id, limit=max_records, offset=0)
     else:
-        logs = ARENA_BATTLE_REPO.get_recent_battles(arena_type=arena_type, limit=limit)
+        total_logs = ARENA_BATTLE_REPO.get_recent_battles(arena_type=arena_type, limit=max_records, offset=0)
+    
+    total_count = len(total_logs)
+    
+    # 计算实际总页数
+    if total_count == 0:
+        total_pages = 0
+    else:
+        total_pages = min((total_count + page_size - 1) // page_size, max_pages)
+    
+    # 如果请求的页码超过实际页数，返回空
+    if page > total_pages:
+        return jsonify({"ok": True, "dynamics": [], "page": page, "totalPages": total_pages, "hasMore": False})
+    
+    # 计算当前页的数据范围
+    start_idx = (page - 1) * page_size
+    end_idx = start_idx + page_size
+    logs = total_logs[start_idx:end_idx]
+    
+    # 判断是否有下一页
+    has_more = page < total_pages
 
     dynamics = []
     for log in logs:
@@ -640,4 +670,12 @@ def get_arena_dynamics():
             "hasDetail": True,
         })
 
-    return jsonify({"ok": True, "dynamics": dynamics})
+    return jsonify({
+        "ok": True, 
+        "dynamics": dynamics, 
+        "page": page, 
+        "pageSize": page_size,
+        "totalPages": total_pages,
+        "totalCount": total_count,
+        "hasMore": has_more
+    })

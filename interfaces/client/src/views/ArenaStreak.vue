@@ -19,6 +19,11 @@
         当前连胜: {{ currentStreak }}次. 今日最高: {{ maxStreakToday }}次
       </div>
 
+      <!-- 活力消耗提示 -->
+      <div class="section">
+        战斗消耗活力: {{ energyCost }}点（{{ maxStreakToday >= 6 ? '已达成6连胜' : '未达成6连胜' }}）
+      </div>
+
       <!-- 对手列表 -->
       <div class="section">
         <div class="section indent">
@@ -125,6 +130,10 @@ export default {
     isStreakKing() {
       // 检查当前用户是否是连胜王
       return this.streakKing.user_id && this.streakKing.user_id === this.$root.userId;
+    },
+    energyCost() {
+      // 计算活力消耗：未达成6连胜之前消耗100活力，达成6连胜之后消耗15活力
+      return this.maxStreakToday >= 6 ? 15 : 100;
     }
   },
   mounted() {
@@ -359,7 +368,7 @@ export default {
         3: '铜钱1万+化仙丹1+随机结晶1',
         4: '铜钱5万+活力草1+随机结晶1',
         5: '铜钱10万+活力草2+小喇叭2',
-        6: '铜钱15万+重生丹2+神·逆鳞碎片1'
+        6: '铜钱15万+重生丹2+神·逆鳞碎片5'
       };
       return rewards[level] || '';
     },

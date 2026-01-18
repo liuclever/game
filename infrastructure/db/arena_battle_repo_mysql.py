@@ -118,7 +118,7 @@ class MySQLArenaBattleRepo:
             return None
         return self._row_to_log(rows[0])
 
-    def get_recent_battles(self, arena_type: Optional[str] = None, limit: int = 20) -> List[ArenaBattleLog]:
+    def get_recent_battles(self, arena_type: Optional[str] = None, limit: int = 20, offset: int = 0) -> List[ArenaBattleLog]:
         """获取最近的战报列表（全服动态）。"""
         if arena_type:
             sql = """
@@ -129,9 +129,9 @@ class MySQLArenaBattleRepo:
                 FROM arena_battle_log
                 WHERE arena_type = %s
                 ORDER BY created_at DESC
-                LIMIT %s
+                LIMIT %s OFFSET %s
             """
-            rows = execute_query(sql, (arena_type, limit))
+            rows = execute_query(sql, (arena_type, limit, offset))
         else:
             sql = """
                 SELECT id, arena_type, rank_name,
@@ -140,13 +140,13 @@ class MySQLArenaBattleRepo:
                        is_challenger_win, battle_data, created_at
                 FROM arena_battle_log
                 ORDER BY created_at DESC
-                LIMIT %s
+                LIMIT %s OFFSET %s
             """
-            rows = execute_query(sql, (limit,))
+            rows = execute_query(sql, (limit, offset))
 
         return [self._row_to_log(row) for row in rows]
 
-    def get_user_battles(self, user_id: int, limit: int = 20) -> List[ArenaBattleLog]:
+    def get_user_battles(self, user_id: int, limit: int = 20, offset: int = 0) -> List[ArenaBattleLog]:
         """获取与某玩家相关的战报（个人动态）。"""
         sql = """
             SELECT id, arena_type, rank_name,
@@ -156,7 +156,7 @@ class MySQLArenaBattleRepo:
             FROM arena_battle_log
             WHERE challenger_id = %s OR champion_id = %s
             ORDER BY created_at DESC
-            LIMIT %s
+            LIMIT %s OFFSET %s
         """
-        rows = execute_query(sql, (user_id, user_id, limit))
+        rows = execute_query(sql, (user_id, user_id, limit, offset))
         return [self._row_to_log(row) for row in rows]
