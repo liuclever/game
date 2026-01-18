@@ -383,7 +383,7 @@ const goHome = () => {
     </div>
     <div class="section">
       <a class="link" @click="handleLink('兑换')">兑换</a>. 
-      <span class="link readonly">签到</span>. 
+      <a class="link" @click="router.push('/signin')">签到</a>. 
       <span class="link readonly">论坛</span>. 
       <a class="link" @click="handleLink('VIP')">VIP</a>. 
       <span class="link readonly">安全锁</span>

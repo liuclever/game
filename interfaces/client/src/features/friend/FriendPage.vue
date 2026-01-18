@@ -296,7 +296,7 @@ watch(
 
     <!-- 导航菜单（与截图一致的几行） -->
     <div class="section nav">
-      皇城:<span class="link readonly">召唤之王挑战赛</span>
+      皇城:<a class="link" @click="handleLink('召唤之王挑战赛')">召唤之王挑战赛</a>
     </div>
     <div class="section nav">
       <a class="link" @click="handleLink('幻兽')">幻兽</a>. <a class="link" @click="handleLink('背包')">背包</a>.
@@ -307,7 +307,7 @@ watch(
       <a class="link" @click="handleLink('地图')">地图</a>. <span class="link readonly">天赋</span>. <a class="link" @click="handleLink('化仙')">化仙</a>
     </div>
     <div class="section nav">
-      <span class="link readonly">切磋</span>. <a class="link" @click="handleLink('闯塔')">闯塔</a>.
+      <a class="link" @click="router.push('/spar/report')">切磋</a>. <a class="link" @click="handleLink('闯塔')">闯塔</a>.
       <a class="link" @click="handleLink('战场')">战场</a>. <a class="link" @click="handleLink('擂台')">擂台</a>. <span class="link readonly">坐骑</span>
     </div>
     <div class="section nav">
@@ -315,7 +315,7 @@ watch(
       <span class="link readonly">成就</span>. <a class="link" @click="handleLink('图鉴')">图鉴</a>. <span class="link readonly">攻略</span>
     </div>
     <div class="section nav">
-      <a class="link" @click="handleLink('兑换')">兑换</a>. <span class="link readonly">签到</span>.
+      <a class="link" @click="handleLink('兑换')">兑换</a>. <a class="link" @click="router.push('/signin')">签到</a>.
       <span class="link readonly">论坛</span>. <a class="link" @click="handleLink('VIP')">VIP</a>. <span class="link readonly">安全锁</span>
     </div>
 

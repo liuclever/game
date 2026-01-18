@@ -3,7 +3,7 @@
     <div class="inner">
       <div class="line">
         皇域：<span class="link">皇家召唤协会</span>　
-        皇城：<span class="link readonly">召唤之王挑战赛</span>
+        皇城：<a class="link" @click="$router.push('/king')">召唤之王挑战赛</a>
       </div>
       <div class="line">
         幻兽岛、背包、商城、赞助、礼包

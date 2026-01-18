@@ -286,7 +286,7 @@ const handleLink = (name) => {
 
     <!-- 皇城 -->
     <div class="section spacer">
-      皇城:<span class="link readonly">召唤之王挑战赛</span>
+      皇城:<a class="link" @click="handleLink('召唤之王挑战赛')">召唤之王挑战赛</a>
     </div>
 
     <!-- 导航菜单 -->
@@ -305,7 +305,7 @@ const handleLink = (name) => {
       <a class="link" @click="handleLink('化仙')">化仙</a>
     </div>
     <div class="section">
-      <span class="link readonly">切磋</span>. 
+      <a class="link" @click="router.push('/spar/report')">切磋</a>. 
       <a class="link active">闯塔</a>. 
       <a class="link" @click="handleLink('战场')">战场</a>. 
       <a class="link" @click="handleLink('擂台')">擂台</a>. 
@@ -320,7 +320,7 @@ const handleLink = (name) => {
     </div>
     <div class="section">
       <a class="link" @click="handleLink('兑换')">兑换</a>. 
-      <span class="link readonly">签到</span>. 
+      <a class="link" @click="router.push('/signin')">签到</a>. 
       <span class="link readonly">论坛</span>. 
       <a class="link" @click="handleLink('VIP')">VIP</a>. 
       <span class="link readonly">安全锁</span>

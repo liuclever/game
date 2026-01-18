@@ -100,7 +100,7 @@
     </div>
 
     <div class="section">
-      <span class="link readonly">古树</span>. 
+      <a class="link" @click="router.push('/tree')">古树</a>. 
       <a class="link" @click="router.push('/ranking')">排行</a>. 
       <span class="link readonly">成就</span>. 
       <a class="link" @click="router.push('/handbook')">图鉴</a>. 

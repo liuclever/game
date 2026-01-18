@@ -159,7 +159,7 @@ onUnmounted(() => {
       <template v-else>
         <a class="link orange" @click="viewPlayer(opp.name)">{{ opp.name }}</a>
       </template>
-      ({{ opp.level }}级). <span class="link readonly">切磋</span>
+      ({{ opp.level }}级). <a class="link" @click="challenge(opp)">切磋</a>
     </div>
 
     <!-- 刷新 -->
