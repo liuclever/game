@@ -318,7 +318,7 @@ onActivated(() => {
       <div class="section info">
         <div>成员:{{ allianceData.member_count }}/{{ allianceData.member_capacity || 10 }}</div>
         <div>职位: {{ roleLabel(allianceData.member_info.role) }}</div>
-        <div>贡献: {{ allianceData.member_info.contribution }}/57</div>
+        <div>贡献: {{ allianceData.member_info.contribution }}/{{ allianceData.member_info.total_contribution ?? allianceData.member_info.contribution }}</div>
       </div>
 
       <div class="section notice" @click="goToNotice">

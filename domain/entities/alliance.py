@@ -23,6 +23,7 @@ class AllianceMember:
     user_id: int
     role: int = 0  # 1: 盟主, 0: 成员
     contribution: int = 0
+    total_contribution: int = 0  # 历史总贡献点（累计）
     army_type: int = 0  # 0: 未报名, 1: 飞龙军, 2: 伏虎军
     joined_at: Optional[datetime] = None
     nickname: Optional[str] = None

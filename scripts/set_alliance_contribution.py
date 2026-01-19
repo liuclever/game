@@ -50,9 +50,15 @@ def set_alliance_contribution(alliance_name="测试联盟", contribution=57):
         current_contribution = member.get('contribution', 0) or 0
         nickname = member.get('nickname') or f"玩家{user_id}"
         
-        # 直接设置为目标贡献值
-        sql = "UPDATE alliance_members SET contribution = %s WHERE user_id = %s AND alliance_id = %s"
-        execute_update(sql, (contribution, user_id, alliance_id))
+        # 更新贡献点，但不修改历史总贡献点（保护历史总贡献点）
+        # 如果新的贡献点大于历史总贡献点，则同时更新历史总贡献点
+        sql = """
+            UPDATE alliance_members 
+            SET contribution = %s,
+                total_contribution = GREATEST(COALESCE(total_contribution, 0), %s)
+            WHERE user_id = %s AND alliance_id = %s
+        """
+        execute_update(sql, (contribution, contribution, user_id, alliance_id))
         
         print(f"  用户 {nickname} (ID: {user_id}): {current_contribution} -> {contribution}")
         updated_count += 1

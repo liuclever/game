@@ -82,7 +82,8 @@ def get_my_alliance():
             },
             "member_info": {
                 "role": member_info.role,
-                "contribution": member_info.contribution,
+                "contribution": member_info.contribution or 0,
+                "total_contribution": getattr(member_info, 'total_contribution', None) or member_info.contribution or 0,  # 历史总贡献点：如果为NULL则使用当前贡献点，否则直接返回数据库值（只增不减）
             },
             "member_count": result["member_count"],
             "member_capacity": result.get("member_capacity"),

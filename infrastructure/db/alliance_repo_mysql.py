@@ -115,16 +115,23 @@ class MySQLAllianceRepo(IAllianceRepo):
         return int(rows[0].get("cnt", 0) or 0)
 
     def add_member(self, member: AllianceMember) -> None:
+        # 重要：添加成员时，如果 total_contribution 未设置，使用 contribution 作为初始值
+        # 但如果成员已存在，不要覆盖 total_contribution（保护历史总贡献点）
         sql = """
-            INSERT INTO alliance_members (alliance_id, user_id, role, contribution)
-            VALUES (%s, %s, %s, %s)
-            ON DUPLICATE KEY UPDATE alliance_id = VALUES(alliance_id), role = VALUES(role)
+            INSERT INTO alliance_members (alliance_id, user_id, role, contribution, total_contribution)
+            VALUES (%s, %s, %s, %s, %s)
+            ON DUPLICATE KEY UPDATE 
+                alliance_id = VALUES(alliance_id), 
+                role = VALUES(role),
+                contribution = VALUES(contribution)
+                -- 注意：不更新 total_contribution，保护历史总贡献点不被覆盖
         """
         execute_update(sql, (
             member.alliance_id,
             member.user_id,
             member.role,
-            member.contribution
+            member.contribution,
+            getattr(member, 'total_contribution', member.contribution)
         ))
 
     def get_member(self, user_id: int) -> Optional[AllianceMember]:
@@ -149,6 +156,7 @@ class MySQLAllianceRepo(IAllianceRepo):
             user_id=row['user_id'],
             role=row['role'],
             contribution=row['contribution'],
+            total_contribution=row.get('total_contribution', row.get('contribution', 0)),
             army_type=row.get('army_type', 0),
             joined_at=row['joined_at'],
             nickname=row.get('nickname'),
@@ -176,6 +184,7 @@ class MySQLAllianceRepo(IAllianceRepo):
                 user_id=row['user_id'],
                 role=row['role'],
                 contribution=row['contribution'],
+                total_contribution=row.get('total_contribution', row.get('contribution', 0)),
                 army_type=row.get('army_type', 0),
                 joined_at=row['joined_at'],
                 nickname=row.get('nickname'),
@@ -205,6 +214,7 @@ class MySQLAllianceRepo(IAllianceRepo):
                 user_id=row['user_id'],
                 role=row['role'],
                 contribution=row['contribution'],
+                total_contribution=row.get('total_contribution', row.get('contribution', 0)),
                 army_type=row.get('army_type', 0),
                 joined_at=row['joined_at'],
                 nickname=row.get('nickname'),
@@ -685,8 +695,32 @@ class MySQLAllianceRepo(IAllianceRepo):
         execute_update(sql, (funds_delta, prosperity_delta, alliance_id))
 
     def update_member_contribution(self, user_id: int, delta: int) -> None:
-        sql = "UPDATE alliance_members SET contribution = contribution + %s WHERE user_id = %s"
-        execute_update(sql, (delta, user_id))
+        # 更新现有贡献点，如果是增加则同时更新历史总贡献点
+        # 历史总贡献点只增不减，永远不会减少
+        if delta > 0:
+            # 增加贡献点：同时更新现有贡献点和历史总贡献点
+            # 历史总贡献点 = max(原历史总贡献点 + 增量, 新的现有贡献点)
+            # 确保历史总贡献点只增不减，且至少等于新的现有贡献点
+            sql = """
+                UPDATE alliance_members 
+                SET contribution = contribution + %s,
+                    total_contribution = GREATEST(
+                        COALESCE(total_contribution, 0) + %s,
+                        contribution + %s
+                    )
+                WHERE user_id = %s
+            """
+            execute_update(sql, (delta, delta, delta, user_id))
+        else:
+            # 减少贡献点：只更新现有贡献点，历史总贡献点保持不变（只增不减）
+            # 注意：不显式设置 total_contribution，MySQL 会自动保持原值不变
+            # 这样触发器也不需要处理这种情况，避免任何潜在的问题
+            sql = """
+                UPDATE alliance_members 
+                SET contribution = GREATEST(0, contribution + %s)
+                WHERE user_id = %s
+            """
+            execute_update(sql, (delta, user_id))
 
     def get_alliance_war_points(self, alliance_id: int) -> Tuple[int, int]:
         sql = "SELECT war_honor, war_honor_history FROM alliances WHERE id = %s"
