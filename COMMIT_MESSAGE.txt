@@ -1,55 +1,66 @@
-修复召唤之王正赛奖励判定逻辑错误
+实现灵力水晶使用功能和前端页面
 
-问题：
-- 未参加正赛的玩家可以领取正赛奖励
-- 奖励判定错误地基于预赛排名而非正赛成绩
-- 预赛排名第2的玩家可以领取亚军礼包（即使未参加正赛）
+需求：
+- 灵力水晶可以在背包中使用
+- 使用后获得灵力（1个水晶 = 10灵力）
+- 灵力用于洗练战灵的属性条
+- 灵力水晶来源：镇妖宝箱、战灵塔掉落、签到奖励
 
-原因：
-- reward_info 接口使用 king_challenge_rank.rank_position（预赛排名）判定奖励
-- claim_reward 接口也使用预赛排名判定奖励配置
-- 完全忽略了 king_final_stage 表中的正赛成绩
+实现内容：
 
-修复内容：
+1. 创建灵力水晶使用页面
+   - 新建 SpiritCrystalUsePage.vue
+   - 显示拥有的灵力水晶数量
+   - 显示当前灵力值
+   - 输入使用数量（支持快捷选择：1/10/50/全部）
+   - 显示可获得的灵力
+   - 确定使用按钮
+   - 使用后刷新数据
 
-1. 修改奖励信息接口 (GET /api/king/reward_info)
-   - 查询 king_final_stage 表获取正赛成绩
-   - 没有正赛记录时返回"未参加正赛，无法领取奖励"
-   - 根据正赛最佳阶段判定奖励等级
-   - 决赛获胜 → 冠军奖励
-   - 决赛失败 → 亚军奖励
-   - 进入半决赛 → 4强奖励
-   - 进入8进4 → 8强奖励
-   - 进入16进8 → 16强奖励
-   - 进入32强 → 32强奖励
+2. 配置路由
+   - 添加 /spirit/crystal-use 路由
+   - 导入 SpiritCrystalUsePage 组件
+   - 配置路由元信息
 
-2. 修改领取奖励接口 (POST /api/king/claim_reward)
-   - 查询 king_final_stage 表验证正赛成绩
-   - 没有正赛记录时拒绝领取
-   - 根据正赛成绩发放对应奖励
-   - 防止未参赛玩家领取奖励
+3. 更新物品使用路由
+   - 灵力水晶（6101）跳转到 /spirit/crystal-use
+   - 从背包点击使用自动跳转
 
-3. 测试验证工具
-   - test_king_final_reward_fix.py: 验证奖励判定逻辑
-   - 检查正赛记录和玩家奖励资格
-   - 模拟各种场景的奖励判定
+4. 后端接口（已存在）
+   - POST /api/spirit/consume-crystal
+   - 参数：quantity（使用数量）
+   - 返回：gained_spirit_power、used_crystals、account
+   - 规则：1个水晶 = 10灵力
 
-修复后效果：
-- 未参加正赛的玩家无法领取任何奖励
-- 只有参加正赛并取得成绩的玩家才能领取对应奖励
-- 奖励等级与正赛成绩严格匹配
-- 预赛排名不再影响正赛奖励
+5. 测试验证
+   - test_spirit_crystal.py：测试使用功能
+   - 测试单个使用和批量使用
+   - 验证灵力计算和数量扣除
 
-数据库表说明：
-- king_challenge_rank: 预赛排名（不用于正赛奖励判定）
-- king_final_stage: 正赛成绩（用于正赛奖励判定）
-- king_reward_claimed: 奖励领取记录（防止重复领取）
+功能特点：
+- 支持批量使用（单次最多10个）
+- 实时显示可获得灵力
+- 快捷选择按钮方便操作
+- 使用后自动刷新数据
+- 清晰的使用规则说明
 
-历史数据：
-- 已错误领取的奖励不追溯回收
-- 修复后将防止此类问题再次发生
+使用流程：
+1. 打开背包
+2. 找到灵力水晶
+3. 点击"使用"
+4. 跳转到使用页面
+5. 选择数量
+6. 确定使用
+7. 获得灵力
+
+灵力用途：
+- 洗练战灵属性条
+- 不同元素和锁定数量消耗不同
+- 土灵1-9灵力，神灵10-90灵力
 
 文件：
-- interfaces/routes/king_routes.py
-- test_king_final_reward_fix.py
-- 召唤之王正赛奖励修复说明.md
+- interfaces/client/src/features/beast/SpiritCrystalUsePage.vue
+- interfaces/client/src/router/index.js
+- interfaces/client/src/utils/itemUseRoutes.js
+- test_spirit_crystal.py
+- 灵力水晶功能说明.md

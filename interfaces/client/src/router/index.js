@@ -42,6 +42,7 @@ import SpiritEmbedPage from '@/features/beast/SpiritEmbedPage.vue'
 import SpiritWarehousePage from '@/features/beast/SpiritWarehousePage.vue'
 import SpiritWarehouseSellConfirmPage from '@/features/beast/SpiritWarehouseSellConfirmPage.vue'
 import SpiritWarehouseSellResultPage from '@/features/beast/SpiritWarehouseSellResultPage.vue'
+import SpiritCrystalUsePage from '@/features/beast/SpiritCrystalUsePage.vue'
 import SpiritDetailPage from '@/features/beast/SpiritDetailPage.vue'
 import SpiritRefinePage from '@/features/beast/SpiritRefinePage.vue'
 import SpiritKeyInsufficientPage from '@/features/beast/SpiritKeyInsufficientPage.vue'
@@ -476,6 +477,11 @@ const routes = [
     path: '/spirit/warehouse/sell-result',
     name: 'SpiritWarehouseSellResult',
     component: SpiritWarehouseSellResultPage,
+  },
+  {
+    path: '/spirit/crystal-use',
+    name: 'SpiritCrystalUse',
+    component: SpiritCrystalUsePage,
   },
   {
     path: '/spirit/:id',

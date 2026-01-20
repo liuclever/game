@@ -41,8 +41,8 @@ export const ITEM_USE_ROUTES = {
   // 战灵钥匙：跳转战灵页用于激活属性条
   6006: '/spirit/warehouse',
 
-  // 灵力水晶：跳转战灵页用于兑换灵力
-  6101: '/spirit/warehouse',
+  // 灵力水晶：跳转灵力水晶使用页面
+  6101: '/spirit/crystal-use',
 
   // 神·逆鳞：用于兑换神兽召唤球
   3010: '/exchange',
