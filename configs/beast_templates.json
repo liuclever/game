@@ -1,6 +1,11 @@
 {
   "description": "幻兽模板配置 - 包含各境界资质上限和下限",
-  "realm_order": ["地界", "灵界", "神界", "天界"],
+  "realm_order": [
+    "地界",
+    "灵界",
+    "神界",
+    "天界"
+  ],
   "realm_notes": {
     "normal_beast": "普通幻兽可达地界/灵界",
     "elite_beast": "精英幻兽可达地界/灵界/神界",
@@ -16,8 +21,16 @@
       "rarity": "普通",
       "habitat": "森林秘境",
       "attack_type": "physical",
-      "all_skill_ids": [1010, 3008, 3105],
-      "all_skill_names": ["高级冲撞", "高级幸运", "敏捷"],
+      "all_skill_ids": [
+        1010,
+        3008,
+        3105
+      ],
+      "all_skill_names": [
+        "高级冲撞",
+        "高级幸运",
+        "敏捷"
+      ],
       "base_hp": 100,
       "base_attack": 12,
       "base_defense": 8,
@@ -29,11 +42,16 @@
       "realms": {
         "地界": {
           "growth_score": 840,
-          "hp_aptitude_max": 672, "hp_aptitude_min": 322,
-          "speed_aptitude_max": 970, "speed_aptitude_min": 620,
-          "physical_atk_aptitude_max": 842, "physical_atk_aptitude_min": 492,
-          "physical_def_aptitude_max": 842, "physical_def_aptitude_min": 492,
-          "magic_def_aptitude_max": 801, "magic_def_aptitude_min": 451
+          "hp_aptitude_max": 672,
+          "hp_aptitude_min": 322,
+          "speed_aptitude_max": 970,
+          "speed_aptitude_min": 620,
+          "physical_atk_aptitude_max": 842,
+          "physical_atk_aptitude_min": 492,
+          "physical_def_aptitude_max": 842,
+          "physical_def_aptitude_min": 492,
+          "magic_def_aptitude_max": 801,
+          "magic_def_aptitude_min": 451
         },
         "灵界": {
           "growth_score": 840,
@@ -53,15 +71,24 @@
       "rarity": "普通",
       "habitat": "森林秘境",
       "attack_type": "physical",
-      "all_skill_names": ["高级连击", "高级迷惑", "魔抗"],
+      "all_skill_names": [
+        "高级连击",
+        "高级迷惑",
+        "魔抗"
+      ],
       "realms": {
         "地界": {
           "growth_score": 840,
-          "hp_aptitude_max": 915, "hp_aptitude_min": 565,
-          "speed_aptitude_max": 842, "speed_aptitude_min": 492,
-          "physical_atk_aptitude_max": 672, "physical_atk_aptitude_min": 322,
-          "physical_def_aptitude_max": 498, "physical_def_aptitude_min": 148,
-          "magic_def_aptitude_max": 1011, "magic_def_aptitude_min": 661
+          "hp_aptitude_max": 915,
+          "hp_aptitude_min": 565,
+          "speed_aptitude_max": 842,
+          "speed_aptitude_min": 492,
+          "physical_atk_aptitude_max": 672,
+          "physical_atk_aptitude_min": 322,
+          "physical_def_aptitude_max": 498,
+          "physical_def_aptitude_min": 148,
+          "magic_def_aptitude_max": 1011,
+          "magic_def_aptitude_min": 661
         },
         "灵界": {
           "growth_score": 840,
@@ -71,7 +98,12 @@
           "physical_def_aptitude_max": 529,
           "magic_def_aptitude_max": 1074
         }
-      }
+      },
+      "all_skill_ids": [
+        1002,
+        1006,
+        3103
+      ]
     },
     {
       "id": 3,
@@ -82,16 +114,31 @@
       "rarity": "普通",
       "habitat": "森林秘境",
       "attack_type": "physical",
-      "all_skill_ids": [1012, 3010, 3107, 3108],
-      "all_skill_names": ["高级必杀", "麻痹", "闪避", "吸血"],
+      "all_skill_ids": [
+        1012,
+        3010,
+        3107,
+        3108
+      ],
+      "all_skill_names": [
+        "高级必杀",
+        "麻痹",
+        "闪避",
+        "吸血"
+      ],
       "realms": {
         "地界": {
           "growth_score": 860,
-          "hp_aptitude_max": 692, "hp_aptitude_min": 342,
-          "speed_aptitude_max": 864, "speed_aptitude_min": 514,
-          "physical_atk_aptitude_max": 1026, "physical_atk_aptitude_min": 676,
-          "physical_def_aptitude_max": 768, "physical_def_aptitude_min": 418,
-          "magic_def_aptitude_max": 598, "magic_def_aptitude_min": 248
+          "hp_aptitude_max": 692,
+          "hp_aptitude_min": 342,
+          "speed_aptitude_max": 864,
+          "speed_aptitude_min": 514,
+          "physical_atk_aptitude_max": 1026,
+          "physical_atk_aptitude_min": 676,
+          "physical_def_aptitude_max": 768,
+          "physical_def_aptitude_min": 418,
+          "magic_def_aptitude_max": 598,
+          "magic_def_aptitude_min": 248
         },
         "灵界": {
           "growth_score": 860,
@@ -111,15 +158,25 @@
       "rarity": "普通",
       "habitat": "呼啸平原",
       "attack_type": "physical",
-      "all_skill_names": ["反震", "冲撞", "防御", "体魄"],
+      "all_skill_names": [
+        "反震",
+        "冲撞",
+        "防御",
+        "体魄"
+      ],
       "realms": {
         "地界": {
           "growth_score": 840,
-          "hp_aptitude_max": 915, "hp_aptitude_min": 565,
-          "speed_aptitude_max": 842, "speed_aptitude_min": 492,
-          "physical_atk_aptitude_max": 672, "physical_atk_aptitude_min": 322,
-          "physical_def_aptitude_max": 1094, "physical_def_aptitude_min": 744,
-          "magic_def_aptitude_max": 421, "magic_def_aptitude_min": 71
+          "hp_aptitude_max": 915,
+          "hp_aptitude_min": 565,
+          "speed_aptitude_max": 842,
+          "speed_aptitude_min": 492,
+          "physical_atk_aptitude_max": 672,
+          "physical_atk_aptitude_min": 322,
+          "physical_def_aptitude_max": 1094,
+          "physical_def_aptitude_min": 744,
+          "magic_def_aptitude_max": 421,
+          "magic_def_aptitude_min": 71
         },
         "灵界": {
           "growth_score": 840,
@@ -129,7 +186,13 @@
           "physical_def_aptitude_max": 1162,
           "magic_def_aptitude_max": 447
         }
-      }
+      },
+      "all_skill_ids": [
+        2102,
+        1110,
+        3104,
+        3106
+      ]
     },
     {
       "id": 5,
@@ -139,15 +202,24 @@
       "rarity": "普通",
       "habitat": "呼啸平原",
       "attack_type": "physical",
-      "all_skill_names": ["高级毒攻", "破甲", "幸运"],
+      "all_skill_names": [
+        "高级毒攻",
+        "破甲",
+        "幸运"
+      ],
       "realms": {
         "地界": {
           "growth_score": 840,
-          "hp_aptitude_max": 672, "hp_aptitude_min": 322,
-          "speed_aptitude_max": 842, "speed_aptitude_min": 492,
-          "physical_atk_aptitude_max": 1011, "physical_atk_aptitude_min": 661,
-          "physical_def_aptitude_max": 760, "physical_def_aptitude_min": 410,
-          "magic_def_aptitude_max": 590, "magic_def_aptitude_min": 240
+          "hp_aptitude_max": 672,
+          "hp_aptitude_min": 322,
+          "speed_aptitude_max": 842,
+          "speed_aptitude_min": 492,
+          "physical_atk_aptitude_max": 1011,
+          "physical_atk_aptitude_min": 661,
+          "physical_def_aptitude_max": 760,
+          "physical_def_aptitude_min": 410,
+          "magic_def_aptitude_max": 590,
+          "magic_def_aptitude_min": 240
         },
         "灵界": {
           "growth_score": 840,
@@ -157,7 +229,12 @@
           "physical_def_aptitude_max": 807,
           "magic_def_aptitude_max": 627
         }
-      }
+      },
+      "all_skill_ids": [
+        1013,
+        1103,
+        3107
+      ]
     },
     {
       "id": 6,
@@ -167,15 +244,25 @@
       "rarity": "精英",
       "habitat": "呼啸平原",
       "attack_type": "physical",
-      "all_skill_names": ["高级连击", "吸血", "敏捷", "偷袭"],
+      "all_skill_names": [
+        "高级连击",
+        "吸血",
+        "敏捷",
+        "偷袭"
+      ],
       "realms": {
         "地界": {
           "growth_score": 860,
-          "hp_aptitude_max": 692, "hp_aptitude_min": 342,
-          "speed_aptitude_max": 994, "speed_aptitude_min": 644,
-          "physical_atk_aptitude_max": 864, "physical_atk_aptitude_min": 514,
-          "physical_def_aptitude_max": 864, "physical_def_aptitude_min": 514,
-          "magic_def_aptitude_max": 822, "magic_def_aptitude_min": 472
+          "hp_aptitude_max": 692,
+          "hp_aptitude_min": 342,
+          "speed_aptitude_max": 994,
+          "speed_aptitude_min": 644,
+          "physical_atk_aptitude_max": 864,
+          "physical_atk_aptitude_min": 514,
+          "physical_def_aptitude_max": 864,
+          "physical_def_aptitude_min": 514,
+          "magic_def_aptitude_max": 822,
+          "magic_def_aptitude_min": 472
         },
         "灵界": {
           "growth_score": 860,
@@ -185,7 +272,13 @@
           "physical_def_aptitude_max": 918,
           "magic_def_aptitude_max": 873
         }
-      }
+      },
+      "all_skill_ids": [
+        1002,
+        1112,
+        3105,
+        3108
+      ]
     },
     {
       "id": 7,
@@ -195,15 +288,24 @@
       "rarity": "普通",
       "habitat": "天罚山",
       "attack_type": "magical",
-      "all_skill_names": ["智慧", "雷击", "连击"],
+      "all_skill_names": [
+        "智慧",
+        "雷击",
+        "连击"
+      ],
       "realms": {
         "地界": {
           "growth_score": 840,
-          "hp_aptitude_max": 672, "hp_aptitude_min": 322,
-          "speed_aptitude_max": 842, "speed_aptitude_min": 492,
-          "magic_atk_aptitude_max": 1011, "magic_atk_aptitude_min": 661,
-          "physical_def_aptitude_max": 598, "physical_def_aptitude_min": 248,
-          "magic_def_aptitude_max": 760, "magic_def_aptitude_min": 410
+          "hp_aptitude_max": 672,
+          "hp_aptitude_min": 322,
+          "speed_aptitude_max": 842,
+          "speed_aptitude_min": 492,
+          "magic_atk_aptitude_max": 1011,
+          "magic_atk_aptitude_min": 661,
+          "physical_def_aptitude_max": 598,
+          "physical_def_aptitude_min": 248,
+          "magic_def_aptitude_max": 760,
+          "magic_def_aptitude_min": 410
         },
         "灵界": {
           "growth_score": 840,
@@ -213,7 +315,12 @@
           "physical_def_aptitude_max": 635,
           "magic_def_aptitude_max": 807
         }
-      }
+      },
+      "all_skill_ids": [
+        3102,
+        1108,
+        1102
+      ]
     },
     {
       "id": 8,
@@ -223,15 +330,25 @@
       "rarity": "普通",
       "habitat": "天罚山",
       "attack_type": "magical",
-      "all_skill_names": ["闪避", "幸运", "反击", "虚弱"],
+      "all_skill_names": [
+        "闪避",
+        "幸运",
+        "反击",
+        "虚弱"
+      ],
       "realms": {
         "地界": {
           "growth_score": 840,
-          "hp_aptitude_max": 915, "hp_aptitude_min": 565,
-          "speed_aptitude_max": 842, "speed_aptitude_min": 492,
-          "magic_atk_aptitude_max": 672, "magic_atk_aptitude_min": 355,
-          "physical_def_aptitude_max": 1011, "physical_def_aptitude_min": 661,
-          "magic_def_aptitude_max": 498, "magic_def_aptitude_min": 148
+          "hp_aptitude_max": 915,
+          "hp_aptitude_min": 565,
+          "speed_aptitude_max": 842,
+          "speed_aptitude_min": 492,
+          "magic_atk_aptitude_max": 672,
+          "magic_atk_aptitude_min": 355,
+          "physical_def_aptitude_max": 1011,
+          "physical_def_aptitude_min": 661,
+          "magic_def_aptitude_max": 498,
+          "magic_def_aptitude_min": 148
         },
         "灵界": {
           "growth_score": 840,
@@ -241,7 +358,13 @@
           "physical_def_aptitude_max": 1074,
           "magic_def_aptitude_max": 529
         }
-      }
+      },
+      "all_skill_ids": [
+        2101,
+        3107,
+        2103,
+        1107
+      ]
     },
     {
       "id": 9,
@@ -251,15 +374,25 @@
       "rarity": "精英",
       "habitat": "天罚山",
       "attack_type": "magical",
-      "all_skill_names": ["高级魔抗", "雷击", "敏捷", "弱点防御"],
+      "all_skill_names": [
+        "高级魔抗",
+        "雷击",
+        "敏捷",
+        "弱点防御"
+      ],
       "realms": {
         "地界": {
           "growth_score": 860,
-          "hp_aptitude_max": 952, "hp_aptitude_min": 602,
-          "speed_aptitude_max": 864, "speed_aptitude_min": 514,
-          "magic_atk_aptitude_max": 692, "magic_atk_aptitude_min": 342,
-          "physical_def_aptitude_max": 432, "physical_def_aptitude_min": 82,
-          "magic_def_aptitude_max": 1124, "magic_def_aptitude_min": 774
+          "hp_aptitude_max": 952,
+          "hp_aptitude_min": 602,
+          "speed_aptitude_max": 864,
+          "speed_aptitude_min": 514,
+          "magic_atk_aptitude_max": 692,
+          "magic_atk_aptitude_min": 342,
+          "physical_def_aptitude_max": 432,
+          "physical_def_aptitude_min": 82,
+          "magic_def_aptitude_max": 1124,
+          "magic_def_aptitude_min": 774
         },
         "灵界": {
           "growth_score": 860,
@@ -269,7 +402,13 @@
           "physical_def_aptitude_max": 459,
           "magic_def_aptitude_max": 1194
         }
-      }
+      },
+      "all_skill_ids": [
+        3003,
+        1108,
+        3105,
+        4002
+      ]
     },
     {
       "id": 10,
@@ -279,15 +418,24 @@
       "rarity": "普通",
       "habitat": "石工矿场",
       "attack_type": "physical",
-      "all_skill_names": ["高级体魄", "高级强力", "高级冲撞"],
+      "all_skill_names": [
+        "高级体魄",
+        "高级强力",
+        "高级冲撞"
+      ],
       "realms": {
         "地界": {
           "growth_score": 940,
-          "hp_aptitude_max": 1033, "hp_aptitude_min": 683,
-          "speed_aptitude_max": 941, "speed_aptitude_min": 591,
-          "physical_atk_aptitude_max": 752, "physical_atk_aptitude_min": 402,
-          "physical_def_aptitude_max": 1223, "physical_def_aptitude_min": 873,
-          "magic_def_aptitude_max": 470, "magic_def_aptitude_min": 120
+          "hp_aptitude_max": 1033,
+          "hp_aptitude_min": 683,
+          "speed_aptitude_max": 941,
+          "speed_aptitude_min": 591,
+          "physical_atk_aptitude_max": 752,
+          "physical_atk_aptitude_min": 402,
+          "physical_def_aptitude_max": 1223,
+          "physical_def_aptitude_min": 873,
+          "magic_def_aptitude_max": 470,
+          "magic_def_aptitude_min": 120
         },
         "灵界": {
           "growth_score": 940,
@@ -297,7 +445,12 @@
           "physical_def_aptitude_max": 1299,
           "magic_def_aptitude_max": 499
         }
-      }
+      },
+      "all_skill_ids": [
+        3006,
+        3001,
+        1010
+      ]
     },
     {
       "id": 11,
@@ -307,15 +460,25 @@
       "rarity": "普通",
       "habitat": "石工矿场",
       "attack_type": "physical",
-      "all_skill_names": ["高级反击", "撕咬", "冲撞", "敏捷"],
+      "all_skill_names": [
+        "高级反击",
+        "撕咬",
+        "冲撞",
+        "敏捷"
+      ],
       "realms": {
         "地界": {
           "growth_score": 940,
-          "hp_aptitude_max": 752, "hp_aptitude_min": 402,
-          "speed_aptitude_max": 1082, "speed_aptitude_min": 732,
-          "physical_atk_aptitude_max": 941, "physical_atk_aptitude_min": 591,
-          "physical_def_aptitude_max": 941, "physical_def_aptitude_min": 591,
-          "magic_def_aptitude_max": 893, "magic_def_aptitude_min": 543
+          "hp_aptitude_max": 752,
+          "hp_aptitude_min": 402,
+          "speed_aptitude_max": 1082,
+          "speed_aptitude_min": 732,
+          "physical_atk_aptitude_max": 941,
+          "physical_atk_aptitude_min": 591,
+          "physical_def_aptitude_max": 941,
+          "physical_def_aptitude_min": 591,
+          "magic_def_aptitude_max": 893,
+          "magic_def_aptitude_min": 543
         },
         "灵界": {
           "growth_score": 940,
@@ -325,7 +488,13 @@
           "physical_def_aptitude_max": 999,
           "magic_def_aptitude_max": 948
         }
-      }
+      },
+      "all_skill_ids": [
+        2003,
+        1109,
+        1110,
+        3105
+      ]
     },
     {
       "id": 12,
@@ -335,15 +504,25 @@
       "rarity": "普通",
       "habitat": "石工矿场",
       "attack_type": "physical",
-      "all_skill_names": ["高级魔抗", "迷惑", "偷袭", "必杀"],
+      "all_skill_names": [
+        "高级魔抗",
+        "迷惑",
+        "偷袭",
+        "必杀"
+      ],
       "realms": {
         "地界": {
           "growth_score": 940,
-          "hp_aptitude_max": 1033, "hp_aptitude_min": 683,
-          "speed_aptitude_max": 941, "speed_aptitude_min": 591,
-          "physical_atk_aptitude_max": 752, "physical_atk_aptitude_min": 402,
-          "physical_def_aptitude_max": 557, "physical_def_aptitude_min": 207,
-          "magic_def_aptitude_max": 1130, "magic_def_aptitude_min": 780
+          "hp_aptitude_max": 1033,
+          "hp_aptitude_min": 683,
+          "speed_aptitude_max": 941,
+          "speed_aptitude_min": 591,
+          "physical_atk_aptitude_max": 752,
+          "physical_atk_aptitude_min": 402,
+          "physical_def_aptitude_max": 557,
+          "physical_def_aptitude_min": 207,
+          "magic_def_aptitude_max": 1130,
+          "magic_def_aptitude_min": 780
         },
         "灵界": {
           "growth_score": 940,
@@ -353,7 +532,13 @@
           "physical_def_aptitude_max": 592,
           "magic_def_aptitude_max": 1200
         }
-      }
+      },
+      "all_skill_ids": [
+        3003,
+        1106,
+        3108,
+        1101
+      ]
     },
     {
       "id": 13,
@@ -363,15 +548,25 @@
       "rarity": "精英",
       "habitat": "石工矿场",
       "attack_type": "physical",
-      "all_skill_names": ["高级连击", "高级撕咬", "高级闪避", "偷袭"],
+      "all_skill_names": [
+        "高级连击",
+        "高级撕咬",
+        "高级闪避",
+        "偷袭"
+      ],
       "realms": {
         "地界": {
           "growth_score": 960,
-          "hp_aptitude_max": 771, "hp_aptitude_min": 421,
-          "speed_aptitude_max": 963, "speed_aptitude_min": 613,
-          "physical_atk_aptitude_max": 1154, "physical_atk_aptitude_min": 804,
-          "physical_def_aptitude_max": 856, "physical_def_aptitude_min": 506,
-          "magic_def_aptitude_max": 673, "magic_def_aptitude_min": 323
+          "hp_aptitude_max": 771,
+          "hp_aptitude_min": 421,
+          "speed_aptitude_max": 963,
+          "speed_aptitude_min": 613,
+          "physical_atk_aptitude_max": 1154,
+          "physical_atk_aptitude_min": 804,
+          "physical_def_aptitude_max": 856,
+          "physical_def_aptitude_min": 506,
+          "magic_def_aptitude_max": 673,
+          "magic_def_aptitude_min": 323
         },
         "灵界": {
           "growth_score": 960,
@@ -389,7 +584,13 @@
           "physical_def_aptitude_max": 965,
           "magic_def_aptitude_max": 759
         }
-      }
+      },
+      "all_skill_ids": [
+        1002,
+        1009,
+        2001,
+        3108
+      ]
     },
     {
       "id": 14,
@@ -399,15 +600,25 @@
       "rarity": "普通",
       "habitat": "幻灵湖畔",
       "attack_type": "physical",
-      "all_skill_names": ["麻痹", "冲撞", "魔抗", "致盲"],
+      "all_skill_names": [
+        "麻痹",
+        "冲撞",
+        "魔抗",
+        "致盲"
+      ],
       "realms": {
         "地界": {
           "growth_score": 940,
-          "hp_aptitude_max": 1033, "hp_aptitude_min": 683,
-          "speed_aptitude_max": 941, "speed_aptitude_min": 591,
-          "physical_atk_aptitude_max": 752, "physical_atk_aptitude_min": 402,
-          "physical_def_aptitude_max": 557, "physical_def_aptitude_min": 207,
-          "magic_def_aptitude_max": 1130, "magic_def_aptitude_min": 780
+          "hp_aptitude_max": 1033,
+          "hp_aptitude_min": 683,
+          "speed_aptitude_max": 941,
+          "speed_aptitude_min": 591,
+          "physical_atk_aptitude_max": 752,
+          "physical_atk_aptitude_min": 402,
+          "physical_def_aptitude_max": 557,
+          "physical_def_aptitude_min": 207,
+          "magic_def_aptitude_max": 1130,
+          "magic_def_aptitude_min": 780
         },
         "灵界": {
           "growth_score": 940,
@@ -417,7 +628,13 @@
           "physical_def_aptitude_max": 592,
           "magic_def_aptitude_max": 1200
         }
-      }
+      },
+      "all_skill_ids": [
+        1105,
+        1110,
+        3103,
+        1104
+      ]
     },
     {
       "id": 15,
@@ -427,15 +644,25 @@
       "rarity": "普通",
       "habitat": "幻灵湖畔",
       "attack_type": "magical",
-      "all_skill_names": ["雷击", "闪避", "敏捷", "抗性增强"],
+      "all_skill_names": [
+        "雷击",
+        "闪避",
+        "敏捷",
+        "抗性增强"
+      ],
       "realms": {
         "地界": {
           "growth_score": 940,
-          "hp_aptitude_max": 752, "hp_aptitude_min": 402,
-          "speed_aptitude_max": 1082, "speed_aptitude_min": 732,
-          "magic_atk_aptitude_max": 941, "magic_atk_aptitude_min": 591,
-          "physical_def_aptitude_max": 893, "physical_def_aptitude_min": 543,
-          "magic_def_aptitude_max": 941, "magic_def_aptitude_min": 591
+          "hp_aptitude_max": 752,
+          "hp_aptitude_min": 402,
+          "speed_aptitude_max": 1082,
+          "speed_aptitude_min": 732,
+          "magic_atk_aptitude_max": 941,
+          "magic_atk_aptitude_min": 591,
+          "physical_def_aptitude_max": 893,
+          "physical_def_aptitude_min": 543,
+          "magic_def_aptitude_max": 941,
+          "magic_def_aptitude_min": 591
         },
         "灵界": {
           "growth_score": 940,
@@ -445,7 +672,13 @@
           "physical_def_aptitude_max": 948,
           "magic_def_aptitude_max": 999
         }
-      }
+      },
+      "all_skill_ids": [
+        1108,
+        2101,
+        3105,
+        3109
+      ]
     },
     {
       "id": 16,
@@ -455,15 +688,25 @@
       "rarity": "普通",
       "habitat": "幻灵湖畔",
       "attack_type": "magical",
-      "all_skill_names": ["高级水攻", "幸运", "致盲", "智慧"],
+      "all_skill_names": [
+        "高级水攻",
+        "幸运",
+        "致盲",
+        "智慧"
+      ],
       "realms": {
         "地界": {
           "growth_score": 860,
-          "hp_aptitude_max": 692, "hp_aptitude_min": 342,
-          "speed_aptitude_max": 864, "speed_aptitude_min": 514,
-          "magic_atk_aptitude_max": 1026, "magic_atk_aptitude_min": 676,
-          "physical_def_aptitude_max": 598, "physical_def_aptitude_min": 248,
-          "magic_def_aptitude_max": 768, "magic_def_aptitude_min": 418
+          "hp_aptitude_max": 692,
+          "hp_aptitude_min": 342,
+          "speed_aptitude_max": 864,
+          "speed_aptitude_min": 514,
+          "magic_atk_aptitude_max": 1026,
+          "magic_atk_aptitude_min": 676,
+          "physical_def_aptitude_max": 598,
+          "physical_def_aptitude_min": 248,
+          "magic_def_aptitude_max": 768,
+          "magic_def_aptitude_min": 418
         },
         "灵界": {
           "growth_score": 860,
@@ -473,7 +716,13 @@
           "physical_def_aptitude_max": 635,
           "magic_def_aptitude_max": 816
         }
-      }
+      },
+      "all_skill_ids": [
+        1011,
+        3107,
+        1104,
+        3102
+      ]
     },
     {
       "id": 17,
@@ -483,15 +732,25 @@
       "rarity": "精英",
       "habitat": "幻灵湖畔",
       "attack_type": "magical",
-      "all_skill_names": ["高级反震", "高级防御", "抗性增强", "弱点敏捷"],
+      "all_skill_names": [
+        "高级反震",
+        "高级防御",
+        "抗性增强",
+        "弱点敏捷"
+      ],
       "realms": {
         "地界": {
           "growth_score": 960,
-          "hp_aptitude_max": 1061, "hp_aptitude_min": 711,
-          "speed_aptitude_max": 963, "speed_aptitude_min": 613,
-          "magic_atk_aptitude_max": 771, "magic_atk_aptitude_min": 421,
-          "physical_def_aptitude_max": 1154, "physical_def_aptitude_min": 804,
-          "magic_def_aptitude_max": 579, "magic_def_aptitude_min": 229
+          "hp_aptitude_max": 1061,
+          "hp_aptitude_min": 711,
+          "speed_aptitude_max": 963,
+          "speed_aptitude_min": 613,
+          "magic_atk_aptitude_max": 771,
+          "magic_atk_aptitude_min": 421,
+          "physical_def_aptitude_max": 1154,
+          "physical_def_aptitude_min": 804,
+          "magic_def_aptitude_max": 579,
+          "magic_def_aptitude_min": 229
         },
         "灵界": {
           "growth_score": 960,
@@ -509,7 +768,13 @@
           "physical_def_aptitude_max": 1302,
           "magic_def_aptitude_max": 653
         }
-      }
+      },
+      "all_skill_ids": [
+        2002,
+        3004,
+        3109,
+        4004
+      ]
     },
     {
       "id": 18,
@@ -519,15 +784,25 @@
       "rarity": "普通",
       "habitat": "回音之谷",
       "attack_type": "physical",
-      "all_skill_names": ["敏捷", "闪避", "连击", "幸运"],
+      "all_skill_names": [
+        "敏捷",
+        "闪避",
+        "连击",
+        "幸运"
+      ],
       "realms": {
         "地界": {
           "growth_score": 1040,
-          "hp_aptitude_max": 829, "hp_aptitude_min": 479,
-          "speed_aptitude_max": 1196, "speed_aptitude_min": 846,
-          "physical_atk_aptitude_max": 1038, "physical_atk_aptitude_min": 688,
-          "physical_def_aptitude_max": 1038, "physical_def_aptitude_min": 688,
-          "magic_def_aptitude_max": 987, "magic_def_aptitude_min": 637
+          "hp_aptitude_max": 829,
+          "hp_aptitude_min": 479,
+          "speed_aptitude_max": 1196,
+          "speed_aptitude_min": 846,
+          "physical_atk_aptitude_max": 1038,
+          "physical_atk_aptitude_min": 688,
+          "physical_def_aptitude_max": 1038,
+          "physical_def_aptitude_min": 688,
+          "magic_def_aptitude_max": 987,
+          "magic_def_aptitude_min": 637
         },
         "灵界": {
           "growth_score": 1040,
@@ -537,7 +812,13 @@
           "physical_def_aptitude_max": 1102,
           "magic_def_aptitude_max": 1048
         }
-      }
+      },
+      "all_skill_ids": [
+        3105,
+        2101,
+        1102,
+        3107
+      ]
     },
     {
       "id": 19,
@@ -547,15 +828,24 @@
       "rarity": "普通",
       "habitat": "回音之谷",
       "attack_type": "magical",
-      "all_skill_names": ["高级防御", "敏捷", "闪避"],
+      "all_skill_names": [
+        "高级防御",
+        "敏捷",
+        "闪避"
+      ],
       "realms": {
         "地界": {
           "growth_score": 1040,
-          "hp_aptitude_max": 1140, "hp_aptitude_min": 790,
-          "speed_aptitude_max": 1038, "speed_aptitude_min": 688,
-          "magic_atk_aptitude_max": 829, "magic_atk_aptitude_min": 479,
-          "physical_def_aptitude_max": 1247, "physical_def_aptitude_min": 897,
-          "magic_def_aptitude_max": 621, "magic_def_aptitude_min": 271
+          "hp_aptitude_max": 1140,
+          "hp_aptitude_min": 790,
+          "speed_aptitude_max": 1038,
+          "speed_aptitude_min": 688,
+          "magic_atk_aptitude_max": 829,
+          "magic_atk_aptitude_min": 479,
+          "physical_def_aptitude_max": 1247,
+          "physical_def_aptitude_min": 897,
+          "magic_def_aptitude_max": 621,
+          "magic_def_aptitude_min": 271
         },
         "灵界": {
           "growth_score": 1040,
@@ -565,7 +855,12 @@
           "physical_def_aptitude_max": 1324,
           "magic_def_aptitude_max": 660
         }
-      }
+      },
+      "all_skill_ids": [
+        3004,
+        3105,
+        2101
+      ]
     },
     {
       "id": 20,
@@ -575,15 +870,24 @@
       "rarity": "普通",
       "habitat": "回音之谷",
       "attack_type": "magical",
-      "all_skill_names": ["高级吸血", "高级幸运", "智慧"],
+      "all_skill_names": [
+        "高级吸血",
+        "高级幸运",
+        "智慧"
+      ],
       "realms": {
         "地界": {
           "growth_score": 1040,
-          "hp_aptitude_max": 829, "hp_aptitude_min": 479,
-          "speed_aptitude_max": 1038, "speed_aptitude_min": 688,
-          "magic_atk_aptitude_max": 1247, "magic_atk_aptitude_min": 897,
-          "physical_def_aptitude_max": 728, "physical_def_aptitude_min": 378,
-          "magic_def_aptitude_max": 937, "magic_def_aptitude_min": 587
+          "hp_aptitude_max": 829,
+          "hp_aptitude_min": 479,
+          "speed_aptitude_max": 1038,
+          "speed_aptitude_min": 688,
+          "magic_atk_aptitude_max": 1247,
+          "magic_atk_aptitude_min": 897,
+          "physical_def_aptitude_max": 728,
+          "physical_def_aptitude_min": 378,
+          "magic_def_aptitude_max": 937,
+          "magic_def_aptitude_min": 587
         },
         "灵界": {
           "growth_score": 1040,
@@ -593,7 +897,12 @@
           "physical_def_aptitude_max": 773,
           "magic_def_aptitude_max": 995
         }
-      }
+      },
+      "all_skill_ids": [
+        1012,
+        3008,
+        3102
+      ]
     },
     {
       "id": 21,
@@ -603,15 +912,25 @@
       "rarity": "精英",
       "habitat": "回音之谷",
       "attack_type": "magical",
-      "all_skill_names": ["高级雷击", "高级反击", "连击", "弱点魔抗"],
+      "all_skill_names": [
+        "高级雷击",
+        "高级反击",
+        "连击",
+        "弱点魔抗"
+      ],
       "realms": {
         "地界": {
           "growth_score": 1060,
-          "hp_aptitude_max": 849, "hp_aptitude_min": 499,
-          "speed_aptitude_max": 1220, "speed_aptitude_min": 870,
-          "magic_atk_aptitude_max": 1060, "magic_atk_aptitude_min": 710,
-          "physical_def_aptitude_max": 1009, "physical_def_aptitude_min": 659,
-          "magic_def_aptitude_max": 1060, "magic_def_aptitude_min": 710
+          "hp_aptitude_max": 849,
+          "hp_aptitude_min": 499,
+          "speed_aptitude_max": 1220,
+          "speed_aptitude_min": 870,
+          "magic_atk_aptitude_max": 1060,
+          "magic_atk_aptitude_min": 710,
+          "physical_def_aptitude_max": 1009,
+          "physical_def_aptitude_min": 659,
+          "magic_def_aptitude_max": 1060,
+          "magic_def_aptitude_min": 710
         },
         "灵界": {
           "growth_score": 1060,
@@ -629,7 +948,13 @@
           "physical_def_aptitude_max": 1138,
           "magic_def_aptitude_max": 1196
         }
-      }
+      },
+      "all_skill_ids": [
+        1008,
+        2003,
+        1102,
+        4003
+      ]
     },
     {
       "id": 22,
@@ -639,15 +964,24 @@
       "rarity": "普通",
       "habitat": "死亡沼泽",
       "attack_type": "physical",
-      "all_skill_names": ["高级毒攻", "连击", "虚弱"],
+      "all_skill_names": [
+        "高级毒攻",
+        "连击",
+        "虚弱"
+      ],
       "realms": {
         "地界": {
           "growth_score": 1040,
-          "hp_aptitude_max": 1140, "hp_aptitude_min": 790,
-          "speed_aptitude_max": 1038, "speed_aptitude_min": 688,
-          "physical_atk_aptitude_max": 829, "physical_atk_aptitude_min": 479,
-          "physical_def_aptitude_max": 1349, "physical_def_aptitude_min": 999,
-          "magic_def_aptitude_max": 519, "magic_def_aptitude_min": 169
+          "hp_aptitude_max": 1140,
+          "hp_aptitude_min": 790,
+          "speed_aptitude_max": 1038,
+          "speed_aptitude_min": 688,
+          "physical_atk_aptitude_max": 829,
+          "physical_atk_aptitude_min": 479,
+          "physical_def_aptitude_max": 1349,
+          "physical_def_aptitude_min": 999,
+          "magic_def_aptitude_max": 519,
+          "magic_def_aptitude_min": 169
         },
         "灵界": {
           "growth_score": 1040,
@@ -657,7 +991,12 @@
           "physical_def_aptitude_max": 1433,
           "magic_def_aptitude_max": 551
         }
-      }
+      },
+      "all_skill_ids": [
+        1013,
+        1102,
+        1107
+      ]
     },
     {
       "id": 23,
@@ -667,15 +1006,24 @@
       "rarity": "普通",
       "habitat": "死亡沼泽",
       "attack_type": "magical",
-      "all_skill_names": ["高级魔抗", "反震", "毒攻"],
+      "all_skill_names": [
+        "高级魔抗",
+        "反震",
+        "毒攻"
+      ],
       "realms": {
         "地界": {
           "growth_score": 1040,
-          "hp_aptitude_max": 1140, "hp_aptitude_min": 790,
-          "speed_aptitude_max": 1038, "speed_aptitude_min": 688,
-          "magic_atk_aptitude_max": 829, "magic_atk_aptitude_min": 479,
-          "physical_def_aptitude_max": 519, "physical_def_aptitude_min": 169,
-          "magic_def_aptitude_max": 1349, "magic_def_aptitude_min": 999
+          "hp_aptitude_max": 1140,
+          "hp_aptitude_min": 790,
+          "speed_aptitude_max": 1038,
+          "speed_aptitude_min": 688,
+          "magic_atk_aptitude_max": 829,
+          "magic_atk_aptitude_min": 479,
+          "physical_def_aptitude_max": 519,
+          "physical_def_aptitude_min": 169,
+          "magic_def_aptitude_max": 1349,
+          "magic_def_aptitude_min": 999
         },
         "灵界": {
           "growth_score": 1040,
@@ -685,7 +1033,12 @@
           "physical_def_aptitude_max": 551,
           "magic_def_aptitude_max": 1433
         }
-      }
+      },
+      "all_skill_ids": [
+        3003,
+        2102,
+        1113
+      ]
     },
     {
       "id": 24,
@@ -695,15 +1048,25 @@
       "rarity": "普通",
       "habitat": "死亡沼泽",
       "attack_type": "magical",
-      "all_skill_names": ["防御", "水攻", "体魄", "破甲"],
+      "all_skill_names": [
+        "防御",
+        "水攻",
+        "体魄",
+        "破甲"
+      ],
       "realms": {
         "地界": {
           "growth_score": 1040,
-          "hp_aptitude_max": 1140, "hp_aptitude_min": 790,
-          "speed_aptitude_max": 1038, "speed_aptitude_min": 688,
-          "magic_atk_aptitude_max": 829, "magic_atk_aptitude_min": 479,
-          "physical_def_aptitude_max": 1247, "physical_def_aptitude_min": 897,
-          "magic_def_aptitude_max": 621, "magic_def_aptitude_min": 271
+          "hp_aptitude_max": 1140,
+          "hp_aptitude_min": 790,
+          "speed_aptitude_max": 1038,
+          "speed_aptitude_min": 688,
+          "magic_atk_aptitude_max": 829,
+          "magic_atk_aptitude_min": 479,
+          "physical_def_aptitude_max": 1247,
+          "physical_def_aptitude_min": 897,
+          "magic_def_aptitude_max": 621,
+          "magic_def_aptitude_min": 271
         },
         "灵界": {
           "growth_score": 1040,
@@ -713,7 +1076,13 @@
           "physical_def_aptitude_max": 1324,
           "magic_def_aptitude_max": 660
         }
-      }
+      },
+      "all_skill_ids": [
+        3104,
+        1111,
+        3106,
+        1103
+      ]
     },
     {
       "id": 25,
@@ -723,15 +1092,24 @@
       "rarity": "精英",
       "habitat": "死亡沼泽",
       "attack_type": "physical",
-      "all_skill_names": ["高级魔抗", "迷惑", "偷袭"],
+      "all_skill_names": [
+        "高级魔抗",
+        "迷惑",
+        "偷袭"
+      ],
       "realms": {
         "地界": {
           "growth_score": 1060,
-          "hp_aptitude_max": 1168, "hp_aptitude_min": 818,
-          "speed_aptitude_max": 1060, "speed_aptitude_min": 710,
-          "physical_atk_aptitude_max": 849, "physical_atk_aptitude_min": 499,
-          "physical_def_aptitude_max": 638, "physical_def_aptitude_min": 288,
-          "magic_def_aptitude_max": 1270, "magic_def_aptitude_min": 920
+          "hp_aptitude_max": 1168,
+          "hp_aptitude_min": 818,
+          "speed_aptitude_max": 1060,
+          "speed_aptitude_min": 710,
+          "physical_atk_aptitude_max": 849,
+          "physical_atk_aptitude_min": 499,
+          "physical_def_aptitude_max": 638,
+          "physical_def_aptitude_min": 288,
+          "magic_def_aptitude_max": 1270,
+          "magic_def_aptitude_min": 920
         },
         "灵界": {
           "growth_score": 1060,
@@ -749,7 +1127,12 @@
           "physical_def_aptitude_max": 720,
           "magic_def_aptitude_max": 1432
         }
-      }
+      },
+      "all_skill_ids": [
+        3003,
+        1106,
+        3108
+      ]
     },
     {
       "id": 26,
@@ -759,15 +1142,24 @@
       "rarity": "普通",
       "habitat": "日落海峡",
       "attack_type": "magical",
-      "all_skill_names": ["高级水攻", "高级雷击", "抗性增强"],
+      "all_skill_names": [
+        "高级水攻",
+        "高级雷击",
+        "抗性增强"
+      ],
       "realms": {
         "地界": {
           "growth_score": 1140,
-          "hp_aptitude_max": 906, "hp_aptitude_min": 556,
-          "speed_aptitude_max": 1316, "speed_aptitude_min": 966,
-          "magic_atk_aptitude_max": 1144, "magic_atk_aptitude_min": 794,
-          "physical_def_aptitude_max": 1076, "physical_def_aptitude_min": 726,
-          "magic_def_aptitude_max": 1144, "magic_def_aptitude_min": 794
+          "hp_aptitude_max": 906,
+          "hp_aptitude_min": 556,
+          "speed_aptitude_max": 1316,
+          "speed_aptitude_min": 966,
+          "magic_atk_aptitude_max": 1144,
+          "magic_atk_aptitude_min": 794,
+          "physical_def_aptitude_max": 1076,
+          "physical_def_aptitude_min": 726,
+          "magic_def_aptitude_max": 1144,
+          "magic_def_aptitude_min": 794
         },
         "灵界": {
           "growth_score": 1140,
@@ -777,7 +1169,12 @@
           "physical_def_aptitude_max": 1143,
           "magic_def_aptitude_max": 1215
         }
-      }
+      },
+      "all_skill_ids": [
+        1011,
+        1008,
+        3109
+      ]
     },
     {
       "id": 27,
@@ -787,15 +1184,25 @@
       "rarity": "普通",
       "habitat": "日落海峡",
       "attack_type": "magical",
-      "all_skill_names": ["高级连击", "智慧", "反震", "弱点敏捷"],
+      "all_skill_names": [
+        "高级连击",
+        "智慧",
+        "反震",
+        "弱点敏捷"
+      ],
       "realms": {
         "地界": {
           "growth_score": 1140,
-          "hp_aptitude_max": 906, "hp_aptitude_min": 556,
-          "speed_aptitude_max": 1144, "speed_aptitude_min": 794,
-          "magic_atk_aptitude_max": 1374, "magic_atk_aptitude_min": 1024,
-          "physical_def_aptitude_max": 802, "physical_def_aptitude_min": 452,
-          "magic_def_aptitude_max": 1032, "magic_def_aptitude_min": 682
+          "hp_aptitude_max": 906,
+          "hp_aptitude_min": 556,
+          "speed_aptitude_max": 1144,
+          "speed_aptitude_min": 794,
+          "magic_atk_aptitude_max": 1374,
+          "magic_atk_aptitude_min": 1024,
+          "physical_def_aptitude_max": 802,
+          "physical_def_aptitude_min": 452,
+          "magic_def_aptitude_max": 1032,
+          "magic_def_aptitude_min": 682
         },
         "灵界": {
           "growth_score": 1140,
@@ -805,7 +1212,13 @@
           "physical_def_aptitude_max": 852,
           "magic_def_aptitude_max": 1096
         }
-      }
+      },
+      "all_skill_ids": [
+        1002,
+        3102,
+        2102,
+        4004
+      ]
     },
     {
       "id": 28,
@@ -815,15 +1228,24 @@
       "rarity": "普通",
       "habitat": "日落海峡",
       "attack_type": "magical",
-      "all_skill_names": ["高级必杀", "防御", "连击"],
+      "all_skill_names": [
+        "高级必杀",
+        "防御",
+        "连击"
+      ],
       "realms": {
         "地界": {
           "growth_score": 1140,
-          "hp_aptitude_max": 1245, "hp_aptitude_min": 895,
-          "speed_aptitude_max": 1144, "speed_aptitude_min": 794,
-          "magic_atk_aptitude_max": 906, "magic_atk_aptitude_min": 556,
-          "physical_def_aptitude_max": 1374, "physical_def_aptitude_min": 1024,
-          "magic_def_aptitude_max": 678, "magic_def_aptitude_min": 328
+          "hp_aptitude_max": 1245,
+          "hp_aptitude_min": 895,
+          "speed_aptitude_max": 1144,
+          "speed_aptitude_min": 794,
+          "magic_atk_aptitude_max": 906,
+          "magic_atk_aptitude_min": 556,
+          "physical_def_aptitude_max": 1374,
+          "physical_def_aptitude_min": 1024,
+          "magic_def_aptitude_max": 678,
+          "magic_def_aptitude_min": 328
         },
         "灵界": {
           "growth_score": 1140,
@@ -833,7 +1255,12 @@
           "physical_def_aptitude_max": 1459,
           "magic_def_aptitude_max": 720
         }
-      }
+      },
+      "all_skill_ids": [
+        1001,
+        3104,
+        1102
+      ]
     },
     {
       "id": 29,
@@ -843,15 +1270,24 @@
       "rarity": "精英",
       "habitat": "日落海峡",
       "attack_type": "magical",
-      "all_skill_names": ["高级体魄", "魔抗", "水攻"],
+      "all_skill_names": [
+        "高级体魄",
+        "魔抗",
+        "水攻"
+      ],
       "realms": {
         "地界": {
           "growth_score": 1160,
-          "hp_aptitude_max": 1284, "hp_aptitude_min": 934,
-          "speed_aptitude_max": 1155, "speed_aptitude_min": 805,
-          "magic_atk_aptitude_max": 933, "magic_atk_aptitude_min": 583,
-          "physical_def_aptitude_max": 577, "physical_def_aptitude_min": 227,
-          "magic_def_aptitude_max": 1516, "magic_def_aptitude_min": 1166
+          "hp_aptitude_max": 1284,
+          "hp_aptitude_min": 934,
+          "speed_aptitude_max": 1155,
+          "speed_aptitude_min": 805,
+          "magic_atk_aptitude_max": 933,
+          "magic_atk_aptitude_min": 583,
+          "physical_def_aptitude_max": 577,
+          "physical_def_aptitude_min": 227,
+          "magic_def_aptitude_max": 1516,
+          "magic_def_aptitude_min": 1166
         },
         "灵界": {
           "growth_score": 1160,
@@ -869,7 +1305,12 @@
           "physical_def_aptitude_max": 651,
           "magic_def_aptitude_max": 1710
         }
-      }
+      },
+      "all_skill_ids": [
+        3006,
+        3103,
+        1111
+      ]
     },
     {
       "id": 30,
@@ -879,15 +1320,25 @@
       "rarity": "普通",
       "habitat": "聚灵孤岛",
       "attack_type": "physical",
-      "all_skill_names": ["高级敏捷", "高级幸运", "偷袭", "弱点敏捷"],
+      "all_skill_names": [
+        "高级敏捷",
+        "高级幸运",
+        "偷袭",
+        "弱点敏捷"
+      ],
       "realms": {
         "地界": {
           "growth_score": 1140,
-          "hp_aptitude_max": 906, "hp_aptitude_min": 556,
-          "speed_aptitude_max": 1316, "speed_aptitude_min": 966,
-          "physical_atk_aptitude_max": 1144, "physical_atk_aptitude_min": 794,
-          "physical_def_aptitude_max": 1144, "physical_def_aptitude_min": 794,
-          "magic_def_aptitude_max": 1076, "magic_def_aptitude_min": 726
+          "hp_aptitude_max": 906,
+          "hp_aptitude_min": 556,
+          "speed_aptitude_max": 1316,
+          "speed_aptitude_min": 966,
+          "physical_atk_aptitude_max": 1144,
+          "physical_atk_aptitude_min": 794,
+          "physical_def_aptitude_max": 1144,
+          "physical_def_aptitude_min": 794,
+          "magic_def_aptitude_max": 1076,
+          "magic_def_aptitude_min": 726
         },
         "灵界": {
           "growth_score": 1140,
@@ -897,7 +1348,13 @@
           "physical_def_aptitude_max": 1215,
           "magic_def_aptitude_max": 1143
         }
-      }
+      },
+      "all_skill_ids": [
+        3005,
+        3008,
+        3108,
+        4004
+      ]
     },
     {
       "id": 31,
@@ -907,15 +1364,24 @@
       "rarity": "普通",
       "habitat": "聚灵孤岛",
       "attack_type": "physical",
-      "all_skill_names": ["高级麻痹", "高级撕咬", "抗性增强"],
+      "all_skill_names": [
+        "高级麻痹",
+        "高级撕咬",
+        "抗性增强"
+      ],
       "realms": {
         "地界": {
           "growth_score": 1140,
-          "hp_aptitude_max": 906, "hp_aptitude_min": 556,
-          "speed_aptitude_max": 1144, "speed_aptitude_min": 794,
-          "physical_atk_aptitude_max": 1374, "physical_atk_aptitude_min": 674,
-          "physical_def_aptitude_max": 1032, "physical_def_aptitude_min": 682,
-          "magic_def_aptitude_max": 802, "magic_def_aptitude_min": 452
+          "hp_aptitude_max": 906,
+          "hp_aptitude_min": 556,
+          "speed_aptitude_max": 1144,
+          "speed_aptitude_min": 794,
+          "physical_atk_aptitude_max": 1374,
+          "physical_atk_aptitude_min": 674,
+          "physical_def_aptitude_max": 1032,
+          "physical_def_aptitude_min": 682,
+          "magic_def_aptitude_max": 802,
+          "magic_def_aptitude_min": 452
         },
         "灵界": {
           "growth_score": 1140,
@@ -925,7 +1391,12 @@
           "physical_def_aptitude_max": 1096,
           "magic_def_aptitude_max": 852
         }
-      }
+      },
+      "all_skill_ids": [
+        1005,
+        1009,
+        3109
+      ]
     },
     {
       "id": 32,
@@ -935,15 +1406,24 @@
       "rarity": "普通",
       "habitat": "聚灵孤岛",
       "attack_type": "physical",
-      "all_skill_names": ["高级迷惑", "闪避", "魔抗"],
+      "all_skill_names": [
+        "高级迷惑",
+        "闪避",
+        "魔抗"
+      ],
       "realms": {
         "地界": {
           "growth_score": 1140,
-          "hp_aptitude_max": 1245, "hp_aptitude_min": 895,
-          "speed_aptitude_max": 1144, "speed_aptitude_min": 794,
-          "physical_atk_aptitude_max": 906, "physical_atk_aptitude_min": 556,
-          "physical_def_aptitude_max": 678, "physical_def_aptitude_min": 328,
-          "magic_def_aptitude_max": 1374, "magic_def_aptitude_min": 1024
+          "hp_aptitude_max": 1245,
+          "hp_aptitude_min": 895,
+          "speed_aptitude_max": 1144,
+          "speed_aptitude_min": 794,
+          "physical_atk_aptitude_max": 906,
+          "physical_atk_aptitude_min": 556,
+          "physical_def_aptitude_max": 678,
+          "physical_def_aptitude_min": 328,
+          "magic_def_aptitude_max": 1374,
+          "magic_def_aptitude_min": 1024
         },
         "灵界": {
           "growth_score": 1140,
@@ -953,7 +1433,12 @@
           "physical_def_aptitude_max": 720,
           "magic_def_aptitude_max": 1459
         }
-      }
+      },
+      "all_skill_ids": [
+        1006,
+        2101,
+        3103
+      ]
     },
     {
       "id": 33,
@@ -963,15 +1448,24 @@
       "rarity": "精英",
       "habitat": "聚灵孤岛",
       "attack_type": "physical",
-      "all_skill_names": ["高级反击", "冲撞", "强力"],
+      "all_skill_names": [
+        "高级反击",
+        "冲撞",
+        "强力"
+      ],
       "realms": {
         "地界": {
           "growth_score": 1160,
-          "hp_aptitude_max": 1284, "hp_aptitude_min": 934,
-          "speed_aptitude_max": 1155, "speed_aptitude_min": 805,
-          "physical_atk_aptitude_max": 933, "physical_atk_aptitude_min": 583,
-          "physical_def_aptitude_max": 1516, "physical_def_aptitude_min": 1166,
-          "magic_def_aptitude_max": 577, "magic_def_aptitude_min": 227
+          "hp_aptitude_max": 1284,
+          "hp_aptitude_min": 934,
+          "speed_aptitude_max": 1155,
+          "speed_aptitude_min": 805,
+          "physical_atk_aptitude_max": 933,
+          "physical_atk_aptitude_min": 583,
+          "physical_def_aptitude_max": 1516,
+          "physical_def_aptitude_min": 1166,
+          "magic_def_aptitude_max": 577,
+          "magic_def_aptitude_min": 227
         },
         "灵界": {
           "growth_score": 1160,
@@ -989,7 +1483,12 @@
           "physical_def_aptitude_max": 1710,
           "magic_def_aptitude_max": 651
         }
-      }
+      },
+      "all_skill_ids": [
+        2003,
+        1110,
+        3101
+      ]
     },
     {
       "id": 34,
@@ -999,15 +1498,25 @@
       "rarity": "普通",
       "habitat": "龙骨墓地",
       "attack_type": "physical",
-      "all_skill_names": ["高级撕咬", "敏捷", "闪避", "幸运"],
+      "all_skill_names": [
+        "高级撕咬",
+        "敏捷",
+        "闪避",
+        "幸运"
+      ],
       "realms": {
         "地界": {
           "growth_score": 1240,
-          "hp_aptitude_max": 990, "hp_aptitude_min": 640,
-          "speed_aptitude_max": 1426, "speed_aptitude_min": 1076,
-          "physical_atk_aptitude_max": 1239, "physical_atk_aptitude_min": 889,
-          "physical_def_aptitude_max": 1239, "physical_def_aptitude_min": 889,
-          "magic_def_aptitude_max": 1178, "magic_def_aptitude_min": 828
+          "hp_aptitude_max": 990,
+          "hp_aptitude_min": 640,
+          "speed_aptitude_max": 1426,
+          "speed_aptitude_min": 1076,
+          "physical_atk_aptitude_max": 1239,
+          "physical_atk_aptitude_min": 889,
+          "physical_def_aptitude_max": 1239,
+          "physical_def_aptitude_min": 889,
+          "magic_def_aptitude_max": 1178,
+          "magic_def_aptitude_min": 828
         },
         "灵界": {
           "growth_score": 1240,
@@ -1017,7 +1526,13 @@
           "physical_def_aptitude_max": 1316,
           "magic_def_aptitude_max": 1251
         }
-      }
+      },
+      "all_skill_ids": [
+        1009,
+        3105,
+        2101,
+        3107
+      ]
     },
     {
       "id": 35,
@@ -1027,15 +1542,25 @@
       "rarity": "普通",
       "habitat": "龙骨墓地",
       "attack_type": "magical",
-      "all_skill_names": ["高级敏捷", "高级幸运", "偷袭", "弱点敏捷"],
+      "all_skill_names": [
+        "高级敏捷",
+        "高级幸运",
+        "偷袭",
+        "弱点敏捷"
+      ],
       "realms": {
         "地界": {
           "growth_score": 1240,
-          "hp_aptitude_max": 990, "hp_aptitude_min": 640,
-          "speed_aptitude_max": 1426, "speed_aptitude_min": 1076,
-          "magic_atk_aptitude_max": 1239, "magic_atk_aptitude_min": 889,
-          "physical_def_aptitude_max": 1178, "physical_def_aptitude_min": 828,
-          "magic_def_aptitude_max": 1239, "magic_def_aptitude_min": 889
+          "hp_aptitude_max": 990,
+          "hp_aptitude_min": 640,
+          "speed_aptitude_max": 1426,
+          "speed_aptitude_min": 1076,
+          "magic_atk_aptitude_max": 1239,
+          "magic_atk_aptitude_min": 889,
+          "physical_def_aptitude_max": 1178,
+          "physical_def_aptitude_min": 828,
+          "magic_def_aptitude_max": 1239,
+          "magic_def_aptitude_min": 889
         },
         "灵界": {
           "growth_score": 1240,
@@ -1045,7 +1570,13 @@
           "physical_def_aptitude_max": 1251,
           "magic_def_aptitude_max": 1316
         }
-      }
+      },
+      "all_skill_ids": [
+        3005,
+        3008,
+        3108,
+        4004
+      ]
     },
     {
       "id": 36,
@@ -1055,15 +1586,25 @@
       "rarity": "普通",
       "habitat": "龙骨墓地",
       "attack_type": "magical",
-      "all_skill_names": ["雷击", "迷惑", "魔抗", "麻痹"],
+      "all_skill_names": [
+        "雷击",
+        "迷惑",
+        "魔抗",
+        "麻痹"
+      ],
       "realms": {
         "地界": {
           "growth_score": 1240,
-          "hp_aptitude_max": 990, "hp_aptitude_min": 640,
-          "speed_aptitude_max": 1239, "speed_aptitude_min": 889,
-          "magic_atk_aptitude_max": 1487, "magic_atk_aptitude_min": 1137,
-          "physical_def_aptitude_max": 868, "physical_def_aptitude_min": 518,
-          "magic_def_aptitude_max": 1117, "magic_def_aptitude_min": 767
+          "hp_aptitude_max": 990,
+          "hp_aptitude_min": 640,
+          "speed_aptitude_max": 1239,
+          "speed_aptitude_min": 889,
+          "magic_atk_aptitude_max": 1487,
+          "magic_atk_aptitude_min": 1137,
+          "physical_def_aptitude_max": 868,
+          "physical_def_aptitude_min": 518,
+          "magic_def_aptitude_max": 1117,
+          "magic_def_aptitude_min": 767
         },
         "灵界": {
           "growth_score": 1240,
@@ -1073,7 +1614,13 @@
           "physical_def_aptitude_max": 922,
           "magic_def_aptitude_max": 1186
         }
-      }
+      },
+      "all_skill_ids": [
+        1108,
+        1106,
+        3103,
+        1105
+      ]
     },
     {
       "id": 37,
@@ -1083,15 +1630,25 @@
       "rarity": "精英",
       "habitat": "龙骨墓地",
       "attack_type": "physical",
-      "all_skill_names": ["高级连击", "高级幸运", "毒攻", "反击"],
+      "all_skill_names": [
+        "高级连击",
+        "高级幸运",
+        "毒攻",
+        "反击"
+      ],
       "realms": {
         "地界": {
           "growth_score": 1260,
-          "hp_aptitude_max": 1009, "hp_aptitude_min": 659,
-          "speed_aptitude_max": 1260, "speed_aptitude_min": 910,
-          "physical_atk_aptitude_max": 1510, "physical_atk_aptitude_min": 1160,
-          "physical_def_aptitude_max": 1131, "physical_def_aptitude_min": 781,
-          "magic_def_aptitude_max": 880, "magic_def_aptitude_min": 530
+          "hp_aptitude_max": 1009,
+          "hp_aptitude_min": 659,
+          "speed_aptitude_max": 1260,
+          "speed_aptitude_min": 910,
+          "physical_atk_aptitude_max": 1510,
+          "physical_atk_aptitude_min": 1160,
+          "physical_def_aptitude_max": 1131,
+          "physical_def_aptitude_min": 781,
+          "magic_def_aptitude_max": 880,
+          "magic_def_aptitude_min": 530
         },
         "灵界": {
           "growth_score": 1260,
@@ -1109,7 +1666,13 @@
           "physical_def_aptitude_max": 1276,
           "magic_def_aptitude_max": 993
         }
-      }
+      },
+      "all_skill_ids": [
+        1002,
+        3008,
+        1113,
+        2103
+      ]
     },
     {
       "id": 38,
@@ -1119,15 +1682,24 @@
       "rarity": "普通",
       "habitat": "巨龙冰原",
       "attack_type": "magical",
-      "all_skill_names": ["智慧", "幸运", "水攻"],
+      "all_skill_names": [
+        "智慧",
+        "幸运",
+        "水攻"
+      ],
       "realms": {
         "地界": {
           "growth_score": 1240,
-          "hp_aptitude_max": 1360, "hp_aptitude_min": 1010,
-          "speed_aptitude_max": 1239, "speed_aptitude_min": 889,
-          "magic_atk_aptitude_max": 990, "magic_atk_aptitude_min": 640,
-          "physical_def_aptitude_max": 619, "physical_def_aptitude_min": 269,
-          "magic_def_aptitude_max": 1609, "magic_def_aptitude_min": 1259
+          "hp_aptitude_max": 1360,
+          "hp_aptitude_min": 1010,
+          "speed_aptitude_max": 1239,
+          "speed_aptitude_min": 889,
+          "magic_atk_aptitude_max": 990,
+          "magic_atk_aptitude_min": 640,
+          "physical_def_aptitude_max": 619,
+          "physical_def_aptitude_min": 269,
+          "magic_def_aptitude_max": 1609,
+          "magic_def_aptitude_min": 1259
         },
         "灵界": {
           "growth_score": 1240,
@@ -1137,7 +1709,12 @@
           "physical_def_aptitude_max": 657,
           "magic_def_aptitude_max": 1709
         }
-      }
+      },
+      "all_skill_ids": [
+        3102,
+        3107,
+        1111
+      ]
     },
     {
       "id": 39,
@@ -1147,15 +1724,24 @@
       "rarity": "普通",
       "habitat": "巨龙冰原",
       "attack_type": "physical",
-      "all_skill_names": ["防御", "强力", "冲撞"],
+      "all_skill_names": [
+        "防御",
+        "强力",
+        "冲撞"
+      ],
       "realms": {
         "地界": {
           "growth_score": 1240,
-          "hp_aptitude_max": 1360, "hp_aptitude_min": 1010,
-          "speed_aptitude_max": 1239, "speed_aptitude_min": 889,
-          "physical_atk_aptitude_max": 990, "physical_atk_aptitude_min": 640,
-          "physical_def_aptitude_max": 1609, "physical_def_aptitude_min": 1259,
-          "magic_def_aptitude_max": 619, "magic_def_aptitude_min": 269
+          "hp_aptitude_max": 1360,
+          "hp_aptitude_min": 1010,
+          "speed_aptitude_max": 1239,
+          "speed_aptitude_min": 889,
+          "physical_atk_aptitude_max": 990,
+          "physical_atk_aptitude_min": 640,
+          "physical_def_aptitude_max": 1609,
+          "physical_def_aptitude_min": 1259,
+          "magic_def_aptitude_max": 619,
+          "magic_def_aptitude_min": 269
         },
         "灵界": {
           "growth_score": 1240,
@@ -1165,7 +1751,12 @@
           "physical_def_aptitude_max": 1709,
           "magic_def_aptitude_max": 657
         }
-      }
+      },
+      "all_skill_ids": [
+        3104,
+        3101,
+        1110
+      ]
     },
     {
       "id": 40,
@@ -1175,15 +1766,25 @@
       "rarity": "普通",
       "habitat": "巨龙冰原",
       "attack_type": "physical",
-      "all_skill_names": ["高级破甲", "必杀", "魔抗", "连击"],
+      "all_skill_names": [
+        "高级破甲",
+        "必杀",
+        "魔抗",
+        "连击"
+      ],
       "realms": {
         "地界": {
           "growth_score": 1240,
-          "hp_aptitude_max": 1360, "hp_aptitude_min": 1010,
-          "speed_aptitude_max": 1239, "speed_aptitude_min": 889,
-          "physical_atk_aptitude_max": 990, "physical_atk_aptitude_min": 640,
-          "physical_def_aptitude_max": 741, "physical_def_aptitude_min": 391,
-          "magic_def_aptitude_max": 1487, "magic_def_aptitude_min": 1137
+          "hp_aptitude_max": 1360,
+          "hp_aptitude_min": 1010,
+          "speed_aptitude_max": 1239,
+          "speed_aptitude_min": 889,
+          "physical_atk_aptitude_max": 990,
+          "physical_atk_aptitude_min": 640,
+          "physical_def_aptitude_max": 741,
+          "physical_def_aptitude_min": 391,
+          "magic_def_aptitude_max": 1487,
+          "magic_def_aptitude_min": 1137
         },
         "灵界": {
           "growth_score": 1240,
@@ -1193,7 +1794,13 @@
           "physical_def_aptitude_max": 787,
           "magic_def_aptitude_max": 1579
         }
-      }
+      },
+      "all_skill_ids": [
+        1003,
+        1101,
+        3103,
+        1102
+      ]
     },
     {
       "id": 41,
@@ -1203,15 +1810,25 @@
       "rarity": "精英",
       "habitat": "巨龙冰原",
       "attack_type": "magical",
-      "all_skill_names": ["高级水攻", "高级反震", "雷击", "体魄"],
+      "all_skill_names": [
+        "高级水攻",
+        "高级反震",
+        "雷击",
+        "体魄"
+      ],
       "realms": {
         "地界": {
           "growth_score": 1260,
-          "hp_aptitude_max": 1388, "hp_aptitude_min": 1038,
-          "speed_aptitude_max": 1260, "speed_aptitude_min": 910,
-          "magic_atk_aptitude_max": 1009, "magic_atk_aptitude_min": 659,
-          "physical_def_aptitude_max": 1510, "physical_def_aptitude_min": 1160,
-          "magic_def_aptitude_max": 758, "magic_def_aptitude_min": 408
+          "hp_aptitude_max": 1388,
+          "hp_aptitude_min": 1038,
+          "speed_aptitude_max": 1260,
+          "speed_aptitude_min": 910,
+          "magic_atk_aptitude_max": 1009,
+          "magic_atk_aptitude_min": 659,
+          "physical_def_aptitude_max": 1510,
+          "physical_def_aptitude_min": 1160,
+          "magic_def_aptitude_max": 758,
+          "magic_def_aptitude_min": 408
         },
         "灵界": {
           "growth_score": 1260,
@@ -1229,7 +1846,13 @@
           "physical_def_aptitude_max": 1703,
           "magic_def_aptitude_max": 855
         }
-      }
+      },
+      "all_skill_ids": [
+        1011,
+        2002,
+        1108,
+        3106
+      ]
     },
     {
       "id": 42,
@@ -1239,15 +1862,25 @@
       "rarity": "普通",
       "habitat": "圣龙城郊",
       "attack_type": "magical",
-      "all_skill_names": ["高级雷击", "高级反击", "连击", "弱点魔抗"],
+      "all_skill_names": [
+        "高级雷击",
+        "高级反击",
+        "连击",
+        "弱点魔抗"
+      ],
       "realms": {
         "地界": {
           "growth_score": 1340,
-          "hp_aptitude_max": 1074, "hp_aptitude_min": 724,
-          "speed_aptitude_max": 1545, "speed_aptitude_min": 1195,
-          "magic_atk_aptitude_max": 1344, "magic_atk_aptitude_min": 994,
-          "physical_def_aptitude_max": 1275, "physical_def_aptitude_min": 925,
-          "magic_def_aptitude_max": 1344, "magic_def_aptitude_min": 994
+          "hp_aptitude_max": 1074,
+          "hp_aptitude_min": 724,
+          "speed_aptitude_max": 1545,
+          "speed_aptitude_min": 1195,
+          "magic_atk_aptitude_max": 1344,
+          "magic_atk_aptitude_min": 994,
+          "physical_def_aptitude_max": 1275,
+          "physical_def_aptitude_min": 925,
+          "magic_def_aptitude_max": 1344,
+          "magic_def_aptitude_min": 994
         },
         "灵界": {
           "growth_score": 1340,
@@ -1257,7 +1890,13 @@
           "physical_def_aptitude_max": 1354,
           "magic_def_aptitude_max": 1427
         }
-      }
+      },
+      "all_skill_ids": [
+        1008,
+        2003,
+        1102,
+        4003
+      ]
     },
     {
       "id": 43,
@@ -1267,15 +1906,24 @@
       "rarity": "普通",
       "habitat": "圣龙城郊",
       "attack_type": "physical",
-      "all_skill_names": ["高级魔抗", "偷袭", "必杀"],
+      "all_skill_names": [
+        "高级魔抗",
+        "偷袭",
+        "必杀"
+      ],
       "realms": {
         "地界": {
           "growth_score": 1340,
-          "hp_aptitude_max": 1476, "hp_aptitude_min": 1126,
-          "speed_aptitude_max": 1344, "speed_aptitude_min": 994,
-          "physical_atk_aptitude_max": 1074, "physical_atk_aptitude_min": 724,
-          "physical_def_aptitude_max": 796, "physical_def_aptitude_min": 446,
-          "magic_def_aptitude_max": 1613, "magic_def_aptitude_min": 1263
+          "hp_aptitude_max": 1476,
+          "hp_aptitude_min": 1126,
+          "speed_aptitude_max": 1344,
+          "speed_aptitude_min": 994,
+          "physical_atk_aptitude_max": 1074,
+          "physical_atk_aptitude_min": 724,
+          "physical_def_aptitude_max": 796,
+          "physical_def_aptitude_min": 446,
+          "magic_def_aptitude_max": 1613,
+          "magic_def_aptitude_min": 1263
         },
         "灵界": {
           "growth_score": 1340,
@@ -1285,7 +1933,12 @@
           "physical_def_aptitude_max": 845,
           "magic_def_aptitude_max": 1713
         }
-      }
+      },
+      "all_skill_ids": [
+        3003,
+        3108,
+        1101
+      ]
     },
     {
       "id": 44,
@@ -1295,15 +1948,25 @@
       "rarity": "普通",
       "habitat": "圣龙城郊",
       "attack_type": "physical",
-      "all_skill_names": ["高级必杀", "吸血", "麻痹", "闪避"],
+      "all_skill_names": [
+        "高级必杀",
+        "吸血",
+        "麻痹",
+        "闪避"
+      ],
       "realms": {
         "地界": {
           "growth_score": 1340,
-          "hp_aptitude_max": 1074, "hp_aptitude_min": 724,
-          "speed_aptitude_max": 1344, "speed_aptitude_min": 994,
-          "physical_atk_aptitude_max": 1613, "physical_atk_aptitude_min": 1263,
-          "physical_def_aptitude_max": 1211, "physical_def_aptitude_min": 861,
-          "magic_def_aptitude_max": 941, "magic_def_aptitude_min": 591
+          "hp_aptitude_max": 1074,
+          "hp_aptitude_min": 724,
+          "speed_aptitude_max": 1344,
+          "speed_aptitude_min": 994,
+          "physical_atk_aptitude_max": 1613,
+          "physical_atk_aptitude_min": 1263,
+          "physical_def_aptitude_max": 1211,
+          "physical_def_aptitude_min": 861,
+          "magic_def_aptitude_max": 941,
+          "magic_def_aptitude_min": 591
         },
         "灵界": {
           "growth_score": 1340,
@@ -1313,7 +1976,13 @@
           "physical_def_aptitude_max": 1286,
           "magic_def_aptitude_max": 999
         }
-      }
+      },
+      "all_skill_ids": [
+        1001,
+        1112,
+        1105,
+        2101
+      ]
     },
     {
       "id": 45,
@@ -1323,15 +1992,25 @@
       "rarity": "精英",
       "habitat": "圣龙城郊",
       "attack_type": "physical",
-      "all_skill_names": ["连击", "闪避", "敏捷", "幸运"],
+      "all_skill_names": [
+        "连击",
+        "闪避",
+        "敏捷",
+        "幸运"
+      ],
       "realms": {
         "地界": {
           "growth_score": 1340,
-          "hp_aptitude_max": 1476, "hp_aptitude_min": 1126,
-          "speed_aptitude_max": 1344, "speed_aptitude_min": 994,
-          "physical_atk_aptitude_max": 1074, "physical_atk_aptitude_min": 724,
-          "physical_def_aptitude_max": 1746, "physical_def_aptitude_min": 1396,
-          "magic_def_aptitude_max": 672, "magic_def_aptitude_min": 322
+          "hp_aptitude_max": 1476,
+          "hp_aptitude_min": 1126,
+          "speed_aptitude_max": 1344,
+          "speed_aptitude_min": 994,
+          "physical_atk_aptitude_max": 1074,
+          "physical_atk_aptitude_min": 724,
+          "physical_def_aptitude_max": 1746,
+          "physical_def_aptitude_min": 1396,
+          "magic_def_aptitude_max": 672,
+          "magic_def_aptitude_min": 322
         },
         "灵界": {
           "growth_score": 1340,
@@ -1349,7 +2028,13 @@
           "physical_def_aptitude_max": 1969,
           "magic_def_aptitude_max": 758
         }
-      }
+      },
+      "all_skill_ids": [
+        1102,
+        2101,
+        3105,
+        3107
+      ]
     },
     {
       "id": 46,
@@ -1359,15 +2044,25 @@
       "rarity": "普通",
       "habitat": "皇城迷宫",
       "attack_type": "physical",
-      "all_skill_names": ["高级敏捷", "高级幸运", "偷袭", "弱点防御"],
+      "all_skill_names": [
+        "高级敏捷",
+        "高级幸运",
+        "偷袭",
+        "弱点防御"
+      ],
       "realms": {
         "地界": {
           "growth_score": 1340,
-          "hp_aptitude_max": 1074, "hp_aptitude_min": 724,
-          "speed_aptitude_max": 1545, "speed_aptitude_min": 1195,
-          "physical_atk_aptitude_max": 1344, "physical_atk_aptitude_min": 994,
-          "physical_def_aptitude_max": 1344, "physical_def_aptitude_min": 994,
-          "magic_def_aptitude_max": 1275, "magic_def_aptitude_min": 925
+          "hp_aptitude_max": 1074,
+          "hp_aptitude_min": 724,
+          "speed_aptitude_max": 1545,
+          "speed_aptitude_min": 1195,
+          "physical_atk_aptitude_max": 1344,
+          "physical_atk_aptitude_min": 994,
+          "physical_def_aptitude_max": 1344,
+          "physical_def_aptitude_min": 994,
+          "magic_def_aptitude_max": 1275,
+          "magic_def_aptitude_min": 925
         },
         "灵界": {
           "growth_score": 1340,
@@ -1377,7 +2072,13 @@
           "physical_def_aptitude_max": 1427,
           "magic_def_aptitude_max": 1354
         }
-      }
+      },
+      "all_skill_ids": [
+        3005,
+        3008,
+        3108,
+        4002
+      ]
     },
     {
       "id": 47,
@@ -1387,15 +2088,25 @@
       "rarity": "普通",
       "habitat": "皇城迷宫",
       "attack_type": "magical",
-      "all_skill_names": ["高级魔抗", "雷击", "敏捷", "弱点防御"],
+      "all_skill_names": [
+        "高级魔抗",
+        "雷击",
+        "敏捷",
+        "弱点防御"
+      ],
       "realms": {
         "地界": {
           "growth_score": 1340,
-          "hp_aptitude_max": 1476, "hp_aptitude_min": 1126,
-          "speed_aptitude_max": 1344, "speed_aptitude_min": 994,
-          "magic_atk_aptitude_max": 1074, "magic_atk_aptitude_min": 724,
-          "physical_def_aptitude_max": 672, "physical_def_aptitude_min": 322,
-          "magic_def_aptitude_max": 1746, "magic_def_aptitude_min": 1396
+          "hp_aptitude_max": 1476,
+          "hp_aptitude_min": 1126,
+          "speed_aptitude_max": 1344,
+          "speed_aptitude_min": 994,
+          "magic_atk_aptitude_max": 1074,
+          "magic_atk_aptitude_min": 724,
+          "physical_def_aptitude_max": 672,
+          "physical_def_aptitude_min": 322,
+          "magic_def_aptitude_max": 1746,
+          "magic_def_aptitude_min": 1396
         },
         "灵界": {
           "growth_score": 1340,
@@ -1405,7 +2116,13 @@
           "physical_def_aptitude_max": 714,
           "magic_def_aptitude_max": 1854
         }
-      }
+      },
+      "all_skill_ids": [
+        3003,
+        1108,
+        3105,
+        4002
+      ]
     },
     {
       "id": 48,
@@ -1415,15 +2132,25 @@
       "rarity": "普通",
       "habitat": "皇城迷宫",
       "attack_type": "magical",
-      "all_skill_names": ["防御", "水攻", "体魄", "破甲"],
+      "all_skill_names": [
+        "防御",
+        "水攻",
+        "体魄",
+        "破甲"
+      ],
       "realms": {
         "地界": {
           "growth_score": 1340,
-          "hp_aptitude_max": 1476, "hp_aptitude_min": 1126,
-          "speed_aptitude_max": 1344, "speed_aptitude_min": 994,
-          "magic_atk_aptitude_max": 1074, "magic_atk_aptitude_min": 724,
-          "physical_def_aptitude_max": 1613, "physical_def_aptitude_min": 1263,
-          "magic_def_aptitude_max": 796, "magic_def_aptitude_min": 446
+          "hp_aptitude_max": 1476,
+          "hp_aptitude_min": 1126,
+          "speed_aptitude_max": 1344,
+          "speed_aptitude_min": 994,
+          "magic_atk_aptitude_max": 1074,
+          "magic_atk_aptitude_min": 724,
+          "physical_def_aptitude_max": 1613,
+          "physical_def_aptitude_min": 1263,
+          "magic_def_aptitude_max": 796,
+          "magic_def_aptitude_min": 446
         },
         "灵界": {
           "growth_score": 1340,
@@ -1433,7 +2160,13 @@
           "physical_def_aptitude_max": 1713,
           "magic_def_aptitude_max": 845
         }
-      }
+      },
+      "all_skill_ids": [
+        3104,
+        1111,
+        3106,
+        1103
+      ]
     },
     {
       "id": 49,
@@ -1443,15 +2176,25 @@
       "rarity": "精英",
       "habitat": "皇城迷宫",
       "attack_type": "magical",
-      "all_skill_names": ["高级水攻", "幸运", "致盲", "智慧"],
+      "all_skill_names": [
+        "高级水攻",
+        "幸运",
+        "致盲",
+        "智慧"
+      ],
       "realms": {
         "地界": {
           "growth_score": 1340,
-          "hp_aptitude_max": 1074, "hp_aptitude_min": 724,
-          "speed_aptitude_max": 1344, "speed_aptitude_min": 944,
-          "magic_atk_aptitude_max": 1613, "magic_atk_aptitude_min": 1263,
-          "physical_def_aptitude_max": 941, "physical_def_aptitude_min": 591,
-          "magic_def_aptitude_max": 1211, "magic_def_aptitude_min": 861
+          "hp_aptitude_max": 1074,
+          "hp_aptitude_min": 724,
+          "speed_aptitude_max": 1344,
+          "speed_aptitude_min": 944,
+          "magic_atk_aptitude_max": 1613,
+          "magic_atk_aptitude_min": 1263,
+          "physical_def_aptitude_max": 941,
+          "physical_def_aptitude_min": 591,
+          "magic_def_aptitude_max": 1211,
+          "magic_def_aptitude_min": 861
         },
         "灵界": {
           "growth_score": 1340,
@@ -1469,7 +2212,13 @@
           "physical_def_aptitude_max": 1061,
           "magic_def_aptitude_max": 1366
         }
-      }
+      },
+      "all_skill_ids": [
+        1011,
+        3107,
+        1104,
+        3102
+      ]
     },
     {
       "id": 50,
@@ -1479,15 +2228,25 @@
       "rarity": "普通",
       "habitat": "梦幻海湾",
       "attack_type": "physical",
-      "all_skill_names": ["高级连击", "强力", "反震", "弱点敏捷"],
+      "all_skill_names": [
+        "高级连击",
+        "强力",
+        "反震",
+        "弱点敏捷"
+      ],
       "realms": {
         "地界": {
           "growth_score": 1440,
-          "hp_aptitude_max": 1158, "hp_aptitude_min": 808,
-          "speed_aptitude_max": 1668, "speed_aptitude_min": 1318,
-          "physical_atk_aptitude_max": 1449, "physical_atk_aptitude_min": 1099,
-          "physical_def_aptitude_max": 1449, "physical_def_aptitude_min": 1099,
-          "magic_def_aptitude_max": 1377, "magic_def_aptitude_min": 1027
+          "hp_aptitude_max": 1158,
+          "hp_aptitude_min": 808,
+          "speed_aptitude_max": 1668,
+          "speed_aptitude_min": 1318,
+          "physical_atk_aptitude_max": 1449,
+          "physical_atk_aptitude_min": 1099,
+          "physical_def_aptitude_max": 1449,
+          "physical_def_aptitude_min": 1099,
+          "magic_def_aptitude_max": 1377,
+          "magic_def_aptitude_min": 1027
         },
         "灵界": {
           "growth_score": 1440,
@@ -1497,7 +2256,13 @@
           "physical_def_aptitude_max": 1539,
           "magic_def_aptitude_max": 1462
         }
-      }
+      },
+      "all_skill_ids": [
+        1002,
+        3101,
+        2102,
+        4004
+      ]
     },
     {
       "id": 51,
@@ -1507,15 +2272,25 @@
       "rarity": "普通",
       "habitat": "梦幻海湾",
       "attack_type": "magical",
-      "all_skill_names": ["高级必杀", "防御", "连击", "致盲"],
+      "all_skill_names": [
+        "高级必杀",
+        "防御",
+        "连击",
+        "致盲"
+      ],
       "realms": {
         "地界": {
           "growth_score": 1440,
-          "hp_aptitude_max": 1591, "hp_aptitude_min": 1241,
-          "speed_aptitude_max": 1501, "speed_aptitude_min": 1151,
-          "magic_atk_aptitude_max": 1158, "magic_atk_aptitude_min": 808,
-          "physical_def_aptitude_max": 1739, "physical_def_aptitude_min": 1389,
-          "magic_def_aptitude_max": 867, "magic_def_aptitude_min": 517
+          "hp_aptitude_max": 1591,
+          "hp_aptitude_min": 1241,
+          "speed_aptitude_max": 1501,
+          "speed_aptitude_min": 1151,
+          "magic_atk_aptitude_max": 1158,
+          "magic_atk_aptitude_min": 808,
+          "physical_def_aptitude_max": 1739,
+          "physical_def_aptitude_min": 1389,
+          "magic_def_aptitude_max": 867,
+          "magic_def_aptitude_min": 517
         },
         "灵界": {
           "growth_score": 1440,
@@ -1525,7 +2300,13 @@
           "physical_def_aptitude_max": 1847,
           "magic_def_aptitude_max": 921
         }
-      }
+      },
+      "all_skill_ids": [
+        1001,
+        3104,
+        1102,
+        1104
+      ]
     },
     {
       "id": 52,
@@ -1535,15 +2316,24 @@
       "rarity": "普通",
       "habitat": "梦幻海湾",
       "attack_type": "physical",
-      "all_skill_names": ["高级雷击", "连击", "抗性增强"],
+      "all_skill_names": [
+        "高级雷击",
+        "连击",
+        "抗性增强"
+      ],
       "realms": {
         "地界": {
           "growth_score": 1440,
-          "hp_aptitude_max": 1591, "hp_aptitude_min": 1241,
-          "speed_aptitude_max": 1449, "speed_aptitude_min": 1099,
-          "physical_atk_aptitude_max": 1158, "physical_atk_aptitude_min": 808,
-          "physical_def_aptitude_max": 1882, "physical_def_aptitude_min": 1532,
-          "magic_def_aptitude_max": 724, "magic_def_aptitude_min": 374
+          "hp_aptitude_max": 1591,
+          "hp_aptitude_min": 1241,
+          "speed_aptitude_max": 1449,
+          "speed_aptitude_min": 1099,
+          "physical_atk_aptitude_max": 1158,
+          "physical_atk_aptitude_min": 808,
+          "physical_def_aptitude_max": 1882,
+          "physical_def_aptitude_min": 1532,
+          "magic_def_aptitude_max": 724,
+          "magic_def_aptitude_min": 374
         },
         "灵界": {
           "growth_score": 1440,
@@ -1553,7 +2343,12 @@
           "physical_def_aptitude_max": 1999,
           "magic_def_aptitude_max": 769
         }
-      }
+      },
+      "all_skill_ids": [
+        1008,
+        1102,
+        3109
+      ]
     },
     {
       "id": 53,
@@ -1563,15 +2358,25 @@
       "rarity": "精英",
       "habitat": "梦幻海湾",
       "attack_type": "physical",
-      "all_skill_names": ["高级迷惑", "高级幸运", "强力", "魔抗"],
+      "all_skill_names": [
+        "高级迷惑",
+        "高级幸运",
+        "强力",
+        "魔抗"
+      ],
       "realms": {
         "地界": {
           "growth_score": 1460,
-          "hp_aptitude_max": 1619, "hp_aptitude_min": 1269,
-          "speed_aptitude_max": 1470, "speed_aptitude_min": 1120,
-          "physical_atk_aptitude_max": 1177, "physical_atk_aptitude_min": 827,
-          "physical_def_aptitude_max": 884, "physical_def_aptitude_min": 534,
-          "magic_def_aptitude_max": 1762, "magic_def_aptitude_min": 1412
+          "hp_aptitude_max": 1619,
+          "hp_aptitude_min": 1269,
+          "speed_aptitude_max": 1470,
+          "speed_aptitude_min": 1120,
+          "physical_atk_aptitude_max": 1177,
+          "physical_atk_aptitude_min": 827,
+          "physical_def_aptitude_max": 884,
+          "physical_def_aptitude_min": 534,
+          "magic_def_aptitude_max": 1762,
+          "magic_def_aptitude_min": 1412
         },
         "灵界": {
           "growth_score": 1460,
@@ -1589,7 +2394,13 @@
           "physical_def_aptitude_max": 997,
           "magic_def_aptitude_max": 1987
         }
-      }
+      },
+      "all_skill_ids": [
+        1006,
+        3008,
+        3101,
+        3103
+      ]
     },
     {
       "id": 54,
@@ -1599,15 +2410,25 @@
       "rarity": "普通",
       "habitat": "幻光公园",
       "attack_type": "magical",
-      "all_skill_names": ["高级幸运", "偷袭", "防御", "闪避"],
+      "all_skill_names": [
+        "高级幸运",
+        "偷袭",
+        "防御",
+        "闪避"
+      ],
       "realms": {
         "地界": {
           "growth_score": 1440,
-          "hp_aptitude_max": 1591, "hp_aptitude_min": 1241,
-          "speed_aptitude_max": 1449, "speed_aptitude_min": 1099,
-          "magic_atk_aptitude_max": 1158, "magic_atk_aptitude_min": 808,
-          "physical_def_aptitude_max": 724, "physical_def_aptitude_min": 374,
-          "magic_def_aptitude_max": 1864, "magic_def_aptitude_min": 1514
+          "hp_aptitude_max": 1591,
+          "hp_aptitude_min": 1241,
+          "speed_aptitude_max": 1449,
+          "speed_aptitude_min": 1099,
+          "magic_atk_aptitude_max": 1158,
+          "magic_atk_aptitude_min": 808,
+          "physical_def_aptitude_max": 724,
+          "physical_def_aptitude_min": 374,
+          "magic_def_aptitude_max": 1864,
+          "magic_def_aptitude_min": 1514
         },
         "灵界": {
           "growth_score": 1440,
@@ -1617,7 +2438,13 @@
           "physical_def_aptitude_max": 769,
           "magic_def_aptitude_max": 1980
         }
-      }
+      },
+      "all_skill_ids": [
+        3008,
+        3108,
+        3104,
+        2101
+      ]
     },
     {
       "id": 55,
@@ -1627,15 +2454,25 @@
       "rarity": "普通",
       "habitat": "幻光公园",
       "attack_type": "physical",
-      "all_skill_names": ["高级撕咬", "麻痹", "幸运", "抗性增强"],
+      "all_skill_names": [
+        "高级撕咬",
+        "麻痹",
+        "幸运",
+        "抗性增强"
+      ],
       "realms": {
         "地界": {
           "growth_score": 1440,
-          "hp_aptitude_max": 1158, "hp_aptitude_min": 808,
-          "speed_aptitude_max": 1449, "speed_aptitude_min": 1099,
-          "physical_atk_aptitude_max": 1739, "physical_atk_aptitude_min": 1389,
-          "physical_def_aptitude_max": 1306, "physical_def_aptitude_min": 956,
-          "magic_def_aptitude_max": 1015, "magic_def_aptitude_min": 665
+          "hp_aptitude_max": 1158,
+          "hp_aptitude_min": 808,
+          "speed_aptitude_max": 1449,
+          "speed_aptitude_min": 1099,
+          "physical_atk_aptitude_max": 1739,
+          "physical_atk_aptitude_min": 1389,
+          "physical_def_aptitude_max": 1306,
+          "physical_def_aptitude_min": 956,
+          "magic_def_aptitude_max": 1015,
+          "magic_def_aptitude_min": 665
         },
         "灵界": {
           "growth_score": 1440,
@@ -1645,7 +2482,13 @@
           "physical_def_aptitude_max": 1387,
           "magic_def_aptitude_max": 1078
         }
-      }
+      },
+      "all_skill_ids": [
+        1009,
+        1105,
+        3107,
+        3109
+      ]
     },
     {
       "id": 56,
@@ -1655,15 +2498,25 @@
       "rarity": "普通",
       "habitat": "幻光公园",
       "attack_type": "magical",
-      "all_skill_names": ["高级连击", "敏捷", "闪避", "魔抗"],
+      "all_skill_names": [
+        "高级连击",
+        "敏捷",
+        "闪避",
+        "魔抗"
+      ],
       "realms": {
         "地界": {
           "growth_score": 1440,
-          "hp_aptitude_max": 1158, "hp_aptitude_min": 808,
-          "speed_aptitude_max": 1668, "speed_aptitude_min": 1318,
-          "magic_atk_aptitude_max": 1449, "magic_atk_aptitude_min": 1099,
-          "physical_def_aptitude_max": 1377, "physical_def_aptitude_min": 1027,
-          "magic_def_aptitude_max": 1449, "magic_def_aptitude_min": 1099
+          "hp_aptitude_max": 1158,
+          "hp_aptitude_min": 808,
+          "speed_aptitude_max": 1668,
+          "speed_aptitude_min": 1318,
+          "magic_atk_aptitude_max": 1449,
+          "magic_atk_aptitude_min": 1099,
+          "physical_def_aptitude_max": 1377,
+          "physical_def_aptitude_min": 1027,
+          "magic_def_aptitude_max": 1449,
+          "magic_def_aptitude_min": 1099
         },
         "灵界": {
           "growth_score": 1440,
@@ -1673,7 +2526,13 @@
           "physical_def_aptitude_max": 1462,
           "magic_def_aptitude_max": 1539
         }
-      }
+      },
+      "all_skill_ids": [
+        1002,
+        3105,
+        2101,
+        3103
+      ]
     },
     {
       "id": 57,
@@ -1683,15 +2542,25 @@
       "rarity": "精英",
       "habitat": "幻光公园",
       "attack_type": "magical",
-      "all_skill_names": ["高级反击", "智慧", "幸运", "偷袭"],
+      "all_skill_names": [
+        "高级反击",
+        "智慧",
+        "幸运",
+        "偷袭"
+      ],
       "realms": {
         "地界": {
           "growth_score": 1440,
-          "hp_aptitude_max": 1177, "hp_aptitude_min": 827,
-          "speed_aptitude_max": 1470, "speed_aptitude_min": 1120,
-          "magic_atk_aptitude_max": 1762, "magic_atk_aptitude_min": 1412,
-          "physical_def_aptitude_max": 1027, "physical_def_aptitude_min": 677,
-          "magic_def_aptitude_max": 1320, "magic_def_aptitude_min": 970
+          "hp_aptitude_max": 1177,
+          "hp_aptitude_min": 827,
+          "speed_aptitude_max": 1470,
+          "speed_aptitude_min": 1120,
+          "magic_atk_aptitude_max": 1762,
+          "magic_atk_aptitude_min": 1412,
+          "physical_def_aptitude_max": 1027,
+          "physical_def_aptitude_min": 677,
+          "magic_def_aptitude_max": 1320,
+          "magic_def_aptitude_min": 970
         },
         "灵界": {
           "growth_score": 1440,
@@ -1709,7 +2578,13 @@
           "physical_def_aptitude_max": 1158,
           "magic_def_aptitude_max": 1489
         }
-      }
+      },
+      "all_skill_ids": [
+        2003,
+        3102,
+        3107,
+        3108
+      ]
     },
     {
       "id": 58,
@@ -1719,16 +2594,30 @@
       "rarity": "神兽",
       "habitat": "未知",
       "attack_type": "physical",
-      "obtain_method": {"type": "神·逆鳞兑换", "cost": 6, "min_player_level": 30},
-      "all_skill_names": ["高级闪避", "高级虚弱", "高级撕咬", "高级幸运"],
+      "obtain_method": {
+        "type": "神·逆鳞兑换",
+        "cost": 6,
+        "min_player_level": 30
+      },
+      "all_skill_names": [
+        "高级闪避",
+        "高级虚弱",
+        "高级撕咬",
+        "高级幸运"
+      ],
       "realms": {
         "地界": {
           "growth_score": 1240,
-          "hp_aptitude_max": 990, "hp_aptitude_min": 640,
-          "speed_aptitude_max": 1239, "speed_aptitude_min": 889,
-          "physical_atk_aptitude_max": 1487, "physical_atk_aptitude_min": 1137,
-          "physical_def_aptitude_max": 1117, "physical_def_aptitude_min": 767,
-          "magic_def_aptitude_max": 868, "magic_def_aptitude_min": 518
+          "hp_aptitude_max": 990,
+          "hp_aptitude_min": 640,
+          "speed_aptitude_max": 1239,
+          "speed_aptitude_min": 889,
+          "physical_atk_aptitude_max": 1487,
+          "physical_atk_aptitude_min": 1137,
+          "physical_def_aptitude_max": 1117,
+          "physical_def_aptitude_min": 767,
+          "magic_def_aptitude_max": 868,
+          "magic_def_aptitude_min": 518
         },
         "灵界": {
           "growth_score": 1240,
@@ -1754,7 +2643,13 @@
           "physical_def_aptitude_max": 1338,
           "magic_def_aptitude_max": 1040
         }
-      }
+      },
+      "all_skill_ids": [
+        2001,
+        1007,
+        1009,
+        3008
+      ]
     },
     {
       "id": 59,
@@ -1764,16 +2659,30 @@
       "rarity": "神兽",
       "habitat": "未知",
       "attack_type": "magical",
-      "obtain_method": {"type": "神·逆鳞兑换", "cost": 4, "min_player_level": 40},
-      "all_skill_names": ["高级智慧", "高级水攻", "高级雷击", "高级幸运"],
+      "obtain_method": {
+        "type": "神·逆鳞兑换",
+        "cost": 4,
+        "min_player_level": 40
+      },
+      "all_skill_names": [
+        "高级智慧",
+        "高级水攻",
+        "高级雷击",
+        "高级幸运"
+      ],
       "realms": {
         "地界": {
           "growth_score": 1140,
-          "hp_aptitude_max": 906, "hp_aptitude_min": 556,
-          "speed_aptitude_max": 1144, "speed_aptitude_min": 794,
-          "magic_atk_aptitude_max": 1374, "magic_atk_aptitude_min": 1024,
-          "physical_def_aptitude_max": 794, "physical_def_aptitude_min": 444,
-          "magic_def_aptitude_max": 1032, "magic_def_aptitude_min": 682
+          "hp_aptitude_max": 906,
+          "hp_aptitude_min": 556,
+          "speed_aptitude_max": 1144,
+          "speed_aptitude_min": 794,
+          "magic_atk_aptitude_max": 1374,
+          "magic_atk_aptitude_min": 1024,
+          "physical_def_aptitude_max": 794,
+          "physical_def_aptitude_min": 444,
+          "magic_def_aptitude_max": 1032,
+          "magic_def_aptitude_min": 682
         },
         "灵界": {
           "growth_score": 1140,
@@ -1799,7 +2708,13 @@
           "physical_def_aptitude_max": 951,
           "magic_def_aptitude_max": 1236
         }
-      }
+      },
+      "all_skill_ids": [
+        3002,
+        1011,
+        1008,
+        3008
+      ]
     },
     {
       "id": 60,
@@ -1809,16 +2724,30 @@
       "rarity": "神兽",
       "habitat": "未知",
       "attack_type": "physical",
-      "obtain_method": {"type": "神·逆鳞兑换", "cost": 6, "min_player_level": 40},
-      "all_skill_names": ["高级撕咬", "高级敏捷", "高级冲撞", "高级幸运"],
+      "obtain_method": {
+        "type": "神·逆鳞兑换",
+        "cost": 6,
+        "min_player_level": 40
+      },
+      "all_skill_names": [
+        "高级撕咬",
+        "高级敏捷",
+        "高级冲撞",
+        "高级幸运"
+      ],
       "realms": {
         "地界": {
           "growth_score": 1260,
-          "hp_aptitude_max": 1009, "hp_aptitude_min": 659,
-          "speed_aptitude_max": 1450, "speed_aptitude_min": 1100,
-          "physical_atk_aptitude_max": 1260, "physical_atk_aptitude_min": 910,
-          "physical_def_aptitude_max": 1260, "physical_def_aptitude_min": 910,
-          "magic_def_aptitude_max": 1199, "magic_def_aptitude_min": 849
+          "hp_aptitude_max": 1009,
+          "hp_aptitude_min": 659,
+          "speed_aptitude_max": 1450,
+          "speed_aptitude_min": 1100,
+          "physical_atk_aptitude_max": 1260,
+          "physical_atk_aptitude_min": 910,
+          "physical_def_aptitude_max": 1260,
+          "physical_def_aptitude_min": 910,
+          "magic_def_aptitude_max": 1199,
+          "magic_def_aptitude_min": 849
         },
         "灵界": {
           "growth_score": 1260,
@@ -1844,7 +2773,13 @@
           "physical_def_aptitude_max": 1509,
           "magic_def_aptitude_max": 1436
         }
-      }
+      },
+      "all_skill_ids": [
+        1009,
+        3005,
+        1010,
+        3008
+      ]
     },
     {
       "id": 61,
@@ -1854,16 +2789,30 @@
       "rarity": "神兽",
       "habitat": "未知",
       "attack_type": "physical",
-      "obtain_method": {"type": "神·逆鳞兑换", "cost": 8, "min_player_level": 50},
-      "all_skill_names": ["高级幸运", "高级撕咬", "高级敏捷", "高级闪避"],
+      "obtain_method": {
+        "type": "神·逆鳞兑换",
+        "cost": 8,
+        "min_player_level": 50
+      },
+      "all_skill_names": [
+        "高级幸运",
+        "高级撕咬",
+        "高级敏捷",
+        "高级闪避"
+      ],
       "realms": {
         "地界": {
           "growth_score": 1360,
-          "hp_aptitude_max": 1093, "hp_aptitude_min": 743,
-          "speed_aptitude_max": 1567, "speed_aptitude_min": 1217,
-          "physical_atk_aptitude_max": 1365, "physical_atk_aptitude_min": 1015,
-          "physical_def_aptitude_max": 1365, "physical_def_aptitude_min": 1015,
-          "magic_def_aptitude_max": 1295, "magic_def_aptitude_min": 945
+          "hp_aptitude_max": 1093,
+          "hp_aptitude_min": 743,
+          "speed_aptitude_max": 1567,
+          "speed_aptitude_min": 1217,
+          "physical_atk_aptitude_max": 1365,
+          "physical_atk_aptitude_min": 1015,
+          "physical_def_aptitude_max": 1365,
+          "physical_def_aptitude_min": 1015,
+          "magic_def_aptitude_max": 1295,
+          "magic_def_aptitude_min": 945
         },
         "灵界": {
           "growth_score": 1360,
@@ -1889,7 +2838,13 @@
           "physical_def_aptitude_max": 1635,
           "magic_def_aptitude_max": 1551
         }
-      }
+      },
+      "all_skill_ids": [
+        3008,
+        1009,
+        3005,
+        2001
+      ]
     },
     {
       "id": 62,
@@ -1899,16 +2854,30 @@
       "rarity": "神兽",
       "habitat": "未知",
       "attack_type": "physical",
-      "obtain_method": {"type": "神·逆鳞兑换", "cost": 10, "min_player_level": 60},
-      "all_skill_names": ["高级闪避", "高级虚弱", "高级冲撞", "高级幸运"],
+      "obtain_method": {
+        "type": "神·逆鳞兑换",
+        "cost": 10,
+        "min_player_level": 60
+      },
+      "all_skill_names": [
+        "高级闪避",
+        "高级虚弱",
+        "高级冲撞",
+        "高级幸运"
+      ],
       "realms": {
         "地界": {
           "growth_score": 1460,
-          "hp_aptitude_max": 1177, "hp_aptitude_min": 827,
-          "speed_aptitude_max": 1470, "speed_aptitude_min": 1120,
-          "physical_atk_aptitude_max": 1762, "physical_atk_aptitude_min": 1412,
-          "physical_def_aptitude_max": 1320, "physical_def_aptitude_min": 970,
-          "magic_def_aptitude_max": 1027, "magic_def_aptitude_min": 677
+          "hp_aptitude_max": 1177,
+          "hp_aptitude_min": 827,
+          "speed_aptitude_max": 1470,
+          "speed_aptitude_min": 1120,
+          "physical_atk_aptitude_max": 1762,
+          "physical_atk_aptitude_min": 1412,
+          "physical_def_aptitude_max": 1320,
+          "physical_def_aptitude_min": 970,
+          "magic_def_aptitude_max": 1027,
+          "magic_def_aptitude_min": 677
         },
         "灵界": {
           "growth_score": 1460,
@@ -1934,7 +2903,13 @@
           "physical_def_aptitude_max": 1581,
           "magic_def_aptitude_max": 1230
         }
-      }
+      },
+      "all_skill_ids": [
+        2001,
+        1007,
+        1010,
+        3008
+      ]
     },
     {
       "id": 63,
@@ -1944,16 +2919,30 @@
       "rarity": "神兽",
       "habitat": "未知",
       "attack_type": "physical",
-      "obtain_method": {"type": "神·逆鳞兑换", "cost": 10, "min_player_level": 70},
-      "all_skill_names": ["高级反震", "高级防御", "高级冲撞", "高级体魄"],
+      "obtain_method": {
+        "type": "神·逆鳞兑换",
+        "cost": 10,
+        "min_player_level": 70
+      },
+      "all_skill_names": [
+        "高级反震",
+        "高级防御",
+        "高级冲撞",
+        "高级体魄"
+      ],
       "realms": {
         "地界": {
           "growth_score": 1460,
-          "hp_aptitude_max": 1503, "hp_aptitude_min": 1153,
-          "speed_aptitude_max": 1365, "speed_aptitude_min": 1015,
-          "physical_atk_aptitude_max": 1093, "physical_atk_aptitude_min": 743,
-          "physical_def_aptitude_max": 1775, "physical_def_aptitude_min": 1425,
-          "magic_def_aptitude_max": 682, "magic_def_aptitude_min": 332
+          "hp_aptitude_max": 1503,
+          "hp_aptitude_min": 1153,
+          "speed_aptitude_max": 1365,
+          "speed_aptitude_min": 1015,
+          "physical_atk_aptitude_max": 1093,
+          "physical_atk_aptitude_min": 743,
+          "physical_def_aptitude_max": 1775,
+          "physical_def_aptitude_min": 1425,
+          "magic_def_aptitude_max": 682,
+          "magic_def_aptitude_min": 332
         },
         "灵界": {
           "growth_score": 1460,
@@ -1979,7 +2968,13 @@
           "physical_def_aptitude_max": 2126,
           "magic_def_aptitude_max": 817
         }
-      }
+      },
+      "all_skill_ids": [
+        2002,
+        3004,
+        1010,
+        3006
+      ]
     },
     {
       "id": 64,
@@ -1989,16 +2984,30 @@
       "rarity": "神兽",
       "habitat": "未知",
       "attack_type": "physical",
-      "obtain_method": {"type": "神·逆鳞兑换", "cost": 12, "min_player_level": 70},
-      "all_skill_names": ["高级撕咬", "高级虚弱", "高级冲撞", "高级幸运"],
+      "obtain_method": {
+        "type": "神·逆鳞兑换",
+        "cost": 12,
+        "min_player_level": 70
+      },
+      "all_skill_names": [
+        "高级撕咬",
+        "高级虚弱",
+        "高级冲撞",
+        "高级幸运"
+      ],
       "realms": {
         "地界": {
           "growth_score": 1540,
-          "hp_aptitude_max": 1240, "hp_aptitude_min": 890,
-          "speed_aptitude_max": 1555, "speed_aptitude_min": 1205,
-          "physical_atk_aptitude_max": 1865, "physical_atk_aptitude_min": 1515,
-          "physical_def_aptitude_max": 1400, "physical_def_aptitude_min": 1050,
-          "magic_def_aptitude_max": 1090, "magic_def_aptitude_min": 740
+          "hp_aptitude_max": 1240,
+          "hp_aptitude_min": 890,
+          "speed_aptitude_max": 1555,
+          "speed_aptitude_min": 1205,
+          "physical_atk_aptitude_max": 1865,
+          "physical_atk_aptitude_min": 1515,
+          "physical_def_aptitude_max": 1400,
+          "physical_def_aptitude_min": 1050,
+          "magic_def_aptitude_max": 1090,
+          "magic_def_aptitude_min": 740
         },
         "灵界": {
           "growth_score": 1540,
@@ -2024,7 +3033,13 @@
           "physical_def_aptitude_max": 1677,
           "magic_def_aptitude_max": 1306
         }
-      }
+      },
+      "all_skill_ids": [
+        1009,
+        1007,
+        1010,
+        3008
+      ]
     }
   ]
 }
