@@ -171,16 +171,17 @@ class ConfigTowerRepo(ITowerConfigRepo):
         """获取某层的守塔幻兽列表"""
         guardians = []
         
+        # 注释掉通天塔精确配置，改用与龙纹塔相同的模板配置
         # 优先使用通天塔精确配置
-        if tower_type == "tongtian" and floor in self._tongtian_beasts_config:
-            floor_config = self._tongtian_beasts_config[floor]
-            beasts = floor_config.get("beasts", [])
-            for beast_config in beasts:
-                guardian = self._create_guardian_from_beast_config(beast_config, floor)
-                guardians.append(guardian)
-            return guardians
+        # if tower_type == "tongtian" and floor in self._tongtian_beasts_config:
+        #     floor_config = self._tongtian_beasts_config[floor]
+        #     beasts = floor_config.get("beasts", [])
+        #     for beast_config in beasts:
+        #         guardian = self._create_guardian_from_beast_config(beast_config, floor)
+        #         guardians.append(guardian)
+        #     return guardians
         
-        # Fallback: 使用原有的模板+层级成长方式
+        # 使用模板+层级成长方式（通天塔和龙纹塔使用相同规则）
         count = self.get_guardian_count_for_floor(tower_type, floor)
         
         tower_guardians = self._guardians_config.get(tower_type, [])

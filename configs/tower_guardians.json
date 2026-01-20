@@ -1,95 +1,22 @@
 {
   "tongtian": [
     {
-      "floor_range": [1, 20],
+      "floor_range": [1, 120],
       "guardians": [
         {
-          "name": "远古谜兽",
+          "name": "通天守护兽",
+          "description": "通天塔守护兽，使用与龙纹塔相同的战斗规则",
+          "nature": "法系物防",
           "base_level": 1,
           "level_per_floor": 1,
-          "base_hp": 100,
-          "hp_per_floor": 50,
-          "base_attack": 20,
-          "attack_per_floor": 5,
-          "base_defense": 5,
-          "defense_per_floor": 2,
-          "base_speed": 10,
+          "base_hp": 120,
+          "hp_per_floor": 60,
+          "base_attack": 25,
+          "attack_per_floor": 6,
+          "base_defense": 8,
+          "defense_per_floor": 3,
+          "base_speed": 12,
           "speed_per_floor": 1
-        }
-      ]
-    },
-    {
-      "floor_range": [21, 60],
-      "guardians": [
-        {
-          "name": "暗影魔龙",
-          "base_level": 21,
-          "level_per_floor": 1,
-          "base_hp": 1500,
-          "hp_per_floor": 100,
-          "base_attack": 120,
-          "attack_per_floor": 10,
-          "base_defense": 50,
-          "defense_per_floor": 5,
-          "base_speed": 30,
-          "speed_per_floor": 2
-        },
-        {
-          "name": "炎魔将军",
-          "base_level": 21,
-          "level_per_floor": 1,
-          "base_hp": 1200,
-          "hp_per_floor": 80,
-          "base_attack": 150,
-          "attack_per_floor": 12,
-          "base_defense": 40,
-          "defense_per_floor": 4,
-          "base_speed": 35,
-          "speed_per_floor": 2
-        }
-      ]
-    },
-    {
-      "floor_range": [61, 120],
-      "guardians": [
-        {
-          "name": "混沌巨兽",
-          "base_level": 61,
-          "level_per_floor": 1,
-          "base_hp": 8000,
-          "hp_per_floor": 200,
-          "base_attack": 500,
-          "attack_per_floor": 20,
-          "base_defense": 200,
-          "defense_per_floor": 10,
-          "base_speed": 80,
-          "speed_per_floor": 3
-        },
-        {
-          "name": "虚空领主",
-          "base_level": 61,
-          "level_per_floor": 1,
-          "base_hp": 6000,
-          "hp_per_floor": 150,
-          "base_attack": 600,
-          "attack_per_floor": 25,
-          "base_defense": 150,
-          "defense_per_floor": 8,
-          "base_speed": 100,
-          "speed_per_floor": 4
-        },
-        {
-          "name": "天罚使者",
-          "base_level": 61,
-          "level_per_floor": 1,
-          "base_hp": 5000,
-          "hp_per_floor": 120,
-          "base_attack": 700,
-          "attack_per_floor": 30,
-          "base_defense": 120,
-          "defense_per_floor": 6,
-          "base_speed": 120,
-          "speed_per_floor": 5
         }
       ]
     }
