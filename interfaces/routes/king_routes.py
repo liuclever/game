@@ -449,31 +449,79 @@ def get_king_reward_info():
     if not user_id:
         return jsonify({"ok": False, "error": "请先登录"})
     
-    rank_rows = execute_query(
-        "SELECT rank_position, area_index FROM king_challenge_rank WHERE user_id = %s",
-        (user_id,)
+    season = get_current_season()
+    
+    # 查询玩家在正赛中的最佳成绩
+    my_stages = execute_query(
+        """SELECT stage FROM king_final_stage 
+           WHERE season = %s AND user_id = %s 
+           ORDER BY 
+             CASE stage 
+               WHEN 'champion' THEN 7
+               WHEN '2' THEN 6
+               WHEN '4' THEN 5
+               WHEN '8' THEN 4
+               WHEN '16' THEN 3
+               WHEN '32' THEN 2
+               ELSE 1
+             END DESC
+           LIMIT 1""",
+        (season, user_id)
     )
     
-    if not rank_rows:
-        return jsonify({"ok": False, "error": "未找到排名记录"})
+    # 如果没有正赛记录，说明未参加正赛，不能领取奖励
+    if not my_stages:
+        return jsonify({
+            "ok": True,
+            "myRank": 0,
+            "rewardTier": None,
+            "canClaim": False,
+            "alreadyClaimed": False,
+            "message": "未参加正赛，无法领取奖励",
+            "allRewards": [{"key": k, **v} for k, v in KING_FINAL_REWARDS.items()]
+        })
     
-    my_rank = rank_rows[0]['rank_position']
+    best_stage = my_stages[0]['stage']
     
+    # 根据正赛成绩判定奖励等级
     reward_tier = None
-    if my_rank == 1:
-        reward_tier = {"key": "champion", **KING_FINAL_REWARDS["champion"]}
-    elif my_rank == 2:
-        reward_tier = {"key": "runner_up", **KING_FINAL_REWARDS["runner_up"]}
-    elif my_rank <= 4:
-        reward_tier = {"key": "top_4", **KING_FINAL_REWARDS["top_4"]}
-    elif my_rank <= 8:
-        reward_tier = {"key": "top_8", **KING_FINAL_REWARDS["top_8"]}
-    elif my_rank <= 16:
-        reward_tier = {"key": "top_16", **KING_FINAL_REWARDS["top_16"]}
-    elif my_rank <= 32:
-        reward_tier = {"key": "top_32", **KING_FINAL_REWARDS["top_32"]}
+    my_rank = 0
     
-    season = get_current_season()
+    if best_stage == 'champion':
+        # 检查是否真的是冠军（is_winner=1）
+        champion_check = execute_query(
+            """SELECT is_winner FROM king_final_stage 
+               WHERE season = %s AND user_id = %s AND stage = 'champion'""",
+            (season, user_id)
+        )
+        if champion_check and champion_check[0]['is_winner'] == 1:
+            reward_tier = {"key": "champion", **KING_FINAL_REWARDS["champion"]}
+            my_rank = 1
+        else:
+            # 进入决赛但失败，是亚军
+            reward_tier = {"key": "runner_up", **KING_FINAL_REWARDS["runner_up"]}
+            my_rank = 2
+    elif best_stage == '2':
+        # 进入半决赛，至少是4强
+        reward_tier = {"key": "top_4", **KING_FINAL_REWARDS["top_4"]}
+        my_rank = 4
+    elif best_stage == '4':
+        # 进入8进4，至少是8强
+        reward_tier = {"key": "top_8", **KING_FINAL_REWARDS["top_8"]}
+        my_rank = 8
+    elif best_stage == '8':
+        # 进入16进8，至少是16强
+        reward_tier = {"key": "top_16", **KING_FINAL_REWARDS["top_16"]}
+        my_rank = 16
+    elif best_stage == '16':
+        # 进入32进16，至少是32强
+        reward_tier = {"key": "top_32", **KING_FINAL_REWARDS["top_32"]}
+        my_rank = 32
+    elif best_stage == '32':
+        # 只进入32强
+        reward_tier = {"key": "top_32", **KING_FINAL_REWARDS["top_32"]}
+        my_rank = 32
+    
     claimed_rows = execute_query(
         "SELECT * FROM king_reward_claimed WHERE user_id = %s AND season = %s",
         (user_id, season)
@@ -495,34 +543,52 @@ def claim_king_reward():
     if not user_id:
         return jsonify({"ok": False, "error": "请先登录"})
     
-    rank_rows = execute_query(
-        "SELECT rank_position FROM king_challenge_rank WHERE user_id = %s",
-        (user_id,)
+    season = get_current_season()
+    
+    # 查询玩家在正赛中的最佳成绩
+    my_stages = execute_query(
+        """SELECT stage, is_winner FROM king_final_stage 
+           WHERE season = %s AND user_id = %s 
+           ORDER BY 
+             CASE stage 
+               WHEN 'champion' THEN 7
+               WHEN '2' THEN 6
+               WHEN '4' THEN 5
+               WHEN '8' THEN 4
+               WHEN '16' THEN 3
+               WHEN '32' THEN 2
+               ELSE 1
+             END DESC
+           LIMIT 1""",
+        (season, user_id)
     )
     
-    if not rank_rows:
-        return jsonify({"ok": False, "error": "未找到排名记录"})
+    # 如果没有正赛记录，不能领取奖励
+    if not my_stages:
+        return jsonify({"ok": False, "error": "未参加正赛，无法领取奖励"})
     
-    my_rank = rank_rows[0]['rank_position']
+    best_stage = my_stages[0]['stage']
+    is_winner = my_stages[0].get('is_winner')
     
+    # 根据正赛成绩判定奖励
     reward_cfg = None
-    if my_rank == 1:
+    if best_stage == 'champion' and is_winner == 1:
         reward_cfg = KING_FINAL_REWARDS["champion"]
-    elif my_rank == 2:
+    elif best_stage == 'champion' and is_winner == 0:
         reward_cfg = KING_FINAL_REWARDS["runner_up"]
-    elif my_rank <= 4:
+    elif best_stage == '2':
         reward_cfg = KING_FINAL_REWARDS["top_4"]
-    elif my_rank <= 8:
+    elif best_stage == '4':
         reward_cfg = KING_FINAL_REWARDS["top_8"]
-    elif my_rank <= 16:
+    elif best_stage == '8':
         reward_cfg = KING_FINAL_REWARDS["top_16"]
-    elif my_rank <= 32:
+    elif best_stage in ['16', '32']:
         reward_cfg = KING_FINAL_REWARDS["top_32"]
     
     if not reward_cfg:
-        return jsonify({"ok": False, "error": "排名不在奖励范围内"})
+        return jsonify({"ok": False, "error": "未获得正赛奖励"})
     
-    season = get_current_season()
+    # 检查是否已领取
     claimed_rows = execute_query(
         "SELECT * FROM king_reward_claimed WHERE user_id = %s AND season = %s",
         (user_id, season)
@@ -531,6 +597,7 @@ def claim_king_reward():
     if claimed_rows:
         return jsonify({"ok": False, "error": "本周奖励已领取"})
     
+    # 发放奖励
     execute_update(
         "UPDATE player SET gold = gold + %s WHERE user_id = %s",
         (reward_cfg['gold'], user_id)
