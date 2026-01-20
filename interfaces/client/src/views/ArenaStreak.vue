@@ -150,15 +150,22 @@ export default {
       try {
         const res = await axios.get('/api/arena-streak/info');
         if (res.data.ok) {
-          this.currentStreak = res.data.current_streak;
-          this.maxStreakToday = res.data.max_streak_today;
-          this.opponents = res.data.opponents;
-          this.refreshSeconds = res.data.refresh_seconds;
-          this.streakKing = res.data.streak_king;
-          this.claimedRewards = res.data.claimed_rewards;
+          this.currentStreak = res.data.current_streak || 0;
+          this.maxStreakToday = res.data.max_streak_today || 0;
+          this.opponents = res.data.opponents || [];
+          this.refreshSeconds = res.data.refresh_seconds || 300;
+          this.streakKing = res.data.streak_king || { nickname: '暂无', streak: 0 };
+          // 确保 claimedRewards 始终是数组
+          this.claimedRewards = Array.isArray(res.data.claimed_rewards) ? res.data.claimed_rewards : [];
           this.claimedGrandPrize = res.data.claimed_grand_prize || false;
+          
+          // 调试日志
+          console.log('连胜竞技场信息加载成功:');
+          console.log('  当前连胜:', this.currentStreak);
+          console.log('  今日最高:', this.maxStreakToday);
+          console.log('  已领取奖励:', this.claimedRewards);
         } else {
-          if (res.data.error.includes('开放时间')) {
+          if (res.data.error && res.data.error.includes('开放时间')) {
             this.isOpen = false;
           }
         }
@@ -253,12 +260,25 @@ export default {
     
     async claimReward(level) {
       try {
+        console.log(`尝试领取 ${level}连胜奖励...`);
+        console.log('  当前 maxStreakToday:', this.maxStreakToday);
+        console.log('  当前 claimedRewards:', this.claimedRewards);
+        
         const res = await axios.post('/api/arena-streak/claim-reward', {
           streak_level: level
         });
         
+        console.log('领取奖励响应:', res.data);
+        
         if (res.data.ok) {
-          this.claimedRewards.push(level);
+          // 确保 claimedRewards 是数组
+          if (!Array.isArray(this.claimedRewards)) {
+            this.claimedRewards = [];
+          }
+          // 添加到已领取列表
+          if (!this.claimedRewards.includes(level)) {
+            this.claimedRewards.push(level);
+          }
           this.battleResult = {
             victory: true,
             message: res.data.message || '领取成功！'
