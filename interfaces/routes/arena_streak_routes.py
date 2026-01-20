@@ -78,7 +78,7 @@ def get_info():
            INNER JOIN player_beast pb ON p.user_id = pb.user_id
            WHERE p.user_id != %s 
            AND p.level BETWEEN %s AND %s 
-           AND pb.in_team = 1
+           AND pb.is_in_team = 1
            ORDER BY RAND() 
            LIMIT 2""",
         (user_id, tier_start, tier_end)
@@ -92,7 +92,7 @@ def get_info():
                INNER JOIN player_beast pb ON p.user_id = pb.user_id
                WHERE p.user_id != %s 
                AND p.level < %s 
-               AND pb.in_team = 1
+               AND pb.is_in_team = 1
                ORDER BY p.level DESC 
                LIMIT 2""",
             (user_id, player_level)
