@@ -68,23 +68,33 @@ def get_info():
     # 获取今日记录
     record = get_today_record(user_id)
     
-    # 匹配对手（同等级段位）
+    # 匹配对手（同等级段位，且有出战幻兽）
     tier_start = get_level_tier(player_level)
     tier_end = tier_start + 9
     
     opponents = execute_query(
-        """SELECT user_id, nickname, level FROM player 
-           WHERE user_id != %s AND level BETWEEN %s AND %s 
-           ORDER BY RAND() LIMIT 2""",
+        """SELECT DISTINCT p.user_id, p.nickname, p.level 
+           FROM player p
+           INNER JOIN player_beast pb ON p.user_id = pb.user_id
+           WHERE p.user_id != %s 
+           AND p.level BETWEEN %s AND %s 
+           AND pb.in_team = 1
+           ORDER BY RAND() 
+           LIMIT 2""",
         (user_id, tier_start, tier_end)
     )
     
-    # 如果没有对手，向下兼容
+    # 如果没有对手，向下兼容（仍然要求有出战幻兽）
     if len(opponents) < 2:
         opponents = execute_query(
-            """SELECT user_id, nickname, level FROM player 
-               WHERE user_id != %s AND level < %s 
-               ORDER BY level DESC LIMIT 2""",
+            """SELECT DISTINCT p.user_id, p.nickname, p.level 
+               FROM player p
+               INNER JOIN player_beast pb ON p.user_id = pb.user_id
+               WHERE p.user_id != %s 
+               AND p.level < %s 
+               AND pb.in_team = 1
+               ORDER BY p.level DESC 
+               LIMIT 2""",
             (user_id, player_level)
         )
     
@@ -215,9 +225,9 @@ def battle():
         if not attacker_beasts:
             return jsonify({"ok": False, "error": "你没有出战幻兽"})
         if not defender_beasts:
-            return jsonify({"ok": False, "error": "对方没有出战幻兽"})
+            return jsonify({"ok": False, "error": "对方没有出战幻兽，无法切磋"})
         
-        # 扣除活力
+        # 所有检查通过后，才扣除活力
         attacker.energy = current_energy - energy_cost
         services.player_repo.save(attacker)
         
