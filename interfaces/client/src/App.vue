@@ -6,30 +6,22 @@ import UiDialog from '@/components/UiDialog.vue'
 // import DebugPanel from '@/components/DebugPanel.vue'
 
 const router = useRouter()
-const isNavigating = ref(false)
 
-// 监听路由变化，显示加载状态
-router.beforeEach(() => {
-  isNavigating.value = true
+// 添加路由日志
+router.beforeEach((to, from, next) => {
+  console.log('[App] 路由导航:', from.path, '→', to.path)
+  next()
 })
 
-router.afterEach(() => {
-  // 延迟隐藏加载状态，确保页面已渲染
-  setTimeout(() => {
-    isNavigating.value = false
-  }, 50)
+router.afterEach((to, from) => {
+  console.log('[App] 路由完成:', from.path, '→', to.path)
 })
 </script>
 
 <template>
   <div class="app-container">
-    <!-- 路由过渡动画 -->
-    <transition name="fade" mode="out-in">
-      <router-view v-if="!isNavigating" />
-      <div v-else class="loading-overlay">
-        <div class="loading-text">加载中...</div>
-      </div>
-    </transition>
+    <!-- 路由视图：使用 key 强制组件重新渲染 -->
+    <router-view :key="$route.fullPath" />
     <UiToast />
     <UiDialog />
     <!-- <DebugPanel /> -->
@@ -47,35 +39,5 @@ router.afterEach(() => {
 body {
   font-family: SimSun, "宋体", serif;
   background-color: #ffffff !important; /* 确保背景为白色 */
-}
-
-/* 路由过渡动画 */
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.2s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-
-/* 加载覆盖层 */
-.loading-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(255, 255, 255, 0.9);
-  z-index: 9999;
-}
-
-.loading-text {
-  font-size: 17px;
-  color: #666;
 }
 </style>

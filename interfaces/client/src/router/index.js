@@ -1150,6 +1150,8 @@ const router = createRouter({
 
 // 路由守卫：测试模式下禁止访问某些页面
 router.beforeEach(async (to, from, next) => {
+  console.log('[Router] beforeEach:', from.path, '→', to.path)
+  
   // 测试模式下禁止访问的路由
   const blockedPaths = ['/arena', '/king', '/pvp']
   const isBlocked = blockedPaths.some(p => to.path.startsWith(p))
@@ -1162,7 +1164,7 @@ router.beforeEach(async (to, from, next) => {
         return next(false)
       }
     } catch (e) {
-      console.error('获取游戏配置失败', e)
+      console.error('[Router] 获取游戏配置失败', e)
     }
   }
   next()

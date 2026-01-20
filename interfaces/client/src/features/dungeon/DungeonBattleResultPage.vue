@@ -84,15 +84,42 @@ const battles = computed(() => {
 })
 
 const goBack = () => {
-  router.push(`/dungeon/challenge/${encodeURIComponent(dungeonName.value)}`)
+  try {
+    console.log('[DungeonBattleResult] 导航回副本页')
+    router.push(`/dungeon/challenge/${encodeURIComponent(dungeonName.value)}`).catch(err => {
+      console.error('[DungeonBattleResult] 导航回副本页失败:', err)
+      alert(`返回副本失败: ${err.message || '未知错误'}`)
+    })
+  } catch (e) {
+    console.error('[DungeonBattleResult] goBack 异常:', e)
+    alert(`返回副本异常: ${e.message || '未知错误'}`)
+  }
 }
 
 const goHome = () => {
-  router.push('/')
+  try {
+    console.log('[DungeonBattleResult] 导航到首页')
+    router.push('/').catch(err => {
+      console.error('[DungeonBattleResult] 导航到首页失败:', err)
+      alert(`返回首页失败: ${err.message || '未知错误'}`)
+    })
+  } catch (e) {
+    console.error('[DungeonBattleResult] goHome 异常:', e)
+    alert(`返回首页异常: ${e.message || '未知错误'}`)
+  }
 }
 
 const goMap = () => {
-  router.push('/map')
+  try {
+    console.log('[DungeonBattleResult] 导航到地图')
+    router.push('/map').catch(err => {
+      console.error('[DungeonBattleResult] 导航到地图失败:', err)
+      alert(`返回地图失败: ${err.message || '未知错误'}`)
+    })
+  } catch (e) {
+    console.error('[DungeonBattleResult] goMap 异常:', e)
+    alert(`返回地图异常: ${e.message || '未知错误'}`)
+  }
 }
 
 const handleMizong = () => {

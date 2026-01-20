@@ -61,6 +61,7 @@ const playerLevel = ref(1)
 
 // 加载地图数据
 const loadMapData = async () => {
+  console.log('[MapPage] 开始加载地图数据')
   try {
     const res = await http.get('/map/info')
     if (res.data.ok) {
@@ -86,11 +87,19 @@ const loadMapData = async () => {
           }
         }, 1000)
       }
+      console.log('[MapPage] 地图数据加载成功')
+    } else {
+      console.error('[MapPage] 地图数据加载失败:', res.data)
     }
   } catch (e) {
-    console.error('加载地图数据失败', e)
+    console.error('[MapPage] 加载地图数据失败', e)
+    console.error('[MapPage] 错误详情:', e.response?.data || e.message)
+    // 即使失败也要设置默认值，避免白屏
+    currentLocation.value = '落龙镇'
+    playerLevel.value = 1
   } finally {
     loading.value = false
+    console.log('[MapPage] 地图数据加载完成, loading =', loading.value)
   }
 }
 
@@ -206,8 +215,16 @@ const handleLink = (name) => {
   }
 }
 
-onMounted(() => {
-  loadMapData()
+onMounted(async () => {
+  console.log('[MapPage] 组件挂载，开始加载数据')
+  try {
+    await loadMapData()
+    console.log('[MapPage] 数据加载完成')
+  } catch (e) {
+    console.error('[MapPage] 数据加载失败:', e)
+    // 即使加载失败，也要确保 loading 状态结束
+    loading.value = false
+  }
 })
 
 onUnmounted(() => {

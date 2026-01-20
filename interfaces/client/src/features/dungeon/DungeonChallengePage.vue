@@ -246,11 +246,29 @@ const advanceDungeon = async (diceValue = null) => {
 }
 
 const goBack = () => {
-  router.push('/')
+  try {
+    console.log('[DungeonChallenge] 导航到首页')
+    router.push('/').catch(err => {
+      console.error('[DungeonChallenge] 导航到首页失败:', err)
+      alert(`返回首页失败: ${err.message || '未知错误'}`)
+    })
+  } catch (e) {
+    console.error('[DungeonChallenge] goBack 异常:', e)
+    alert(`返回首页异常: ${e.message || '未知错误'}`)
+  }
 }
 
 const goMap = () => {
-  router.push('/map')
+  try {
+    console.log('[DungeonChallenge] 导航到地图')
+    router.push('/map').catch(err => {
+      console.error('[DungeonChallenge] 导航到地图失败:', err)
+      alert(`返回地图失败: ${err.message || '未知错误'}`)
+    })
+  } catch (e) {
+    console.error('[DungeonChallenge] goMap 异常:', e)
+    alert(`返回地图异常: ${e.message || '未知错误'}`)
+  }
 }
 
 const openAdvanceModal = () => {
@@ -354,6 +372,7 @@ const handlePendingChallenge = async () => {
     })
     const data = await res.json()
     if (data.ok) {
+      console.log('[DungeonChallenge] 挑战成功，导航到战斗结果页')
       router.push({
         path: `/dungeon/${encodeURIComponent(dungeonInfo.value.name)}/battle-result`,
         state: {
@@ -363,6 +382,9 @@ const handlePendingChallenge = async () => {
           dungeonName: dungeonInfo.value.name,
           floor: pendingChallenge.value.floor
         }
+      }).catch(err => {
+        console.error('[DungeonChallenge] 导航到战斗结果页失败:', err)
+        alert(`跳转失败: ${err.message || '未知错误'}`)
       })
     } else {
       alert(data.error || '挑战失败')
@@ -450,6 +472,7 @@ const handleChallenge = async () => {
     })
     const data = await res.json()
     if (data.ok) {
+      console.log('[DungeonChallenge] 挑战成功，导航到战斗结果页')
       router.push({
         path: `/dungeon/${encodeURIComponent(dungeonInfo.value.name)}/battle-result`,
         state: {
@@ -459,6 +482,9 @@ const handleChallenge = async () => {
           dungeonName: dungeonInfo.value.name,
           floor: advanceResult.value?.newFloor || dungeonInfo.value.current_floor
         }
+      }).catch(err => {
+        console.error('[DungeonChallenge] 导航到战斗结果页失败:', err)
+        alert(`跳转失败: ${err.message || '未知错误'}`)
       })
     } else {
       alert(data.error || '挑战失败')

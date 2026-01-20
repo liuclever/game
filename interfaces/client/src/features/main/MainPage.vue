@@ -217,12 +217,14 @@ const checkAuth = async () => {
 // 加载召唤大陆联盟排行（前三名）
 const loadAllianceTop3 = async () => {
   try {
+    console.log('[MainPage] 开始加载联盟排行')
     const res = await http.get('/alliance/war/top3')
     if (res.data.ok && res.data.data) {
       allianceTop3.value = res.data.data.top3 || []
+      console.log('[MainPage] 联盟排行加载成功')
     }
   } catch (e) {
-    console.error('加载联盟排行失败', e)
+    console.error('[MainPage] 加载联盟排行失败', e)
     allianceTop3.value = []
   }
 }
@@ -487,10 +489,18 @@ const doLevelup = async () => {
   }
 }
 
-onMounted(() => {
-  checkAuth()
-  loadAllianceTop3()
-  loadAnnouncements()
+onMounted(async () => {
+  console.log('[MainPage] 组件挂载，开始加载数据')
+  try {
+    await checkAuth()
+    await loadAllianceTop3()
+    await loadAnnouncements()
+    console.log('[MainPage] 数据加载完成')
+  } catch (e) {
+    console.error('[MainPage] 数据加载失败:', e)
+    // 即使加载失败，也要确保 loading 状态结束
+    loading.value = false
+  }
 })
 
 onUnmounted(() => {
