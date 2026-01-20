@@ -106,14 +106,47 @@ class PlayerBeastData:
         """从当前等级升到下一等级所需经验。默认公式 level * 50"""
         return self.level * 50
 
-    def add_exp(self, amount: int):
-        """增加经验并处理升级"""
+    def add_exp(self, amount: int, max_level: Optional[int] = None) -> bool:
+        """增加经验并处理升级（可选：限制最高等级）。
+
+        - 当传入 max_level 时：幻兽等级最多升级到 max_level，达到后会将 exp 置 0（不保留溢出经验）。
+        - 返回值：本次是否至少升级 1 级。
+        """
         if amount <= 0:
-            return
-        self.exp += amount
-        while self.exp >= self.exp_to_next_level():
-            self.exp -= self.exp_to_next_level()
+            return False
+
+        # 兜底：max_level 非法时当作不限制
+        eff_max = None
+        if max_level is not None:
+            try:
+                eff_max = int(max_level)
+            except (TypeError, ValueError):
+                eff_max = None
+            if eff_max is not None and eff_max <= 0:
+                eff_max = None
+
+        self.exp += int(amount)
+        leveled_up = False
+
+        while True:
+            # 到达上限：不再升级，经验清零（与旧逻辑保持一致：不允许囤经验越过上限）
+            if eff_max is not None and int(self.level or 1) >= eff_max:
+                self.level = eff_max
+                self.exp = 0
+                break
+
+            need = int(self.exp_to_next_level() or 0)
+            if need <= 0:
+                break
+
+            if int(self.exp or 0) < need:
+                break
+
+            self.exp -= need
             self.level += 1
+            leveled_up = True
+
+        return leveled_up
 
 
 class MySQLPlayerBeastRepo:

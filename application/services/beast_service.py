@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Protocol
 from dataclasses import dataclass
 import random
 
@@ -6,6 +6,7 @@ from domain.entities.beast import Beast, BeastTemplate
 from domain.repositories.beast_repo import IBeastTemplateRepo, IBeastRepo
 from domain.services.beast_factory import create_initial_beast
 from domain.services.beast_stats import calc_aptitude_stars
+from domain.rules.beast_level_rules import calc_beast_max_level
 
 
 class BeastError(Exception):
@@ -85,9 +86,19 @@ class BeastWithInfo:
 
 
 class BeastService:
-    def __init__(self, template_repo: IBeastTemplateRepo, beast_repo: IBeastRepo):
+    class _PlayerRepo(Protocol):
+        def get_by_id(self, user_id: int):
+            ...
+
+    def __init__(
+        self,
+        template_repo: IBeastTemplateRepo,
+        beast_repo: IBeastRepo,
+        player_repo: Optional[_PlayerRepo] = None,
+    ):
         self.template_repo = template_repo
         self.beast_repo = beast_repo
+        self.player_repo = player_repo
 
     def get_beasts(self, user_id: int) -> List[BeastWithInfo]:
         """获取玩家所有幻兽（带详情）"""
@@ -156,7 +167,26 @@ class BeastService:
         if beast is None or beast.user_id != user_id:
             raise BeastError("幻兽不存在")
 
-        beast.add_exp(exp)
+        # 限制：幻兽等级不能超过玩家等级 + 5（且不超过全局配置 max_level）
+        max_level = None
+        if self.player_repo is not None:
+            try:
+                player = self.player_repo.get_by_id(user_id)
+            except Exception:
+                player = None
+            if player is not None:
+                try:
+                    player_level = int(getattr(player, "level", 1) or 1)
+                except (TypeError, ValueError):
+                    player_level = 1
+                max_level = calc_beast_max_level(player_level=player_level, global_max_level=None)
+
+        # Beast / PlayerBeastData 都实现了 add_exp(amount, max_level=...)（max_level 为 None 时不限制）
+        try:
+            beast.add_exp(exp, max_level=max_level)
+        except TypeError:
+            # 兼容：若某些历史对象没有 max_level 参数，则退回到不限制
+            beast.add_exp(exp)
         self.beast_repo.save(beast)
 
         template = self.template_repo.get_by_id(beast.template_id)
@@ -174,7 +204,20 @@ class BeastService:
         
         # 覆盖等级和境界（如果提供）
         if level > 1:
-            beast.level = level
+            target_level = level
+            if self.player_repo is not None:
+                try:
+                    player = self.player_repo.get_by_id(user_id)
+                except Exception:
+                    player = None
+                if player is not None:
+                    try:
+                        player_level = int(getattr(player, "level", 1) or 1)
+                    except (TypeError, ValueError):
+                        player_level = 1
+                    cap = calc_beast_max_level(player_level=player_level, global_max_level=None)
+                    target_level = min(int(target_level), int(cap))
+            beast.level = max(1, int(target_level))
         if realm:
             beast.realm = realm
             

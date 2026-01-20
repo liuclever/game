@@ -23,6 +23,7 @@ from domain.services.beast_stats import (
     get_beast_max_realm
 )
 from application.services.vip_service import get_beast_slot_limit
+from domain.rules.beast_level_rules import calc_beast_max_level
 
 beast_bp = Blueprint('beast', __name__, url_prefix='/api/beast')
 
@@ -1009,6 +1010,11 @@ def add_beast_exp():
     beast = services.player_beast_repo.get_by_id(beast_id)
     if not beast or beast.user_id != user_id:
         return jsonify({"ok": False, "error": "幻兽不存在"}), 404
+
+    # 获取玩家等级（用于“玩家等级+5”上限）
+    player = services.player_repo.get_by_id(user_id)
+    if not player:
+        return jsonify({"ok": False, "error": "玩家不存在"}), 404
     
     old_level = beast.level
     
@@ -1017,12 +1023,15 @@ def add_beast_exp():
     if _LEVEL_EXP_CONFIG is None:
         _LEVEL_EXP_CONFIG = _load_level_exp_config()
     
-    max_level = _LEVEL_EXP_CONFIG.get("max_level", 100)
+    global_max_level = int(_LEVEL_EXP_CONFIG.get("max_level", 100) or 100)
     exp_map = _LEVEL_EXP_CONFIG.get("exp_to_next_level", {})
+
+    # 等级上限：不超过玩家等级+5，且不超过全局 max_level
+    max_level = calc_beast_max_level(player_level=getattr(player, "level", 1), global_max_level=global_max_level)
     
     # 已满级检查
     if beast.level >= max_level:
-        return jsonify({"ok": False, "error": "幻兽已满级，无法分配经验"})
+        return jsonify({"ok": False, "error": f"幻兽等级已达上限（最多不超过玩家等级+5，当前上限Lv.{max_level}）"})
     
     # 增加经验并处理升级
     beast.exp = (beast.exp or 0) + exp_amount
@@ -1037,6 +1046,11 @@ def add_beast_exp():
             beast.level += 1
         else:
             break
+
+    # 达到上限后：经验清零（与副本奖励逻辑保持一致，不允许囤经验越过上限）
+    if beast.level >= max_level:
+        beast.level = max_level
+        beast.exp = 0
     
     # 计算升了几级
     levels_gained = beast.level - old_level
@@ -1091,12 +1105,11 @@ def add_beast_exp_from_pool():
     beast = services.player_beast_repo.get_by_id(beast_id)
     if not beast or beast.user_id != user_id:
         return jsonify({"ok": False, "error": "幻兽不存在"}), 404
-    
-    # 从化仙池扣除经验
-    try:
-        services.immortalize_pool_service.spend_exp(user_id, exp_amount)
-    except Exception as e:
-        return jsonify({"ok": False, "error": str(e)})
+
+    # 获取玩家等级（用于“玩家等级+5”上限）
+    player = services.player_repo.get_by_id(user_id)
+    if not player:
+        return jsonify({"ok": False, "error": "玩家不存在"}), 404
     
     old_level = beast.level
     
@@ -1105,20 +1118,21 @@ def add_beast_exp_from_pool():
     if _LEVEL_EXP_CONFIG is None:
         _LEVEL_EXP_CONFIG = _load_level_exp_config()
     
-    max_level = _LEVEL_EXP_CONFIG.get("max_level", 100)
+    global_max_level = int(_LEVEL_EXP_CONFIG.get("max_level", 100) or 100)
     exp_map = _LEVEL_EXP_CONFIG.get("exp_to_next_level", {})
+
+    # 等级上限：不超过玩家等级+5，且不超过全局 max_level
+    max_level = calc_beast_max_level(player_level=getattr(player, "level", 1), global_max_level=global_max_level)
     
-    # 已满级检查（但仍然扣除经验，只是不升级）
+    # 已达上限检查：不扣除经验
     if beast.level >= max_level:
-        return jsonify({
-            "ok": True,
-            "message": f"幻兽已满级，经验已消耗但无法提升等级",
-            "beastName": beast.name,
-            "oldLevel": old_level,
-            "newLevel": beast.level,
-            "levelUp": False,
-            "levelsGained": 0,
-        })
+        return jsonify({"ok": False, "error": f"幻兽等级已达上限（最多不超过玩家等级+5，当前上限Lv.{max_level}）"})
+
+    # 从化仙池扣除经验（确认可升级后再扣除，避免白白消耗）
+    try:
+        services.immortalize_pool_service.spend_exp(user_id, exp_amount)
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)})
     
     # 增加经验并处理升级
     beast.exp = (beast.exp or 0) + exp_amount
@@ -1133,6 +1147,11 @@ def add_beast_exp_from_pool():
             beast.level += 1
         else:
             break
+
+    # 达到上限后：经验清零
+    if beast.level >= max_level:
+        beast.level = max_level
+        beast.exp = 0
     
     levels_gained = beast.level - old_level
     

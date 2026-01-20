@@ -1577,10 +1577,7 @@ def open_loot():
             max_level = player.level + 5
             if beast.level < max_level:
                 old_level = beast.level
-                beast.add_exp(exp_per_beast)
-                if beast.level > max_level:
-                    beast.level = max_level
-                    beast.exp = 0
+                beast.add_exp(exp_per_beast, max_level=max_level)
                     
                 services.player_beast_repo.save(beast)
                 beast_rewards.append({

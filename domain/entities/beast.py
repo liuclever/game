@@ -201,7 +201,7 @@ class Beast:
         """从当前等级升到下一等级所需经验（从配置中读取）。"""
         return _get_required_exp_for_level(self.level)
 
-    def add_exp(self, amount: int) -> bool:
+    def add_exp(self, amount: int, max_level: Optional[int] = None) -> bool:
         """增加经验，返回本次是否至少升级 1 次。
 
         新规则（支持溢出经验与连升多级）：
@@ -220,13 +220,24 @@ class Beast:
         if amount <= 0:
             return False
 
-        max_level = _get_max_level_from_config()
+        config_max_level = _get_max_level_from_config()
+        effective_max_level: Optional[int] = config_max_level
+        if max_level is not None:
+            try:
+                ml = int(max_level)
+            except (TypeError, ValueError):
+                ml = None
+            if ml is not None and ml > 0:
+                if effective_max_level is None:
+                    effective_max_level = ml
+                else:
+                    effective_max_level = min(effective_max_level, ml)
         leveled_up = False
 
         # 循环处理可能的多级升级与溢出经验
         while amount > 0:
             # 已达或超过最大等级时，不再获得经验/升级
-            if max_level is not None and self.level >= max_level:
+            if effective_max_level is not None and self.level >= effective_max_level:
                 break
 
             required = self.exp_to_next_level()
@@ -249,6 +260,11 @@ class Beast:
 
             # 消耗完本级经验后，当前等级从 0 开始累积剩余经验
             self.exp = 0
+
+            # 达到上限后：经验清零并停止（不保留溢出经验）
+            if effective_max_level is not None and self.level >= effective_max_level:
+                self.exp = 0
+                break
 
             # 再进入下一轮循环，看剩余 amount 是否还能再升一级
 

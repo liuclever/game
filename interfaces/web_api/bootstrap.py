@@ -122,7 +122,8 @@ class ServiceContainer:
         # 服务层
         self.beast_service = BeastService(
             template_repo=self.beast_template_repo, 
-            beast_repo=self.player_beast_repo
+            beast_repo=self.player_beast_repo,
+            player_repo=self.player_repo,
         )
         self.inventory_service = InventoryService(
             item_repo=self.item_repo, 

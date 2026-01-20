@@ -356,10 +356,11 @@ class CultivationService:
         
         # 2. 应用幻兽经验
         beast_summaries = []
+        max_beast_level = int(getattr(player, "level", 1) or 1) + 5
         for beast_gain in reward.beast_exp_gains:
             beast = next((b for b in main_beasts if b.id == beast_gain.beast_id), None)
             if beast and beast_gain.exp_gain > 0:
-                leveled_up = beast.add_exp(beast_gain.exp_gain)
+                leveled_up = beast.add_exp(beast_gain.exp_gain, max_level=max_beast_level)
                 self.beast_repo.save(beast)
                 beast_summaries.append({
                     "name": beast.nickname or beast.id,
@@ -452,10 +453,11 @@ class CultivationService:
             self.inventory_service.add_item(user_id, 9001, reward.spirit_stones)
         
         beast_summaries = []
+        max_beast_level = int(getattr(player, "level", 1) or 1) + 5
         for beast_gain in reward.beast_exp_gains:
             beast = next((b for b in main_beasts if b.id == beast_gain.beast_id), None)
             if beast and beast_gain.exp_gain > 0:
-                leveled_up = beast.add_exp(beast_gain.exp_gain)
+                leveled_up = beast.add_exp(beast_gain.exp_gain, max_level=max_beast_level)
                 self.beast_repo.save(beast)
                 beast_summaries.append({
                     "name": beast.nickname or beast.id,
