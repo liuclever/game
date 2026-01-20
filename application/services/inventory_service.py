@@ -1110,19 +1110,29 @@ class InventoryService:
             for _ in range(quantity):
                 total_gold += int(rewards_def.get("gold", 0) or 0)
                 for item_cfg in rewards_def.get("items", []) or []:
-                    item_id = item_cfg.get("id")
-                    if not item_id and "pool" in item_cfg:
+                    # 检查是否是从池中随机选择
+                    if "pool" in item_cfg:
                         pool = item_cfg.get("pool") or []
-                        if pool:
-                            item_id = random.choice(pool)
-
-                    if item_id:
                         count = int(item_cfg.get("count", 1) or 1)
-                        self.add_item(user_id, int(item_id), count)
-                        item_name = item_cfg.get("name") or (
-                            self.item_repo.get_by_id(int(item_id)).name if self.item_repo.get_by_id(
-                                int(item_id)) else f"物品{item_id}")
-                        item_summary[item_name] = item_summary.get(item_name, 0) + count
+                        if pool and count > 0:
+                            # 从池中随机选择count个不同的物品，每个给1个
+                            selected_items = random.sample(pool, min(count, len(pool)))
+                            for item_id in selected_items:
+                                self.add_item(user_id, int(item_id), 1)
+                                item_name = item_cfg.get("name") or (
+                                    self.item_repo.get_by_id(int(item_id)).name if self.item_repo.get_by_id(
+                                        int(item_id)) else f"物品{item_id}")
+                                item_summary[item_name] = item_summary.get(item_name, 0) + 1
+                    else:
+                        # 普通物品，直接发放
+                        item_id = item_cfg.get("id")
+                        if item_id:
+                            count = int(item_cfg.get("count", 1) or 1)
+                            self.add_item(user_id, int(item_id), count)
+                            item_name = item_cfg.get("name") or (
+                                self.item_repo.get_by_id(int(item_id)).name if self.item_repo.get_by_id(
+                                    int(item_id)) else f"物品{item_id}")
+                            item_summary[item_name] = item_summary.get(item_name, 0) + count
 
             if total_gold > 0:
                 player.gold += total_gold
