@@ -433,6 +433,18 @@ class ZhenyaoService:
                 self.daily_count_repo.increment_trial(user_id)
             elif is_hell:
                 self.daily_count_repo.increment_hell(user_id)
+            
+            # 记录占领动态（作为特殊的战斗记录）
+            self.battle_repo.save_battle(
+                floor=floor,
+                attacker_id=user_id,
+                attacker_name=player.nickname,
+                defender_id=0,  # 占领无防守方
+                defender_name="",
+                is_success=True,
+                remaining_seconds=0,
+                battle_data={"type": "occupy", "message": "直接占领"}
+            )
         
         if success:
             return {"ok": True, "message": f"成功占领第{floor}层"}
@@ -904,7 +916,15 @@ class ZhenyaoService:
     
     def _format_dynamic_text(self, log: ZhenyaoBattleLog) -> str:
         """格式化动态文本"""
-        if log.is_success:
-            return f"{log.attacker_name} 把 {log.defender_name} 打到落花流水，抢夺第{log.floor}层聚魂阵成功！"
+        # 判断是占领还是挑战
+        is_occupy = log.defender_id == 0 or not log.defender_name
+        
+        if is_occupy:
+            # 直接占领（无人占领的层）
+            return f"【{log.attacker_name}】成功占领第{log.floor}层聚魂阵"
         else:
-            return f"{log.attacker_name} 挑战 {log.defender_name} 的第{log.floor}层聚魂阵失败！"
+            # 挑战已占领的层
+            if log.is_success:
+                return f"【{log.attacker_name}】挑战【{log.defender_name}】占领的第{log.floor}层聚魂阵，挑战成功！"
+            else:
+                return f"【{log.attacker_name}】挑战【{log.defender_name}】占领的第{log.floor}层聚魂阵，挑战失败"

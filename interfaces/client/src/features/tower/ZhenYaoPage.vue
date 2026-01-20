@@ -363,11 +363,9 @@ const handleLink = (name) => {
     <!-- 动态列表 -->
     <template v-if="dynamics.length > 0">
       <div v-for="d in dynamics" :key="d.id" class="section dynamic-item">
-        ({{ d.time }}){{ d.remaining }}，
-        <span :class="d.success ? 'green' : 'red'">
-          <a class="link username" @click="viewPlayer(d.attacker_id)">{{ d.attacker }}</a> 把 
-          <a class="link username" @click="viewPlayer(d.defender_id)">{{ d.defender }}</a> 
-          {{ d.success ? '打到落花流水，抢夺第' + d.floor + '层聚魂阵成功！' : '挑战第' + d.floor + '层聚魂阵失败！' }}
+        <span class="gray small">{{ d.time }}</span>
+        <span :class="d.success ? 'green' : ''">
+          {{ d.text }}
         </span>
         <a class="link" @click="viewBattle(d)">查看</a>
       </div>
