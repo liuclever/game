@@ -242,6 +242,36 @@ class AllianceService:
         if self.alliance_repo.get_member(user_id):
             return {"ok": False, "error": "你已经在一个联盟中了"}
 
+        # 检查48小时加入限制
+        quit_time = self.alliance_repo.get_quit_time(user_id)
+        if quit_time:
+            # pymysql通常返回datetime对象，但为了兼容性也处理字符串格式
+            if isinstance(quit_time, str):
+                try:
+                    # 尝试解析ISO格式的datetime字符串
+                    quit_time = datetime.fromisoformat(quit_time.replace('Z', '+00:00').replace('+00:00', ''))
+                except (ValueError, AttributeError):
+                    # 如果解析失败，假设已经过了48小时，允许加入
+                    quit_time = None
+            
+            if quit_time and isinstance(quit_time, datetime):
+                # 计算时间差
+                now = datetime.utcnow()
+                # 如果quit_time有时区信息，转换为naive UTC时间
+                if quit_time.tzinfo is not None:
+                    quit_time = quit_time.replace(tzinfo=None)
+                
+                time_since_quit = now - quit_time
+                hours_since_quit = time_since_quit.total_seconds() / 3600
+                
+                if hours_since_quit < 48:
+                    remaining_hours = int(48 - hours_since_quit)
+                    remaining_minutes = int((48 - hours_since_quit) * 60 % 60)
+                    return {
+                        "ok": False,
+                        "error": f"退出联盟后需要等待48小时才能再次加入，还需等待{remaining_hours}小时{remaining_minutes}分钟"
+                    }
+
         alliance = self.alliance_repo.get_alliance_by_id(alliance_id)
         if not alliance:
             return {"ok": False, "error": "联盟不存在"}
@@ -501,6 +531,11 @@ class AllianceService:
         alliance_id = actor.alliance_id
         target_name = self._member_display_name(target)
         self.alliance_repo.remove_member(target_user_id)
+        
+        # 记录被踢出成员的退出时间，用于48小时加入限制
+        from datetime import datetime
+        self.alliance_repo.record_quit_time(target_user_id, datetime.utcnow())
+        
         self._record_activity(
             alliance_id=alliance_id,
             event_type="kick",
@@ -524,6 +559,11 @@ class AllianceService:
         alliance_id = member.alliance_id
         member_name = self._member_display_name(member)
         self.alliance_repo.remove_member(user_id)
+        
+        # 记录退出时间，用于48小时加入限制
+        from datetime import datetime
+        self.alliance_repo.record_quit_time(user_id, datetime.utcnow())
+        
         self._record_activity(
             alliance_id=alliance_id,
             event_type="leave",

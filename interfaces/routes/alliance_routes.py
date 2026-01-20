@@ -193,9 +193,15 @@ def quit_alliance():
     if not user_id:
         return jsonify({"ok": False, "error": "请先登录"}), 401
 
-    result = services.alliance_service.quit_alliance(user_id)
-    status = 200 if result.get("ok") else 400
-    return jsonify(result), status
+    try:
+        result = services.alliance_service.quit_alliance(user_id)
+        status = 200 if result.get("ok") else 400
+        return jsonify(result), status
+    except Exception as e:
+        import traceback
+        print(f"退出联盟失败: {e}")
+        print(traceback.format_exc())
+        return jsonify({"ok": False, "error": f"退出联盟失败：{str(e)}"}), 500
 
 @alliance_bp.get('/talent')
 def get_alliance_talent():

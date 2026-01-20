@@ -502,7 +502,7 @@ class AllianceRules:
         10: {"funds": 3200, "crystals": 2000},
     }
 
-    MEMBER_BASE_CAPACITY = 10  # 1级联盟成员上限为10人
+    MEMBER_BASE_CAPACITY = 40  # 1级联盟成员上限为40人
     MEMBER_PER_LEVEL = 10  # 每升一级增加10人上限
 
     @staticmethod

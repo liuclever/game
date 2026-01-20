@@ -129,6 +129,9 @@ import AllianceBarracksManageConfirmPage from '@/features/alliance/AllianceBarra
 import AllianceSacredBeastPage from '@/features/alliance/AllianceSacredBeastPage.vue'
 import AllianceChatPage from '@/features/alliance/AllianceChatPage.vue'
 import AllianceCouncilPage from '@/features/alliance/AllianceCouncilPage.vue'
+import AllianceQuitConfirmPage from '@/features/alliance/AllianceQuitConfirmPage.vue'
+import AllianceJoinConfirmPage from '@/features/alliance/AllianceJoinConfirmPage.vue'
+import AllianceJoinResultPage from '@/features/alliance/AllianceJoinResultPage.vue'
 import AllianceNoticePage from '@/features/alliance/AllianceNoticePage.vue'
 import AllianceNoticeUpdateResultPage from '@/features/alliance/AllianceNoticeUpdateResultPage.vue'
 import AllianceMembersPage from '@/features/alliance/AllianceMembersPage.vue'
@@ -856,6 +859,16 @@ const routes = [
         component: AllianceHallPage,
       },
       {
+        path: '/alliance/join-confirm',
+        name: 'AllianceJoinConfirm',
+        component: AllianceJoinConfirmPage,
+      },
+      {
+        path: '/alliance/join-result',
+        name: 'AllianceJoinResult',
+        component: AllianceJoinResultPage,
+      },
+      {
         path: '/alliance/war',
         name: 'AllianceWar',
         component: AllianceWarPage,
@@ -960,6 +973,11 @@ const routes = [
           path: '/alliance/council',
           name: 'AllianceCouncil',
           component: AllianceCouncilPage,
+        },
+        {
+          path: '/alliance/quit-confirm',
+          name: 'AllianceQuitConfirm',
+          component: AllianceQuitConfirmPage,
         },
         {
           path: '/alliance/notice',

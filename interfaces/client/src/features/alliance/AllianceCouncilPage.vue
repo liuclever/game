@@ -1,11 +1,17 @@
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import http from '@/services/http'
 
 const router = useRouter()
+const route = useRoute()
 const loading = ref(true)
 const allianceData = ref(null)
+const errorMsg = ref('')
+
+const isLeader = computed(() => {
+    return allianceData.value?.member_info?.role === 1
+})
 
 const fetchAllianceInfo = async () => {
     loading.value = true
@@ -42,7 +48,17 @@ const goToTalent = () => {
     router.push('/alliance/talent')
 }
 
+const goToQuitConfirm = () => {
+    router.push('/alliance/quit-confirm')
+}
+
 onMounted(() => {
+    // 检查是否有错误信息
+    if (route.query.error) {
+        errorMsg.value = route.query.error
+        // 清除URL中的error参数
+        router.replace({ path: route.path, query: {} })
+    }
     fetchAllianceInfo()
 })
 </script>
@@ -51,6 +67,7 @@ onMounted(() => {
     <div class="alliance-council-page">
         <div v-if="loading" class="section">加载中...</div>
         <template v-else-if="allianceData">
+            <div v-if="errorMsg" class="section error-message">{{ errorMsg }}</div>
             <div class="section title">【议事厅】</div>
             <div class="section description">
                 盟主管理联盟的场所，议事厅的建筑等级决定联盟等级。
@@ -65,7 +82,8 @@ onMounted(() => {
             <div class="section links">
                 <a class="link" @click="goToNotice">公告栏</a>. <a class="link" @click="goToMembers">成员管理</a><br>
                 <a class="link" @click="goToBuildingUpgrade">建筑升级</a><br>
-                <a class="link">转让联盟</a>. <a class="link">解散联盟</a>
+                <a class="link">转让联盟</a>. <a class="link">解散联盟</a><br>
+                <a v-if="!isLeader" class="link" @click="goToQuitConfirm">退出联盟</a>
             </div>
 
             <div class="section nav-links">
@@ -107,6 +125,12 @@ onMounted(() => {
 
 .link:hover {
     text-decoration: underline;
+}
+
+.error-message {
+    color: #CC0000;
+    font-weight: bold;
+    margin-bottom: 8px;
 }
 
 .footer-info {

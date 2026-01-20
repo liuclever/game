@@ -50,22 +50,18 @@ const search = async () => {
   await fetchList()
 }
 
-const join = async (a) => {
+const goToJoinConfirm = (a) => {
   if (!a?.id) return
-  if (!confirm(`确定加入【${a.name}】吗？`)) return
-  try {
-    const res = await http.post('/alliance/join', { alliance_id: a.id })
-    if (res.data?.ok) {
-      alert(res.data.message || '加入成功')
-      router.push('/alliance')
-      return
+  router.push({
+    path: '/alliance/join-confirm',
+    query: {
+      alliance_id: a.id,
+      alliance_name: a.name,
+      alliance_level: a.level,
+      member_count: a.member_count,
+      member_capacity: a.member_capacity,
     }
-    alert(res.data?.error || '加入失败')
-  } catch (e) {
-    alert(e?.response?.data?.error || '加入失败')
-  } finally {
-    await fetchList()
-  }
+  })
 }
 
 const goAlliance = () => router.push('/alliance')
@@ -78,6 +74,13 @@ const goToPage = async (p) => {
 }
 
 onMounted(() => {
+  // 检查是否有错误信息
+  if (route.query.error) {
+    errorMsg.value = route.query.error
+    // 清除URL中的error参数
+    router.replace({ path: route.path, query: { ...route.query, error: undefined } })
+  }
+  
   // 如果URL中有keyword参数（比如从玩家详情页点击联盟名称跳转过来），设置搜索关键词并搜索
   const keywordParam = route.query.keyword
   if (keywordParam && typeof keywordParam === 'string') {
@@ -121,7 +124,7 @@ onMounted(() => {
         <a
           v-if="a.can_join"
           class="link"
-          @click="join(a)"
+          @click="goToJoinConfirm(a)"
         >加入</a>
         <span v-else class="gray">不可加入</span>
       </div>

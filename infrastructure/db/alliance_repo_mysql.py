@@ -226,6 +226,44 @@ class MySQLAllianceRepo(IAllianceRepo):
         sql = "DELETE FROM alliance_members WHERE user_id = %s"
         execute_update(sql, (user_id,))
 
+    def record_quit_time(self, user_id: int, quit_at: datetime) -> None:
+        """记录玩家退出联盟的时间"""
+        try:
+            sql = """
+                INSERT INTO alliance_quit_records (user_id, quit_at)
+                VALUES (%s, %s)
+                ON DUPLICATE KEY UPDATE quit_at = %s
+            """
+            execute_update(sql, (user_id, quit_at, quit_at))
+        except Exception as e:
+            # 如果表不存在，记录错误但不影响主流程
+            error_str = str(e).lower()
+            if 'table' in error_str and "doesn't exist" in error_str:
+                import traceback
+                print(f"Warning: alliance_quit_records table doesn't exist: {e}")
+                print(traceback.format_exc())
+            else:
+                raise
+
+    def get_quit_time(self, user_id: int) -> Optional[datetime]:
+        """获取玩家最后一次退出联盟的时间，如果从未退出过则返回None"""
+        try:
+            sql = "SELECT quit_at FROM alliance_quit_records WHERE user_id = %s"
+            rows = execute_query(sql, (user_id,))
+            if not rows:
+                return None
+            return rows[0].get('quit_at')
+        except Exception as e:
+            # 如果表不存在，返回None（允许加入）
+            error_str = str(e).lower()
+            if 'table' in error_str and "doesn't exist" in error_str:
+                import traceback
+                print(f"Warning: alliance_quit_records table doesn't exist: {e}")
+                print(traceback.format_exc())
+                return None
+            else:
+                raise
+
     # 兵营相关
     def get_army_assignments(self, alliance_id: int) -> List[AllianceArmyAssignment]:
         sql = """
