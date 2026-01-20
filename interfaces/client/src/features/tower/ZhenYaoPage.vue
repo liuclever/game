@@ -387,7 +387,7 @@ const handleLink = (name) => {
   background: #ffffff;
   min-height: 100vh;
   padding: 8px 12px;
-  font-size: 13px;
+  font-size: 16px;
   line-height: 1.6;
   font-family: SimSun, "宋体", serif;
 }
@@ -446,22 +446,22 @@ const handleLink = (name) => {
 }
 
 .dynamic-item {
-  font-size: 12px;
+  font-size: 16px;
 }
 
 .small {
-  font-size: 11px;
+  font-size: 16px;
 }
 
 .page-input {
   width: 40px;
-  font-size: 12px;
+  font-size: 16px;
   border: 1px solid #CCCCCC;
   padding: 1px 4px;
 }
 
 .page-btn {
-  font-size: 12px;
+  font-size: 16px;
   padding: 1px 8px;
   background: #F0F0F0;
   border: 1px solid #CCCCCC;

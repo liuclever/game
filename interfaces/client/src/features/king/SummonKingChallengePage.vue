@@ -419,7 +419,7 @@ onUnmounted(() => {
 <style scoped>
 .king-page { 
   padding: 10px; 
-  font-size: 13px; 
+  font-size: 16px; 
   background: #ffffff; 
   min-height: 100vh;
   font-family: SimSun, "宋体", serif;
