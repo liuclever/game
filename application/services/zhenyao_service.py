@@ -118,7 +118,14 @@ class ZhenyaoService:
         mid_floor = start_floor + 9
         is_trial = floor <= mid_floor
 
+        # 根据玩家等级确定宝箱星级
+        star_level = self._get_chest_star_level(player_level)
+        star_prefix = f"{star_level}星" if star_level > 0 else ""
+        
         chest_item_id = ZHENYAO_TRIAL_CHEST_ITEM_ID if is_trial else ZHENYAO_HELL_CHEST_ITEM_ID
+        chest_base_name = "试炼宝箱" if is_trial else "炼狱宝箱"
+        chest_name = f"{star_prefix}{chest_base_name}"
+        
         self.inventory_service.add_item(user_id, chest_item_id, 1)
         
         # 标记为已发放
@@ -126,10 +133,36 @@ class ZhenyaoService:
         
         return {
             "chest_item_id": chest_item_id,
-            "chest_name": "试炼宝箱" if is_trial else "炼狱宝箱",
+            "chest_name": chest_name,
             "is_trial": is_trial,
-            "floor": floor
+            "floor": floor,
+            "star_level": star_level
         }
+    
+    def _get_chest_star_level(self, player_level: int) -> int:
+        """根据玩家等级获取宝箱星级
+        
+        30-39级: 3星
+        40-49级: 4星
+        50-59级: 5星
+        60-69级: 6星
+        70-79级: 7星
+        80级及以上: 8星
+        """
+        if player_level < 30:
+            return 0
+        elif player_level < 40:
+            return 3
+        elif player_level < 50:
+            return 4
+        elif player_level < 60:
+            return 5
+        elif player_level < 70:
+            return 6
+        elif player_level < 80:
+            return 7
+        else:
+            return 8
 
     def check_and_grant_rewards(self, user_id: int) -> List[Dict]:
         """检查并为玩家发放已到期的占领奖励"""
