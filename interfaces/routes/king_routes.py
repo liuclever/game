@@ -155,6 +155,11 @@ def king_challenge():
     if not player or player.level < 20:
         return jsonify({"ok": False, "error": "需要达到20级才能参加挑战赛"})
     
+    # 检查是否已报名
+    rank_info = ensure_king_rank(user_id)
+    if not rank_info.get('is_registered'):
+        return jsonify({"ok": False, "error": "请先报名参加本周挑战赛"})
+    
     data = request.get_json() or {}
     target_user_id = data.get("targetUserId")
     if not target_user_id:
@@ -228,9 +233,61 @@ def king_challenge():
         if not attacker_beasts:
             conn.rollback()
             return jsonify({"ok": False, "error": "你没有出战幻兽"})
+        
+        # 允许挑战没有出战幻兽的对手（视为对手弃权，挑战者自动获胜）
         if not defender_beasts:
-            conn.rollback()
-            return jsonify({"ok": False, "error": "对方没有出战幻兽"})
+            # 对手没有幻兽，挑战者自动获胜
+            reward = KING_WIN_REWARD
+            cursor.execute("UPDATE player SET gold = gold + %s WHERE user_id = %s", (reward, user_id))
+            
+            cursor.execute(
+                """UPDATE king_challenge_rank 
+                   SET today_challenges = %s, last_challenge_date = CURDATE(), last_challenge_time = NOW()
+                   WHERE user_id = %s""",
+                (today_challenges + 1, user_id)
+            )
+            
+            cursor.execute(
+                "UPDATE king_challenge_rank SET rank_position = %s, win_streak = win_streak + 1, total_wins = total_wins + 1 WHERE user_id = %s",
+                (target_rank, user_id)
+            )
+            cursor.execute(
+                "UPDATE king_challenge_rank SET rank_position = %s, win_streak = 0, total_losses = total_losses + 1 WHERE user_id = %s",
+                (my_rank, target_user_id)
+            )
+            
+            message = f"对手未出战，你不战而胜！排名上升至第{target_rank}名！获得{KING_WIN_REWARD}铜钱"
+            
+            # 记录战报（简化版）
+            battle_report_data = {
+                "winner": user_id,
+                "message": "对手未出战，挑战者不战而胜",
+                "current_streak": my_rank_info.get('win_streak', 0) + 1
+            }
+            battle_report_json = json.dumps(battle_report_data, ensure_ascii=False)
+            
+            try:
+                cursor.execute(
+                    """INSERT INTO king_challenge_logs 
+                       (challenger_id, challenger_name, defender_id, defender_name, 
+                        challenger_wins, challenger_rank_before, challenger_rank_after,
+                        defender_rank_before, defender_rank_after, area_index, battle_report)
+                       VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
+                    (user_id, attacker.nickname or f"玩家{user_id}", 
+                     target_user_id, defender.nickname or f"玩家{target_user_id}",
+                     True, my_rank, target_rank, 
+                     target_rank, my_rank,
+                     my_rank_info['area_index'], battle_report_json)
+                )
+            except Exception as e:
+                print(f"保存战报失败: {e}")
+            
+            conn.commit()
+            
+            return jsonify({
+                "ok": True, "win": True, "message": message,
+                "newRank": target_rank, "reward": reward, "battleReport": battle_report_data
+            })
         
         attacker_pvp_beasts = services.beast_pvp_service.to_pvp_beasts(attacker_beasts)
         defender_pvp_beasts = services.beast_pvp_service.to_pvp_beasts(defender_beasts)

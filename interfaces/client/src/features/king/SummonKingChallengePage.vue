@@ -170,6 +170,10 @@ const doRegister = async () => {
 // 发起挑战
 const doChallenge = async (target) => {
   if (challenging.value) return
+  if (!isRegistered.value) {
+    showMessage('请先报名参加本周挑战赛', 'error')
+    return
+  }
   if (todayCount.value >= todayMax.value) {
     showMessage('今日挑战次数已用完', 'error')
     return
@@ -311,9 +315,13 @@ onUnmounted(() => {
         <a 
           class="link challenge-btn" 
           @click="doChallenge(c)" 
-          :class="{ disabled: challenging || cooldownRemaining > 0 }"
+          :class="{ disabled: challenging || cooldownRemaining > 0 || !isRegistered }"
         >
-          {{ challenging ? '挑战中...' : (cooldownRemaining > 0 ? `冷却中(${cooldownRemaining}秒)` : '挑战') }}
+          {{ 
+            !isRegistered ? '未报名' : 
+            challenging ? '挑战中...' : 
+            (cooldownRemaining > 0 ? `冷却中(${cooldownRemaining}秒)` : '挑战') 
+          }}
         </a>
       </div>
     </template>
