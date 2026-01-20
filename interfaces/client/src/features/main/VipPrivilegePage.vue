@@ -2,6 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import http from '@/services/http'
+import MainMenuLinks from '@/features/main/components/MainMenuLinks.vue'
 
 const router = useRouter()
 
@@ -76,6 +77,10 @@ const loadData = async () => {
 
 const goBack = () => {
   router.push('/')
+}
+
+const goPrev = () => {
+  router.back()
 }
 
 const goSponsor = () => {
@@ -218,6 +223,20 @@ onMounted(() => {
     <div class="section">
       <a class="link" @click="goSponsor">前往充值</a> | <a class="link" @click="goBack">返回游戏首页</a>
     </div>
+
+    <!-- 分隔线 -->
+    <div class="divider"></div>
+
+    <!-- 底部菜单（严格按“新人战力榜排行”页实现方式复刻） -->
+    <MainMenuLinks />
+
+    <!-- 导航 -->
+    <div class="section nav-links">
+      <a class="link" @click="goPrev">返回前页</a>
+    </div>
+    <div class="section nav-links">
+      <a class="link" @click="goBack">返回游戏首页</a>
+    </div>
     
     <!-- VIP特权弹窗 -->
     <div v-if="showPrivilegesModal" class="modal-overlay" @click="showPrivilegesModal = false">
@@ -259,6 +278,15 @@ onMounted(() => {
   color: #333;
   font-family: 'SimSun', '宋体', serif;
   line-height: 1.8;
+}
+
+.divider {
+  border-top: 1px dashed #CCCCCC;
+  margin: 12px 0;
+}
+
+.nav-links {
+  margin: 2px 0;
 }
 
 .section {

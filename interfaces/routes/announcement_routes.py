@@ -344,9 +344,9 @@ def get_tyrannosaurus_status():
     # 获取领取状态
     claimed = svc._get_claim_count(user_id, "tyrannosaurus_preview", "claim_ball") > 0
     
-    # 获取玩家累计赞助宝石
+    # 获取玩家累计赞助宝石（实际充值，不含赠送），以及玩家等级
     player = services.player_repo.get_by_id(user_id)
-    total_gems = getattr(player, 'silver_diamond', 0) or 0 if player else 0
+    total_gems = svc._get_total_sponsored_gems(user_id)
     level = player.level if player else 0
     
     return jsonify({
@@ -396,13 +396,12 @@ def get_rebate_status():
     ann = svc.get_announcement("yuanbao_rebate")
     tiers = ann.get("tiers", []) if ann else []
     
-    # 获取玩家累计赞助宝石
-    player = services.player_repo.get_by_id(user_id)
-    total_gems = getattr(player, 'silver_diamond', 0) or 0 if player else 0
-    
-    # 获取今日各档位领取状态
+    # 获取玩家今日赞助宝石（实际充值，不含赠送）
     from datetime import date
     today = date.today()
+    today_gems = svc._get_today_sponsored_gems(user_id, today)
+    
+    # 获取今日各档位领取状态
     tier_status = []
     for tier in tiers:
         gems_required = tier.get("gems_required", 0)
@@ -413,12 +412,14 @@ def get_rebate_status():
             "gems_required": gems_required,
             "yuanbao_reward": yuanbao_reward,
             "claimed": claimed,
-            "can_claim": not claimed and total_gems >= gems_required,
+            "can_claim": not claimed and today_gems >= gems_required,
         })
     
     return jsonify({
         "ok": True,
-        "total_gems": total_gems,
+        # 兼容字段名：这里返回的是“今日赞助宝石”，以匹配活动文案（每天刷新）
+        "total_gems": today_gems,
+        "today_gems": today_gems,
         "tiers": tier_status,
     })
 

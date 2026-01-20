@@ -1,11 +1,10 @@
-from flask import Blueprint, jsonify, request, session
+from flask import Blueprint, jsonify, session
 
-from application.services.month_card_service import MonthCardService, MonthCardError
+from application.services.month_card_service import MonthCardError
+from interfaces.web_api.bootstrap import services
 
 
 month_card_bp = Blueprint("month_card", __name__, url_prefix="/api/sponsor/month-card")
-
-_service = MonthCardService()
 
 
 def get_current_user_id() -> int:
@@ -19,7 +18,7 @@ def get_status():
         return jsonify({"ok": False, "error": "未登录"}), 401
 
     try:
-        data = _service.get_status(user_id)
+        data = services.month_card_service.get_status(user_id)
         return jsonify({"ok": True, "data": data})
     except MonthCardError as exc:
         return jsonify({"ok": False, "error": str(exc)}), 400
@@ -32,7 +31,7 @@ def purchase():
         return jsonify({"ok": False, "error": "未登录"}), 401
 
     try:
-        result = _service.purchase(user_id)
+        result = services.month_card_service.purchase(user_id)
         return jsonify({"ok": True, "data": result})
     except MonthCardError as exc:
         return jsonify({"ok": False, "error": str(exc)}), 400
@@ -45,7 +44,7 @@ def claim():
         return jsonify({"ok": False, "error": "未登录"}), 401
 
     try:
-        result = _service.claim_daily_reward(user_id)
+        result = services.month_card_service.claim_daily_reward(user_id)
         return jsonify({"ok": True, "data": result})
     except MonthCardError as exc:
         return jsonify({"ok": False, "error": str(exc)}), 400

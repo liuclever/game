@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import http from '@/services/http'
+import MainMenuLinks from '@/features/main/components/MainMenuLinks.vue'
 
 const router = useRouter()
 const loading = ref(false)
@@ -107,6 +108,7 @@ const addItem = async () => {
 
 const goBack = () => router.push('/')
 const goVip = () => router.push('/vip')
+const goPrev = () => router.back()
 
 onMounted(() => {
   loadStatus()
@@ -174,6 +176,20 @@ onMounted(() => {
     <div class="section">
       <a class="link" @click="goVip">前往VIP页面</a> | <a class="link" @click="goBack">返回首页</a>
     </div>
+
+    <!-- 分隔线 -->
+    <div class="divider"></div>
+
+    <!-- 底部菜单（严格按“新人战力榜排行”页实现方式复刻） -->
+    <MainMenuLinks />
+
+    <!-- 导航 -->
+    <div class="section nav-links">
+      <a class="link" @click="goPrev">返回前页</a>
+    </div>
+    <div class="section nav-links">
+      <a class="link" @click="goBack">返回游戏首页</a>
+    </div>
   </div>
 </template>
 
@@ -195,4 +211,13 @@ onMounted(() => {
 .input-sm { width: 50px; margin: 0 4px; }
 .input-md { width: 80px; margin: 0 4px; }
 .hint { font-size: 18px; color: #666; }
+
+.divider {
+  border-top: 1px dashed #CCCCCC;
+  margin: 12px 0;
+}
+
+.nav-links {
+  margin: 2px 0;
+}
 </style>

@@ -22,6 +22,41 @@ class AnnouncementService:
         self.player_repo = player_repo
         self._config = self._load_config()
 
+    # ==================== 充值/赞助统计（修复：不能用 silver_diamond 当前余额） ====================
+
+    def _get_total_sponsored_gems(self, user_id: int) -> int:
+        """累计赞助宝石（仅统计实际充值到账的宝石，不包含首充赠送）。
+
+        口径：recharge_order.status='paid' 的 yuanbao_granted 字段（历史命名，实际存的是“基础到账宝石”）。
+        """
+        try:
+            rows = execute_query(
+                """
+                SELECT COALESCE(SUM(yuanbao_granted), 0) AS total
+                FROM recharge_order
+                WHERE user_id = %s AND status = 'paid'
+                """,
+                (user_id,),
+            )
+            return int(rows[0].get("total", 0) or 0) if rows else 0
+        except Exception:
+            return 0
+
+    def _get_today_sponsored_gems(self, user_id: int, today: date) -> int:
+        """今日赞助宝石（仅统计今日支付成功的“实际充值宝石”，不含赠送）。"""
+        try:
+            rows = execute_query(
+                """
+                SELECT COALESCE(SUM(yuanbao_granted), 0) AS total
+                FROM recharge_order
+                WHERE user_id = %s AND status = 'paid' AND DATE(paid_at) = %s
+                """,
+                (user_id, today),
+            )
+            return int(rows[0].get("total", 0) or 0) if rows else 0
+        except Exception:
+            return 0
+
     def _load_config(self) -> dict:
         """加载公告配置"""
         config_path = os.path.join(
@@ -695,8 +730,8 @@ class AnnouncementService:
         if not player:
             return {"ok": False, "error": "玩家不存在"}
 
-        # 获取累计赞助宝石（这里简化处理，假设silver_diamond就是累计宝石）
-        total_gems = getattr(player, 'silver_diamond', 0) or 0
+        # 获取累计赞助宝石（实际充值，不含赠送）
+        total_gems = self._get_total_sponsored_gems(user_id)
         if total_gems < required_gems:
             return {"ok": False, "error": f"累计赞助宝石不足{required_gems}，当前{total_gems}"}
 
@@ -770,11 +805,10 @@ class AnnouncementService:
         if not player:
             return {"ok": False, "error": "玩家不存在"}
 
-        # 检查今日赞助宝石（这里简化，假设有daily_gems字段或用累计）
-        # 实际应该有专门的充值记录表
-        total_gems = getattr(player, 'silver_diamond', 0) or 0
-        if total_gems < tier_gems:
-            return {"ok": False, "error": f"今日赞助宝石不足{tier_gems}"}
+        # 检查今日赞助宝石（实际充值，不含赠送）
+        today_gems = self._get_today_sponsored_gems(user_id, today)
+        if today_gems < tier_gems:
+            return {"ok": False, "error": f"今日赞助宝石不足{tier_gems}，当前{today_gems}"}
 
         # 发放元宝
         yuanbao_reward = tier_config.get("yuanbao_reward", 0)

@@ -2,6 +2,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import http from '@/services/http'
+import MainMenuLinks from '@/features/main/components/MainMenuLinks.vue'
 
 const router = useRouter()
 
@@ -69,6 +70,10 @@ const goBack = () => {
   router.push('/sponsor')
 }
 
+const goHome = () => {
+  router.push('/')
+}
+
 onMounted(() => {
   fetchStatus()
 })
@@ -120,6 +125,20 @@ onMounted(() => {
     <div class="section">
       <a class="link" @click="goBack">返回赞助中心</a>
     </div>
+
+    <!-- 分隔线 -->
+    <div class="divider"></div>
+
+    <!-- 底部菜单（严格按“新人战力榜排行”页实现方式复刻） -->
+    <MainMenuLinks />
+
+    <!-- 导航 -->
+    <div class="section nav-links">
+      <a class="link" @click="goBack">返回前页</a>
+    </div>
+    <div class="section nav-links">
+      <a class="link" @click="goHome">返回游戏首页</a>
+    </div>
   </div>
 </template>
 
@@ -141,4 +160,13 @@ onMounted(() => {
 .claimed { color: #999; }
 .hint { color: #666; font-size: 18px; }
 .error { color: #c62828; }
+
+.divider {
+  border-top: 1px dashed #CCCCCC;
+  margin: 12px 0;
+}
+
+.nav-links {
+  margin: 2px 0;
+}
 </style>

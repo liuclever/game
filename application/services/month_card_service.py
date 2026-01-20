@@ -8,12 +8,14 @@ from datetime import datetime, timedelta, date
 from typing import Dict, Optional, Callable
 
 from infrastructure.db.connection import execute_query, execute_update
+from infrastructure.db.month_card_repo_mysql import MySQLMonthCardRepo, PlayerMonthCard
 
 
 MONTH_CARD_DAYS = 30
 PURCHASE_COST_GEMS = 30
 INITIAL_REWARD = 1000
 DAILY_REWARD = 200
+DEFAULT_MONTH_CARD_MONTH = 1
 
 
 class MonthCardError(Exception):
@@ -57,10 +59,25 @@ class MonthCardService:
 
     def _get_card(self, user_id: int) -> Optional[Dict]:
         """获取玩家月卡记录"""
+        # 优先走标准仓库（带 month 字段的表结构）
+        if isinstance(self.month_card_repo, MySQLMonthCardRepo):
+            rec = self.month_card_repo.get_by_user_and_month(user_id, DEFAULT_MONTH_CARD_MONTH)
+            if not rec:
+                return None
+            return {
+                "id": rec.id,
+                "user_id": rec.user_id,
+                "start_date": rec.start_date,
+                "end_date": rec.end_date,
+                "last_claim_date": rec.last_claim_date,
+                "days_claimed": rec.days_claimed,
+                "status": rec.status,
+            }
+
+        # 兼容旧库（早期简化表：可能没有 month 字段）
         rows = execute_query(
-            """SELECT id, user_id, start_date, end_date, last_claim_date, days_claimed
-               FROM player_month_card WHERE user_id = %s LIMIT 1""",
-            (user_id,)
+            "SELECT id, user_id, start_date, end_date, last_claim_date, days_claimed FROM player_month_card WHERE user_id = %s LIMIT 1",
+            (user_id,),
         )
         return rows[0] if rows else None
 
@@ -83,8 +100,16 @@ class MonthCardService:
             end_date = datetime.fromisoformat(end_date).date()
         elif isinstance(end_date, datetime):
             end_date = end_date.date()
+        else:
+            # MySQL DATE/DATETIME 之外的类型兜底
+            try:
+                end_date = datetime.fromisoformat(str(end_date)).date()
+            except Exception:
+                end_date = now.date()
         
-        is_active = now.date() <= end_date
+        # 标准表中 status 也可能标记为 expired
+        status = str(card.get("status") or "active")
+        is_active = (status != "expired") and (now.date() <= end_date)
         days_left = max(0, (end_date - now.date()).days + 1) if is_active else 0
         
         last_claim = card.get('last_claim_date')
@@ -107,6 +132,11 @@ class MonthCardService:
     def purchase(self, user_id: int) -> Dict:
         """购买月卡 - 可重复购买，叠加30天"""
         now = self._now()
+
+        # 必须有标准仓库，否则容易出现“扣费成功但月卡写入失败”的不一致
+        if not isinstance(self.month_card_repo, MySQLMonthCardRepo):
+            # 兜底：尝试自动初始化标准仓库（bootstrap 场景一定会注入）
+            self.month_card_repo = MySQLMonthCardRepo()
         
         # 检查宝石
         rows = execute_query(
@@ -138,48 +168,46 @@ class MonthCardService:
             (new_vip_level, user_id)
         )
         
-        # 检查是否已有月卡
-        card = self._get_card(user_id)
-        
-        if card:
-            # 已有月卡，叠加30天
-            old_end_date = card['end_date']
-            if isinstance(old_end_date, str):
-                old_end_date = datetime.fromisoformat(old_end_date).date()
-            elif isinstance(old_end_date, datetime):
-                old_end_date = old_end_date.date()
-            
-            # 如果月卡已过期，从今天开始；否则从原结束日期叠加
+        # 写入/更新月卡记录（标准表：带 month）
+        repo: MySQLMonthCardRepo = self.month_card_repo
+        rec = repo.get_by_user_and_month(user_id, DEFAULT_MONTH_CARD_MONTH)
+
+        if rec:
+            old_end_dt = rec.end_date
+            old_end_date = old_end_dt.date() if isinstance(old_end_dt, datetime) else datetime.fromisoformat(str(old_end_dt)).date()
+            # 过期从今天起；未过期从原 end_date 叠加 30 天
             if now.date() > old_end_date:
-                start_date = now.date()
-                end_date = start_date + timedelta(days=MONTH_CARD_DAYS - 1)
+                start_dt = now
+                end_dt = now + timedelta(days=MONTH_CARD_DAYS) - timedelta(seconds=1)
             else:
-                start_date = card['start_date']
-                if isinstance(start_date, str):
-                    start_date = datetime.fromisoformat(start_date).date()
-                elif isinstance(start_date, datetime):
-                    start_date = start_date.date()
-                end_date = old_end_date + timedelta(days=MONTH_CARD_DAYS)
-            
-            execute_update(
-                """UPDATE player_month_card 
-                   SET end_date = %s
-                   WHERE user_id = %s""",
-                (end_date, user_id)
-            )
+                start_dt = rec.start_date
+                end_dt = rec.end_date + timedelta(days=MONTH_CARD_DAYS)
+            rec.start_date = start_dt
+            rec.end_date = end_dt
+            rec.status = "active"
+            repo.create_or_update(rec)
         else:
-            # 新购买
-            start_date = now.date()
-            end_date = start_date + timedelta(days=MONTH_CARD_DAYS - 1)
-            execute_update(
-                """INSERT INTO player_month_card (user_id, start_date, end_date)
-                   VALUES (%s, %s, %s)""",
-                (user_id, start_date, end_date)
+            start_dt = now
+            end_dt = now + timedelta(days=MONTH_CARD_DAYS) - timedelta(seconds=1)
+            rec = PlayerMonthCard(
+                id=None,
+                user_id=user_id,
+                month=DEFAULT_MONTH_CARD_MONTH,
+                start_date=start_dt,
+                end_date=end_dt,
+                days_total=MONTH_CARD_DAYS,
+                days_claimed=0,
+                last_claim_date=None,
+                status="active",
+                initial_reward=INITIAL_REWARD,
+                daily_reward=DAILY_REWARD,
+                initial_reward_claimed=True,  # 购买即发放了“立即奖励1000元宝”
             )
+            repo.create_or_update(rec)
         
         return {
-            "start_date": start_date.isoformat() if isinstance(start_date, date) else start_date,
-            "end_date": end_date.isoformat(),
+            "start_date": (rec.start_date.date().isoformat() if isinstance(rec.start_date, datetime) else str(rec.start_date)),
+            "end_date": (rec.end_date.date().isoformat() if isinstance(rec.end_date, datetime) else str(rec.end_date)),
             "immediate_reward": INITIAL_REWARD,
         }
 
@@ -215,12 +243,21 @@ class MonthCardService:
             (DAILY_REWARD, user_id)
         )
         
-        # 更新领取记录
-        days_claimed = (card.get('days_claimed') or 0) + 1
-        execute_update(
-            "UPDATE player_month_card SET last_claim_date = %s, days_claimed = %s WHERE user_id = %s",
-            (now.date(), days_claimed, user_id)
-        )
+        # 更新领取记录（优先标准仓库）
+        days_claimed = int(card.get("days_claimed") or 0) + 1
+        if isinstance(self.month_card_repo, MySQLMonthCardRepo):
+            self.month_card_repo.update_claim(
+                user_id=user_id,
+                month=DEFAULT_MONTH_CARD_MONTH,
+                last_claim_date=now.date(),
+                days_claimed=days_claimed,
+                status="active",
+            )
+        else:
+            execute_update(
+                "UPDATE player_month_card SET last_claim_date = %s, days_claimed = %s WHERE user_id = %s",
+                (now.date(), days_claimed, user_id),
+            )
         
         days_left = max(0, (end_date - now.date()).days)
         

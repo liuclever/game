@@ -33,6 +33,14 @@ def get_player_rank(level):
     return '见习', False
 
 
+def _normalize_rank_name(name: str) -> str:
+    """兼容前端展示名/历史名（修复：北斗/战神）。"""
+    s = str(name or "").strip()
+    if s == "北斗":
+        return "战神"
+    return s
+
+
 @ranking_bp.get("/list")
 def get_ranking_list():
     """获取排行榜"""
@@ -93,11 +101,25 @@ def get_ranking_list():
         # 战力：取出战队伍的总战力（与游戏内“出战战力”概念一致）
         tier = None
         if filter_rank:
+            filter_rank = _normalize_rank_name(filter_rank)
             # rank -> level range
             for (min_lv, max_lv, rank_name, can_arena) in LEVEL_RANKS:
                 if str(rank_name) == str(filter_rank):
                     tier = (int(min_lv), int(max_lv))
                     break
+
+            # 如果传了 rank 但不认识：不要回落到“总排行”，直接返回空（避免出现“我在所有段位都有排名”的错觉）
+            if tier is None:
+                return jsonify({
+                    "ok": True,
+                    "rankings": [],
+                    "total": 0,
+                    "totalPages": 1,
+                    "page": page,
+                    "myRank": 0,
+                    "arenaZones": arena_zones,
+                    "arenaRankName": "",
+                })
 
         # 竞技擂台参与者：只统计参加过擂台战斗（arena_battle_log 有记录）的玩家
         where_parts = []
