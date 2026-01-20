@@ -439,8 +439,8 @@ def claim_reward():
             if item_id == "random_crystal":
                 item_id = random.choice(CRYSTAL_POOL)
                 # 获取结晶名称
-                from infrastructure.config.item_repo_from_config import ItemRepoFromConfig
-                item_repo = ItemRepoFromConfig()
+                from infrastructure.config.item_repo_from_config import ConfigItemRepo
+                item_repo = ConfigItemRepo()
                 crystal_item = item_repo.get_by_id(item_id)
                 item_name = crystal_item.name if crystal_item else f"结晶{item_id}"
             else:
