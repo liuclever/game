@@ -213,6 +213,43 @@ def get_alliance_talent():
     result = services.alliance_service.get_alliance_talent_info(user_id)
     return jsonify(result)
 
+@alliance_bp.post('/transfer')
+def transfer_alliance():
+    user_id = get_current_user_id()
+    if not user_id:
+        return jsonify({"ok": False, "error": "请先登录"}), 401
+
+    data = request.get_json() or {}
+    target_user_id = data.get("target_user_id")
+    if not target_user_id:
+        return jsonify({"ok": False, "error": "缺少目标成员ID"}), 400
+
+    try:
+        result = services.alliance_service.transfer_alliance(user_id, int(target_user_id))
+        status = 200 if result.get("ok") else 400
+        return jsonify(result), status
+    except Exception as e:
+        import traceback
+        print(f"转让联盟失败: {e}")
+        print(traceback.format_exc())
+        return jsonify({"ok": False, "error": f"转让联盟失败：{str(e)}"}), 500
+
+@alliance_bp.post('/disband')
+def disband_alliance():
+    user_id = get_current_user_id()
+    if not user_id:
+        return jsonify({"ok": False, "error": "请先登录"}), 401
+
+    try:
+        result = services.alliance_service.disband_alliance(user_id)
+        status = 200 if result.get("ok") else 400
+        return jsonify(result), status
+    except Exception as e:
+        import traceback
+        print(f"解散联盟失败: {e}")
+        print(traceback.format_exc())
+        return jsonify({"ok": False, "error": f"解散联盟失败：{str(e)}"}), 500
+
 @alliance_bp.post('/talent/learn')
 def learn_alliance_talent():
     user_id = get_current_user_id()

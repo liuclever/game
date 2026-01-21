@@ -124,6 +124,16 @@ class IAllianceRepo(ABC):
         pass
 
     @abstractmethod
+    def update_leader_id(self, alliance_id: int, new_leader_id: int) -> None:
+        """更新联盟盟主ID"""
+        pass
+
+    @abstractmethod
+    def delete_alliance(self, alliance_id: int) -> None:
+        """删除联盟（级联删除相关数据）"""
+        pass
+
+    @abstractmethod
     def add_chat_message(self, message: AllianceChatMessage) -> int:
         """添加聊天消息"""
         pass

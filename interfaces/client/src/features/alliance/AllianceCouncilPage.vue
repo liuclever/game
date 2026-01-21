@@ -52,6 +52,14 @@ const goToQuitConfirm = () => {
     router.push('/alliance/quit-confirm')
 }
 
+const goToTransfer = () => {
+    router.push('/alliance/transfer')
+}
+
+const goToDisbandConfirm = () => {
+    router.push('/alliance/disband-confirm')
+}
+
 onMounted(() => {
     // 检查是否有错误信息
     if (route.query.error) {
@@ -82,7 +90,7 @@ onMounted(() => {
             <div class="section links">
                 <a class="link" @click="goToNotice">公告栏</a>. <a class="link" @click="goToMembers">成员管理</a><br>
                 <a class="link" @click="goToBuildingUpgrade">建筑升级</a><br>
-                <a class="link">转让联盟</a>. <a class="link">解散联盟</a><br>
+                <a v-if="isLeader" class="link" @click="goToTransfer">转让联盟</a><span v-if="isLeader">. </span><a v-if="isLeader" class="link" @click="goToDisbandConfirm">解散联盟</a><br>
                 <a v-if="!isLeader" class="link" @click="goToQuitConfirm">退出联盟</a>
             </div>
 

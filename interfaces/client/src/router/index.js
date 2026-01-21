@@ -135,6 +135,9 @@ import AllianceCouncilPage from '@/features/alliance/AllianceCouncilPage.vue'
 import AllianceQuitConfirmPage from '@/features/alliance/AllianceQuitConfirmPage.vue'
 import AllianceJoinConfirmPage from '@/features/alliance/AllianceJoinConfirmPage.vue'
 import AllianceJoinResultPage from '@/features/alliance/AllianceJoinResultPage.vue'
+import AllianceTransferPage from '@/features/alliance/AllianceTransferPage.vue'
+import AllianceDisbandConfirmPage from '@/features/alliance/AllianceDisbandConfirmPage.vue'
+import AllianceDisbandResultPage from '@/features/alliance/AllianceDisbandResultPage.vue'
 import AllianceNoticePage from '@/features/alliance/AllianceNoticePage.vue'
 import AllianceNoticeUpdateResultPage from '@/features/alliance/AllianceNoticeUpdateResultPage.vue'
 import AllianceMembersPage from '@/features/alliance/AllianceMembersPage.vue'
@@ -876,6 +879,21 @@ const routes = [
         path: '/alliance/join-result',
         name: 'AllianceJoinResult',
         component: AllianceJoinResultPage,
+      },
+      {
+        path: '/alliance/transfer',
+        name: 'AllianceTransfer',
+        component: AllianceTransferPage,
+      },
+      {
+        path: '/alliance/disband-confirm',
+        name: 'AllianceDisbandConfirm',
+        component: AllianceDisbandConfirmPage,
+      },
+      {
+        path: '/alliance/disband-result',
+        name: 'AllianceDisbandResult',
+        component: AllianceDisbandResultPage,
       },
       {
         path: '/alliance/war',

@@ -572,6 +572,99 @@ class AllianceService:
         )
         return {"ok": True, "message": "已退出联盟"}
 
+    def transfer_alliance(self, user_id: int, target_user_id: int) -> dict:
+        """转让联盟"""
+        actor = self.alliance_repo.get_member(user_id)
+        if not actor:
+            return {"ok": False, "error": "未加入联盟"}
+
+        if actor.role != AllianceRules.ROLE_LEADER:
+            return {"ok": False, "error": "只有盟主可以转让联盟"}
+
+        target = self.alliance_repo.get_member(target_user_id)
+        if not target or target.alliance_id != actor.alliance_id:
+            return {"ok": False, "error": "未找到该成员"}
+
+        if target.role == AllianceRules.ROLE_LEADER:
+            return {"ok": False, "error": "该成员已经是盟主"}
+
+        # 检查被转让者条件：等级30级及以上，拥有1个盟主证明
+        player = self.player_repo.get_by_id(target_user_id)
+        if not player:
+            return {"ok": False, "error": "未找到该玩家"}
+
+        if player.level < 30:
+            return {"ok": False, "error": "被转让者需要等级30级及以上"}
+
+        # 检查是否有盟主证明
+        proof_count = self.inventory_service.get_item_count(target_user_id, AllianceRules.LEAGUE_LEADER_TOKEN_ID)
+        if proof_count < 1:
+            return {"ok": False, "error": "被转让者需要拥有1个盟主证明"}
+
+        # 扣除盟主证明
+        self.inventory_service.remove_item(target_user_id, AllianceRules.LEAGUE_LEADER_TOKEN_ID, 1)
+
+        # 更新联盟盟主
+        alliance_id = actor.alliance_id
+        self.alliance_repo.update_leader_id(alliance_id, target_user_id)
+
+        # 更新成员角色：原盟主变为普通成员，新盟主角色设为盟主
+        self.alliance_repo.update_member_role(user_id, AllianceRules.ROLE_MEMBER)
+        self.alliance_repo.update_member_role(target_user_id, AllianceRules.ROLE_LEADER)
+
+        # 记录活动
+        actor_name = self._member_display_name(actor)
+        target_name = self._member_display_name(target)
+        self._record_activity(
+            alliance_id=alliance_id,
+            event_type="transfer",
+            actor_user_id=user_id,
+            actor_name=actor_name,
+            target_user_id=target_user_id,
+            target_name=target_name,
+        )
+
+        return {"ok": True, "message": f"联盟已成功转让给{target_name}"}
+
+    def disband_alliance(self, user_id: int) -> dict:
+        """解散联盟"""
+        member = self.alliance_repo.get_member(user_id)
+        if not member:
+            return {"ok": False, "error": "未加入联盟"}
+
+        if member.role != AllianceRules.ROLE_LEADER:
+            return {"ok": False, "error": "只有盟主可以解散联盟"}
+
+        alliance_id = member.alliance_id
+        alliance = self.alliance_repo.get_alliance_by_id(alliance_id)
+        if not alliance:
+            return {"ok": False, "error": "联盟不存在"}
+
+        # 获取所有成员，记录退出时间
+        members = self.alliance_repo.get_alliance_members(alliance_id)
+        from datetime import datetime
+        quit_time = datetime.utcnow()
+        for m in members:
+            self.alliance_repo.record_quit_time(m.user_id, quit_time)
+
+        # 记录活动（在删除前）
+        member_name = self._member_display_name(member)
+        try:
+            self._record_activity(
+                alliance_id=alliance_id,
+                event_type="disband",
+                actor_user_id=user_id,
+                actor_name=member_name,
+            )
+        except Exception:
+            # 如果记录活动失败，不影响解散流程
+            pass
+
+        # 删除联盟（级联删除成员记录）
+        self.alliance_repo.delete_alliance(alliance_id)
+
+        return {"ok": True, "message": "联盟已解散"}
+
     def get_alliance_talent_info(self, user_id: int) -> dict:
         member = self.alliance_repo.get_member(user_id)
         if not member:
