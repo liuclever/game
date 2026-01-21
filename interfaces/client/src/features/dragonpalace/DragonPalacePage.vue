@@ -159,11 +159,13 @@ onMounted(() => {
         :key="h.stage"
         class="section"
       >
-        <template v-if="h.success">
-          第{{ h.stage }}关挑战成功
+        <template v-if="h.has_report">
+          第{{ h.stage }}关挑战{{ h.success ? '成功' : '失败' }}
           <a class="link" @click="viewReport(h.stage)">查看战报</a>
-          <a v-if="h.can_claim" class="link" @click="claimReward(h.stage)">领取奖励</a>
-          <span v-else class="gray">（已领取）</span>
+          <template v-if="h.success">
+            <a v-if="h.can_claim" class="link" @click="claimReward(h.stage)">领取奖励</a>
+            <span v-else class="gray">（已领取）</span>
+          </template>
         </template>
       </div>
 
