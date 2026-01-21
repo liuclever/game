@@ -294,13 +294,13 @@ watch(
 
     <!-- 我的排名提示 -->
     <template v-if="currentType !== 'vip'">
-      <div class="section">我的排名: {{ myRank > 0 ? myRank : '未上榜' }}</div>
+      <div class="section" v-if="myRank > 0">我的排名: {{ myRank }}</div>
     </template>
 
     <!-- 表头（参考页：等级在“我的排名”之后；VIP在“表头”之后显示“我的排名”） -->
     <div class="section header">{{ headerText }}</div>
     <template v-if="currentType === 'vip'">
-      <div class="section">我的排名: {{ myRank > 0 ? myRank : '未上榜' }}</div>
+      <div class="section" v-if="myRank > 0">我的排名: {{ myRank }}</div>
     </template>
 
     <!-- 排名列表 -->

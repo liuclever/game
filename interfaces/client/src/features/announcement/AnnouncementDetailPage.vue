@@ -454,8 +454,8 @@ watch(() => route.params.id, () => {
         </div>
         
         <!-- 我的排名 -->
-        <div class="section">
-          我的排名：<span class="bold">{{ powerRankingData.myRank > 0 ? powerRankingData.myRank : '未上榜' }}</span>
+        <div class="section" v-if="powerRankingData.myRank > 0">
+          我的排名：<span class="bold">{{ powerRankingData.myRank }}</span>
         </div>
         
         <!-- 实时排行榜 -->

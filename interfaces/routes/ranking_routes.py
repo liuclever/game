@@ -158,40 +158,88 @@ def get_ranking_list():
         total = total_rows[0]['total'] if total_rows else 0
 
         if user_id:
-            my_power_rows = execute_query(
-                "SELECT COALESCE(SUM(combat_power), 0) as power FROM player_beast WHERE user_id = %s AND is_in_team = 1",
-                (user_id,),
-            )
-            my_power = int(my_power_rows[0].get("power", 0) or 0) if my_power_rows else 0
-
-            if tier or str(power_scope) == "arena":
-                rank_rows = execute_query(
-                    f"""
-                    SELECT COUNT(*) + 1 as `rank` FROM (
-                      SELECT p.user_id, COALESCE(SUM(b.combat_power), 0) as power
-                      FROM player p
-                      LEFT JOIN player_beast b ON p.user_id = b.user_id AND b.is_in_team = 1
-                      {where_sql}
-                      GROUP BY p.user_id
-                    ) t
-                    WHERE t.power > %s
-                    """,
-                    tuple(list(params[:-2]) + [my_power]),
-                )
+            # 关键：只有当“我属于当前筛选人群”时，才展示我的排名
+            # - 分段战力榜：我的等级必须落在该段位区间内
+            # - 擂台参与者战力榜：我必须参与过擂台（arena_battle_log 有记录）
+            my_info_rows = execute_query("SELECT level FROM player WHERE user_id = %s", (user_id,))
+            my_level = int(my_info_rows[0].get("level", 0) or 0) if my_info_rows else 0
+            if tier and not (tier[0] <= my_level <= tier[1]):
+                my_rank = None
+                # 直接跳过后续排名计算，避免出现“跨段位也有名次”的错觉
+                # （前端会将 None 兜底成 0，但模板已用 v-if myRank>0 控制不展示）
+                # continue 不可用（不在循环内），所以用 else 结构控制
             else:
-                rank_rows = execute_query(
-                    """
-                    SELECT COUNT(*) + 1 as `rank` FROM (
-                      SELECT p.user_id, COALESCE(SUM(b.combat_power), 0) as power
-                      FROM player p
-                      LEFT JOIN player_beast b ON p.user_id = b.user_id AND b.is_in_team = 1
-                      GROUP BY p.user_id
-                    ) t
-                    WHERE t.power > %s
-                    """,
-                    (my_power,),
-                )
-            my_rank = rank_rows[0]['rank'] if rank_rows else None
+                if str(power_scope) == "arena":
+                    participated_rows = execute_query(
+                        """
+                        SELECT 1 as ok
+                        FROM arena_battle_log
+                        WHERE challenger_id = %s OR champion_id = %s
+                        LIMIT 1
+                        """,
+                        (user_id, user_id),
+                    )
+                    if not participated_rows:
+                        my_rank = None
+                        # 不参与擂台则不在该榜单人群中
+                        # 同样跳过后续排名计算
+                    else:
+                        my_power_rows = execute_query(
+                            "SELECT COALESCE(SUM(combat_power), 0) as power FROM player_beast WHERE user_id = %s AND is_in_team = 1",
+                            (user_id,),
+                        )
+                        my_power = int(my_power_rows[0].get("power", 0) or 0) if my_power_rows else 0
+
+                        rank_rows = execute_query(
+                            f"""
+                            SELECT COUNT(*) + 1 as `rank` FROM (
+                              SELECT p.user_id, COALESCE(SUM(b.combat_power), 0) as power
+                              FROM player p
+                              LEFT JOIN player_beast b ON p.user_id = b.user_id AND b.is_in_team = 1
+                              {where_sql}
+                              GROUP BY p.user_id
+                            ) t
+                            WHERE t.power > %s
+                            """,
+                            tuple(list(params[:-2]) + [my_power]),
+                        )
+                        my_rank = rank_rows[0]['rank'] if rank_rows else None
+                else:
+                    my_power_rows = execute_query(
+                        "SELECT COALESCE(SUM(combat_power), 0) as power FROM player_beast WHERE user_id = %s AND is_in_team = 1",
+                        (user_id,),
+                    )
+                    my_power = int(my_power_rows[0].get("power", 0) or 0) if my_power_rows else 0
+
+                    if tier:
+                        rank_rows = execute_query(
+                            f"""
+                            SELECT COUNT(*) + 1 as `rank` FROM (
+                              SELECT p.user_id, COALESCE(SUM(b.combat_power), 0) as power
+                              FROM player p
+                              LEFT JOIN player_beast b ON p.user_id = b.user_id AND b.is_in_team = 1
+                              {where_sql}
+                              GROUP BY p.user_id
+                            ) t
+                            WHERE t.power > %s
+                            """,
+                            tuple(list(params[:-2]) + [my_power]),
+                        )
+                        my_rank = rank_rows[0]['rank'] if rank_rows else None
+                    else:
+                        rank_rows = execute_query(
+                            """
+                            SELECT COUNT(*) + 1 as `rank` FROM (
+                              SELECT p.user_id, COALESCE(SUM(b.combat_power), 0) as power
+                              FROM player p
+                              LEFT JOIN player_beast b ON p.user_id = b.user_id AND b.is_in_team = 1
+                              GROUP BY p.user_id
+                            ) t
+                            WHERE t.power > %s
+                            """,
+                            (my_power,),
+                        )
+                        my_rank = rank_rows[0]['rank'] if rank_rows else None
     
     elif ranking_type == 'arena':
         # 擂台英豪榜：总榜/周榜都从 arena_battle_log 查询，区别只是时间范围
