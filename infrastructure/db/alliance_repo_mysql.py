@@ -317,6 +317,86 @@ class MySQLAllianceRepo(IAllianceRepo):
         sql = "UPDATE alliances SET level = %s WHERE id = %s"
         execute_update(sql, (level, alliance_id))
 
+    def update_leader_id(self, alliance_id: int, new_leader_id: int) -> None:
+        """更新联盟盟主ID"""
+        sql = "UPDATE alliances SET leader_id = %s WHERE id = %s"
+        execute_update(sql, (new_leader_id, alliance_id))
+
+    def delete_alliance(self, alliance_id: int) -> None:
+        """删除联盟（级联删除相关数据）"""
+        # 需要先删除有外键约束的相关数据，因为某些表的外键是 ON DELETE RESTRICT
+        # 按顺序删除，确保不会因为外键约束失败
+        
+        # 1. 删除联盟动态记录
+        try:
+            sql_activities = "DELETE FROM alliance_activities WHERE alliance_id = %s"
+            execute_update(sql_activities, (alliance_id,))
+        except Exception:
+            pass  # 表可能不存在或没有记录
+        
+        # 2. 删除联盟建筑记录
+        try:
+            sql_buildings = "DELETE FROM alliance_buildings WHERE alliance_id = %s"
+            execute_update(sql_buildings, (alliance_id,))
+        except Exception:
+            pass
+        
+        # 3. 删除联盟天赋研究记录
+        try:
+            sql_talents = "DELETE FROM alliance_talents WHERE alliance_id = %s"
+            execute_update(sql_talents, (alliance_id,))
+        except Exception:
+            pass
+        
+        # 4. 删除联盟聊天消息
+        try:
+            sql_chat = "DELETE FROM alliance_chat_messages WHERE alliance_id = %s"
+            execute_update(sql_chat, (alliance_id,))
+        except Exception:
+            pass
+        
+        # 5. 删除联盟幻兽寄存记录
+        try:
+            sql_beast = "DELETE FROM alliance_beast_storage WHERE alliance_id = %s"
+            execute_update(sql_beast, (alliance_id,))
+        except Exception:
+            pass
+        
+        # 6. 删除联盟道具寄存记录
+        try:
+            sql_item = "DELETE FROM alliance_item_storage WHERE alliance_id = %s"
+            execute_update(sql_item, (alliance_id,))
+        except Exception:
+            pass
+        
+        # 7. 删除联盟修行房间参与者记录
+        try:
+            sql_training_participants = """
+                DELETE FROM alliance_training_participants 
+                WHERE room_id IN (SELECT id FROM alliance_training_rooms WHERE alliance_id = %s)
+            """
+            execute_update(sql_training_participants, (alliance_id,))
+        except Exception:
+            pass
+        
+        # 8. 删除联盟修行房间记录
+        try:
+            sql_training_rooms = "DELETE FROM alliance_training_rooms WHERE alliance_id = %s"
+            execute_update(sql_training_rooms, (alliance_id,))
+        except Exception:
+            pass
+        
+        # 9. 删除联盟兵营分配记录
+        try:
+            sql_army = "DELETE FROM alliance_army_assignments WHERE alliance_id = %s"
+            execute_update(sql_army, (alliance_id,))
+        except Exception:
+            pass
+        
+        # 10. 删除联盟（级联删除成员记录和其他相关数据）
+        sql = "DELETE FROM alliances WHERE id = %s"
+        execute_update(sql, (alliance_id,))
+
     def add_chat_message(self, message: AllianceChatMessage) -> int:
         sql = """
             INSERT INTO alliance_chat_messages (alliance_id, user_id, content)
