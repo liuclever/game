@@ -89,6 +89,16 @@ class IAllianceRepo(ABC):
         """将成员移出联盟"""
         pass
 
+    @abstractmethod
+    def record_quit_time(self, user_id: int, quit_at: datetime) -> None:
+        """记录玩家退出联盟的时间"""
+        pass
+
+    @abstractmethod
+    def get_quit_time(self, user_id: int) -> Optional[datetime]:
+        """获取玩家最后一次退出联盟的时间，如果从未退出过则返回None"""
+        pass
+
     # 兵营相关
     @abstractmethod
     def get_army_assignments(self, alliance_id: int) -> List[AllianceArmyAssignment]:
