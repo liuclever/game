@@ -7,6 +7,7 @@ from pathlib import Path
 from flask import Blueprint, jsonify, request, session
 
 from domain.entities.mosoul import MoSoul, MoSoulGrade, get_mosoul_template
+from domain.rules.mosoul_rules import check_equip_conflict
 from infrastructure.db import mosoul_repo_mysql as mosoul_repo
 from infrastructure.db import player_beast_repo_mysql as beast_repo
 from infrastructure.db.connection import execute_query, execute_update
@@ -415,6 +416,42 @@ def equip_mosoul(mosoul_id: int):
             continue
         if int(r.get('slot_index', 0) or 0) == int(slot_index):
             return jsonify({'ok': False, 'error': '该槽位已装备魔魂，请先取下'}), 400
+
+    # 若是“同一只幻兽上的换槽位”，放行（避免因为历史违规装备导致无法整理槽位）
+    if cur_beast_id is None:
+        # 冲突检测（同名唯一、天/地/玄/黄同属性同类型互斥、龙魂百分比互斥）
+        new_soul = MoSoul(
+            id=int(row.get('id')),
+            user_id=int(row.get('user_id')),
+            template_id=int(row.get('template_id')),
+            level=int(row.get('level', 1) or 1),
+            exp=int(row.get('exp', 0) or 0),
+            beast_id=None,
+        )
+
+        equipped_souls = []
+        for r in equipped_rows:
+            equipped_souls.append(
+                MoSoul(
+                    id=int(r.get('id')),
+                    user_id=int(r.get('user_id')),
+                    template_id=int(r.get('template_id')),
+                    level=int(r.get('level', 1) or 1),
+                    exp=int(r.get('exp', 0) or 0),
+                    beast_id=int(r.get('beast_id')) if r.get('beast_id') is not None else None,
+                )
+            )
+
+        from domain.entities.mosoul import BeastMoSoulSlot
+        slot = BeastMoSoulSlot(
+            beast_id=int(beast_id),
+            beast_level=int(beast_level),
+            equipped_souls=equipped_souls,
+        )
+
+        conflict = check_equip_conflict(new_soul, slot)
+        if conflict.has_conflict:
+            return jsonify({'ok': False, 'error': conflict.message}), 400
 
     mosoul_repo.equip_mosoul_with_slot(mosoul_id, beast_id, slot_index)
     return jsonify({'ok': True, 'message': '装备成功'})

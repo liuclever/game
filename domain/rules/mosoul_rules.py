@@ -1,8 +1,9 @@
 """魔魂装备规则。
 
-实现魔魂装备的冲突检测规则：
-1. 龙魂的百分比属性不能与天/地/玄/黄魂的同类百分比属性共存
-2. 非龙魂之间，同类固定值或百分比属性不能共存
+实现魔魂装备的冲突检测规则（仅用于“同一只幻兽”的装备冲突判断）：
+1. 同名魔魂（template.name）在同一只幻兽上只能装备一个
+2. 天魂/地魂/玄魂/黄魂四类魔魂：若出现相同属性的“百分比加成”或“数值加成”，只能选择其中一类装备
+3. 若已装备的龙魂存在某属性的百分比加成，则不可再装备其他具有该属性百分比加成的天/地/玄/黄魔魂（反之亦然）
 """
 from typing import List, Tuple, Optional, Set, Dict
 from dataclasses import dataclass
@@ -49,6 +50,16 @@ class ConflictResult:
             message=f"[{name1}]与[{name2}]都有{_attr_chinese(attr)}{type_name}加成，不能同时装备",
         )
 
+    @staticmethod
+    def same_name_conflict(name: str) -> "ConflictResult":
+        return ConflictResult(
+            has_conflict=True,
+            conflict_type="same_name",
+            conflict_attr="",
+            conflict_souls=(name, name),
+            message=f"同名魔魂[{name}]在同一只幻兽上只能装备一个",
+        )
+
 
 def _attr_chinese(attr: str) -> str:
     """属性英文转中文"""
@@ -61,6 +72,36 @@ def _attr_chinese(attr: str) -> str:
         "speed": "速度",
     }
     return mapping.get(attr, attr)
+
+
+def _is_four_soul_grade(grade: Optional[MoSoulGrade]) -> bool:
+    """是否属于“天/地/玄/黄”四类魔魂"""
+    if not grade:
+        return False
+    return grade in {
+        MoSoulGrade.HEAVEN_SOUL,
+        MoSoulGrade.EARTH_SOUL,
+        MoSoulGrade.DARK_SOUL,
+        MoSoulGrade.YELLOW_SOUL,
+    }
+
+
+def check_same_name_conflict(new_soul: MoSoul, equipped_souls: List[MoSoul]) -> ConflictResult:
+    """同名冲突：同一只幻兽上，同名魔魂只能装备一个"""
+    new_template = new_soul.get_template()
+    if not new_template:
+        return ConflictResult.no_conflict()
+
+    for equipped in equipped_souls:
+        if equipped.id is not None and new_soul.id is not None and int(equipped.id) == int(new_soul.id):
+            continue
+        eq_template = equipped.get_template()
+        if not eq_template:
+            continue
+        if str(eq_template.name) == str(new_template.name):
+            return ConflictResult.same_name_conflict(new_template.name)
+
+    return ConflictResult.no_conflict()
 
 
 def _extract_percent_attrs(soul: MoSoul) -> Set[str]:
@@ -147,6 +188,8 @@ def check_dragon_soul_conflict(
     new_percent_attrs = _extract_percent_attrs(new_soul)
 
     for equipped in equipped_souls:
+        if equipped.id is not None and new_soul.id is not None and int(equipped.id) == int(new_soul.id):
+            continue
         eq_template = equipped.get_template()
         if not eq_template:
             continue
@@ -154,8 +197,8 @@ def check_dragon_soul_conflict(
         eq_is_dragon = eq_template.grade == MoSoulGrade.DRAGON_SOUL
         eq_percent_attrs = _extract_percent_attrs(equipped)
 
-        # 情况1：新魔魂是龙魂，已装备的不是龙魂
-        if new_is_dragon and not eq_is_dragon:
+        # 情况1：新魔魂是龙魂，已装备的是“天/地/玄/黄”
+        if new_is_dragon and _is_four_soul_grade(eq_template.grade):
             common_attrs = new_percent_attrs & eq_percent_attrs
             if common_attrs:
                 attr = list(common_attrs)[0]
@@ -163,8 +206,8 @@ def check_dragon_soul_conflict(
                     attr, new_template.name, eq_template.name
                 )
 
-        # 情况2：已装备的是龙魂，新魔魂不是龙魂
-        if eq_is_dragon and not new_is_dragon:
+        # 情况2：已装备的是龙魂，新魔魂是“天/地/玄/黄”
+        if eq_is_dragon and _is_four_soul_grade(new_template.grade):
             common_attrs = eq_percent_attrs & new_percent_attrs
             if common_attrs:
                 attr = list(common_attrs)[0]
@@ -181,7 +224,7 @@ def check_same_bonus_type_conflict(
 ) -> ConflictResult:
     """检查非龙魂之间的同类属性冲突
 
-    规则：除龙魂外，黄/玄/地/天魂有相同加成情况的不能同时装备
+    规则：天/地/玄/黄四类魔魂中，若出现相同属性的“百分比加成”或“固定值加成”，只能选择其中一类装备
 
     例如：
     - 黄魂增加15物攻，不能和增加30、60、120物攻的玄/地/天魂同时装备
@@ -191,20 +234,25 @@ def check_same_bonus_type_conflict(
     if not new_template:
         return ConflictResult.no_conflict()
 
-    # 龙魂不参与此规则（龙魂冲突由 check_dragon_soul_conflict 处理）
-    if new_template.grade == MoSoulGrade.DRAGON_SOUL:
+    # 仅对“天/地/玄/黄”四类生效
+    if not _is_four_soul_grade(new_template.grade):
         return ConflictResult.no_conflict()
 
     new_percent_attrs = _extract_percent_attrs(new_soul)
     new_flat_attrs = _extract_flat_attrs(new_soul)
 
     for equipped in equipped_souls:
+        if equipped.id is not None and new_soul.id is not None and int(equipped.id) == int(new_soul.id):
+            continue
         eq_template = equipped.get_template()
         if not eq_template:
             continue
 
-        # 龙魂不参与此规则
-        if eq_template.grade == MoSoulGrade.DRAGON_SOUL:
+        # 仅对“天/地/玄/黄”四类生效
+        if not _is_four_soul_grade(eq_template.grade):
+            continue
+        # 同一类允许共存（“只能选择其中一类装备”指跨类冲突）
+        if eq_template.grade == new_template.grade:
             continue
 
         eq_percent_attrs = _extract_percent_attrs(equipped)
@@ -243,6 +291,11 @@ def check_equip_conflict(
         ConflictResult: 冲突检测结果
     """
     equipped = slot.equipped_souls
+
+    # 同名冲突（最优先，提示最明确）
+    result = check_same_name_conflict(new_soul, equipped)
+    if result.has_conflict:
+        return result
 
     # 检查龙魂百分比冲突
     result = check_dragon_soul_conflict(new_soul, equipped)

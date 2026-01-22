@@ -849,6 +849,58 @@ class InventoryService:
             if not player:
                 raise InventoryError("玩家不存在")
 
+            # ===== 每日使用次数限制（按 VIP 特权）=====
+            # 说明：
+            # - 招财神符(6004) 的“每日限购”由商城 daily_limit 控制（configs/shop.json）
+            # - 这里实现的是“每日使用次数限制”，需跟 VIP 特权 fortune_talisman_uses 对齐（configs/vip_privileges.json）
+            def _ensure_fortune_talisman_daily_table():
+                execute_update(
+                    """
+                    CREATE TABLE IF NOT EXISTS fortune_talisman_daily (
+                        user_id INT NOT NULL,
+                        use_date DATE NOT NULL,
+                        use_count INT NOT NULL DEFAULT 0,
+                        updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                        PRIMARY KEY (user_id, use_date)
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+                    """
+                )
+
+            def _get_used_today() -> int:
+                _ensure_fortune_talisman_daily_table()
+                rows = execute_query(
+                    "SELECT use_count FROM fortune_talisman_daily WHERE user_id = %s AND use_date = CURDATE()",
+                    (user_id,),
+                )
+                if not rows:
+                    return 0
+                return int(rows[0].get("use_count", 0) or 0)
+
+            def _set_used_today(cnt: int) -> None:
+                _ensure_fortune_talisman_daily_table()
+                execute_update(
+                    """
+                    INSERT INTO fortune_talisman_daily (user_id, use_date, use_count)
+                    VALUES (%s, CURDATE(), %s)
+                    ON DUPLICATE KEY UPDATE use_count = VALUES(use_count)
+                    """,
+                    (user_id, int(cnt)),
+                )
+
+            vip_level = int(getattr(player, "vip_level", 0) or 0)
+            from application.services.vip_service import get_fortune_talisman_limit
+
+            daily_limit = int(get_fortune_talisman_limit(vip_level) or 0)
+            used_today = _get_used_today()
+            remaining = max(0, daily_limit - used_today)
+            if remaining <= 0:
+                raise InventoryError(f"今日招财神符使用次数已达上限（VIP{vip_level}：{daily_limit}次）")
+
+            # 本次只允许使用 remaining 个（并同步调整扣除数量，避免“效果=0但道具被消耗”）
+            use_count = min(int(quantity), int(remaining))
+            if use_count <= 0:
+                raise InventoryError(f"今日招财神符使用次数已达上限（VIP{vip_level}：{daily_limit}次）")
+
             lv = int(getattr(player, "level", 1) or 1)
             if 1 <= lv <= 9:
                 base = 49300
@@ -871,10 +923,12 @@ class InventoryService:
             else:
                 base = 202300
 
-            total_gold = int(base) * int(quantity)
+            total_gold = int(base) * int(use_count)
             player.gold = int(getattr(player, "gold", 0) or 0) + total_gold
             self.player_repo.save(player)
 
+            _set_used_today(used_today + int(use_count))
+            quantity = int(use_count)
             message = f"成功使用{item_template.name}×{quantity}，获得铜钱×{total_gold}"
             rewards["铜钱"] = total_gold
         elif item_template.id == 6015:  # 化仙丹
