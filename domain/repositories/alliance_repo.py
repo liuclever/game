@@ -322,12 +322,12 @@ class IAllianceRepo(ABC):
 
     # === 盟战签到 ===
     @abstractmethod
-    def has_war_checkin(self, alliance_id: int, user_id: int, war_phase: str, war_weekday: int, checkin_date: date) -> bool:
-        """检查是否已签到"""
+    def has_war_checkin(self, registration_id: int, user_id: int) -> bool:
+        """检查用户是否已为指定报名记录签到"""
         pass
 
     @abstractmethod
-    def add_war_checkin(self, alliance_id: int, user_id: int, war_phase: str, war_weekday: int, checkin_date: date, copper_reward: int) -> int:
+    def add_war_checkin(self, alliance_id: int, user_id: int, registration_id: int, war_phase: str, war_weekday: int, checkin_date: date, copper_reward: int) -> int:
         """添加盟战签到记录"""
         pass
 
@@ -408,6 +408,11 @@ class IAllianceRepo(ABC):
     @abstractmethod
     def get_land_registration_by_id(self, registration_id: int) -> Optional[AllianceRegistration]:
         """根据报名ID获取记录"""
+        pass
+
+    @abstractmethod
+    def delete_land_registrations_by_land(self, land_id: int) -> int:
+        """删除指定土地上的所有报名联盟记录（用于盟战结束后清理报名数据）"""
         pass
 
     # === 军团报名玩家 ===

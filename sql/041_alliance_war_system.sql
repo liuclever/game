@@ -84,12 +84,12 @@ CREATE TABLE IF NOT EXISTS lands (
 
 -- 初始化土地数据
 -- 更新土地数据，使用与前端一致的名称和ID
-DELETE FROM lands WHERE id IN (1, 2, 3, 4, 5);
+DELETE FROM lands WHERE id IN (1, 2, 3, 4);
 INSERT INTO lands (id, name, land_type, daily_reward_copper) VALUES
-(1, '林中空地1号土地', 'land', 10000),
-(2, '幻灵镇1号土地', 'land', 10000),
-(4, '林中空地1号据点', 'stronghold', 5000),
-(5, '幻灵镇1号据点', 'stronghold', 5000);
+(1, '迷雾城1号土地', 'land', 10000),
+(2, '飞龙港1号土地', 'land', 10000),
+(3, '幻灵镇1号据点', 'stronghold', 5000),
+(4, '定老城1号据点', 'stronghold', 5000);
 
 -- 土地占领表（记录当前占领情况）
 CREATE TABLE IF NOT EXISTS alliance_land_occupation (

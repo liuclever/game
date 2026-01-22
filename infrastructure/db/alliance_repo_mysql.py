@@ -393,7 +393,131 @@ class MySQLAllianceRepo(IAllianceRepo):
         except Exception:
             pass
         
-        # 10. 删除联盟（级联删除成员记录和其他相关数据）
+        # 10. 删除盟战相关记录（需要先删除有外键约束的子表）
+        # 10.1 删除盟战对决记录（通过JOIN方式避免子查询问题）
+        try:
+            sql_duels = """
+                DELETE d FROM alliance_land_battle_duel d
+                INNER JOIN alliance_land_battle_round r ON d.round_id = r.id
+                INNER JOIN alliance_land_battle b ON r.battle_id = b.id
+                INNER JOIN alliance_land_registration lreg ON b.left_registration_id = lreg.id
+                WHERE lreg.alliance_id = %s
+            """
+            execute_update(sql_duels, (alliance_id,))
+            # 删除右方注册的对决记录
+            sql_duels2 = """
+                DELETE d FROM alliance_land_battle_duel d
+                INNER JOIN alliance_land_battle_round r ON d.round_id = r.id
+                INNER JOIN alliance_land_battle b ON r.battle_id = b.id
+                INNER JOIN alliance_land_registration rreg ON b.right_registration_id = rreg.id
+                WHERE rreg.alliance_id = %s
+            """
+            execute_update(sql_duels2, (alliance_id,))
+        except Exception:
+            pass
+        
+        # 10.2 删除盟战轮次记录
+        try:
+            sql_rounds = """
+                DELETE r FROM alliance_land_battle_round r
+                INNER JOIN alliance_land_battle b ON r.battle_id = b.id
+                INNER JOIN alliance_land_registration lreg ON b.left_registration_id = lreg.id
+                WHERE lreg.alliance_id = %s
+            """
+            execute_update(sql_rounds, (alliance_id,))
+            # 删除右方注册的轮次记录
+            sql_rounds2 = """
+                DELETE r FROM alliance_land_battle_round r
+                INNER JOIN alliance_land_battle b ON r.battle_id = b.id
+                INNER JOIN alliance_land_registration rreg ON b.right_registration_id = rreg.id
+                WHERE rreg.alliance_id = %s
+            """
+            execute_update(sql_rounds2, (alliance_id,))
+        except Exception:
+            pass
+        
+        # 10.3 删除盟战战斗记录
+        try:
+            sql_battles = """
+                DELETE b FROM alliance_land_battle b
+                INNER JOIN alliance_land_registration lreg ON b.left_registration_id = lreg.id
+                WHERE lreg.alliance_id = %s
+            """
+            execute_update(sql_battles, (alliance_id,))
+            # 删除右方注册的战斗记录
+            sql_battles2 = """
+                DELETE b FROM alliance_land_battle b
+                INNER JOIN alliance_land_registration rreg ON b.right_registration_id = rreg.id
+                WHERE rreg.alliance_id = %s
+            """
+            execute_update(sql_battles2, (alliance_id,))
+        except Exception:
+            pass
+        
+        # 10.4 删除盟战报名记录
+        try:
+            sql_signups = "DELETE FROM alliance_army_signups WHERE alliance_id = %s"
+            execute_update(sql_signups, (alliance_id,))
+        except Exception:
+            pass
+        
+        # 10.5 删除联盟土地报名记录
+        try:
+            sql_registration = "DELETE FROM alliance_land_registration WHERE alliance_id = %s"
+            execute_update(sql_registration, (alliance_id,))
+        except Exception:
+            pass
+        
+        # 10.6 删除联盟土地占领记录
+        try:
+            sql_occupation = "DELETE FROM alliance_land_occupation WHERE alliance_id = %s"
+            execute_update(sql_occupation, (alliance_id,))
+        except Exception:
+            pass
+        
+        # 10.7 删除盟战签到记录
+        try:
+            sql_checkin = "DELETE FROM alliance_war_checkin WHERE alliance_id = %s"
+            execute_update(sql_checkin, (alliance_id,))
+        except Exception:
+            pass
+        
+        # 10.8 删除盟战战绩记录
+        try:
+            sql_battle_records = "DELETE FROM alliance_war_battle_records WHERE alliance_id = %s OR opponent_alliance_id = %s"
+            execute_update(sql_battle_records, (alliance_id, alliance_id))
+        except Exception:
+            pass
+        
+        # 10.9 删除战功兑换记录
+        try:
+            sql_exchange = "DELETE FROM alliance_war_honor_exchange WHERE alliance_id = %s"
+            execute_update(sql_exchange, (alliance_id,))
+        except Exception:
+            pass
+        
+        # 10.10 删除赛季奖励记录
+        try:
+            sql_season = "DELETE FROM alliance_season_rewards WHERE alliance_id = %s"
+            execute_update(sql_season, (alliance_id,))
+        except Exception:
+            pass
+        
+        # 10.11 删除盟战积分记录
+        try:
+            sql_scores = "DELETE FROM alliance_war_scores WHERE alliance_id = %s"
+            execute_update(sql_scores, (alliance_id,))
+        except Exception:
+            pass
+        
+        # 10.12 删除盟战战功效果记录
+        try:
+            sql_effects = "DELETE FROM alliance_war_honor_effects WHERE alliance_id = %s"
+            execute_update(sql_effects, (alliance_id,))
+        except Exception:
+            pass
+        
+        # 11. 删除联盟（级联删除成员记录和其他相关数据）
         sql = "DELETE FROM alliances WHERE id = %s"
         execute_update(sql, (alliance_id,))
 
@@ -1348,6 +1472,11 @@ class MySQLAllianceRepo(IAllianceRepo):
             return None
         return self._map_land_registration(rows[0])
 
+    def delete_land_registrations_by_land(self, land_id: int) -> int:
+        """删除指定土地上的所有报名联盟记录（用于盟战结束后清理报名数据）"""
+        sql = "DELETE FROM alliance_land_registration WHERE land_id = %s"
+        return execute_update(sql, (land_id,))
+
     def get_alliance_buildings(self, alliance_id: int) -> List[AllianceBuilding]:
         sql = """
             SELECT alliance_id, building_key, level
@@ -1513,25 +1642,70 @@ class MySQLAllianceRepo(IAllianceRepo):
         )
 
     # === 盟战签到 ===
-    def has_war_checkin(self, alliance_id: int, user_id: int, war_phase: str, war_weekday: int, checkin_date: date) -> bool:
-        if isinstance(checkin_date, str):
-            checkin_date = datetime.strptime(checkin_date, "%Y-%m-%d").date()
-        sql = """
-            SELECT 1 FROM alliance_war_checkin
-            WHERE alliance_id = %s AND user_id = %s AND war_phase = %s AND war_weekday = %s AND checkin_date = %s
-            LIMIT 1
-        """
-        rows = execute_query(sql, (alliance_id, user_id, war_phase, war_weekday, checkin_date))
-        return len(rows) > 0
+    def has_war_checkin(self, registration_id: int, user_id: int) -> bool:
+        """检查用户是否已为指定报名记录签到"""
+        # 先尝试使用 registration_id 查询（如果字段存在）
+        try:
+            sql = """
+                SELECT 1 FROM alliance_war_checkin
+                WHERE registration_id = %s AND user_id = %s
+                LIMIT 1
+            """
+            rows = execute_query(sql, (registration_id, user_id))
+            return len(rows) > 0
+        except Exception as e:
+            # 如果 registration_id 字段不存在，使用备用方式查询
+            error_msg = str(e)
+            if "Unknown column 'registration_id'" in error_msg or "registration_id" in error_msg.lower():
+                # 获取报名记录以获取 alliance_id 和 war_phase
+                registration = self.get_land_registration_by_id(registration_id)
+                if not registration:
+                    return False
+                
+                # 计算当前 war_phase（根据当前日期）
+                from datetime import datetime
+                now = datetime.utcnow()
+                weekday = now.weekday()
+                war_phase = "first" if weekday <= 2 else "second"
+                checkin_date = now.date()
+                
+                # 使用 alliance_id + user_id + war_phase + checkin_date 查询
+                sql = """
+                    SELECT 1 FROM alliance_war_checkin
+                    WHERE alliance_id = %s AND user_id = %s 
+                    AND war_phase = %s AND checkin_date = %s
+                    LIMIT 1
+                """
+                rows = execute_query(sql, (registration.alliance_id, user_id, war_phase, checkin_date))
+                return len(rows) > 0
+            else:
+                # 其他错误直接抛出
+                raise
 
-    def add_war_checkin(self, alliance_id: int, user_id: int, war_phase: str, war_weekday: int, checkin_date: date, copper_reward: int) -> int:
+    def add_war_checkin(self, alliance_id: int, user_id: int, registration_id: int, war_phase: str, war_weekday: int, checkin_date: date, copper_reward: int) -> int:
         if isinstance(checkin_date, str):
             checkin_date = datetime.strptime(checkin_date, "%Y-%m-%d").date()
-        sql = """
-            INSERT INTO alliance_war_checkin (alliance_id, user_id, war_phase, war_weekday, checkin_date, copper_reward)
-            VALUES (%s, %s, %s, %s, %s, %s)
-        """
-        return execute_insert(sql, (alliance_id, user_id, war_phase, war_weekday, checkin_date, copper_reward))
+        
+        # 先尝试使用 registration_id 插入（如果字段存在）
+        try:
+            sql = """
+                INSERT INTO alliance_war_checkin (alliance_id, user_id, registration_id, war_phase, war_weekday, checkin_date, copper_reward)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+            """
+            return execute_insert(sql, (alliance_id, user_id, registration_id, war_phase, war_weekday, checkin_date, copper_reward))
+        except Exception as e:
+            # 如果 registration_id 字段不存在，使用备用方式插入（不包含 registration_id）
+            error_msg = str(e)
+            if "Unknown column 'registration_id'" in error_msg or "registration_id" in error_msg.lower():
+                sql = """
+                    INSERT INTO alliance_war_checkin (alliance_id, user_id, war_phase, war_weekday, checkin_date, copper_reward)
+                    VALUES (%s, %s, %s, %s, %s, %s)
+                    ON DUPLICATE KEY UPDATE copper_reward = VALUES(copper_reward)
+                """
+                return execute_insert(sql, (alliance_id, user_id, war_phase, war_weekday, checkin_date, copper_reward))
+            else:
+                # 其他错误直接抛出
+                raise
 
     # === 盟战战绩 ===
     def add_war_battle_record(self, alliance_id: int, opponent_alliance_id: int, land_id: int, army_type: str, war_phase: str, war_date: date, battle_result: str, honor_gained: int, battle_id: Optional[int] = None) -> int:
@@ -1696,6 +1870,34 @@ class MySQLAllianceRepo(IAllianceRepo):
     def set_land_occupation(self, land_id: int, alliance_id: int, war_phase: str, war_date: date) -> int:
         if isinstance(war_date, str):
             war_date = datetime.strptime(war_date, "%Y-%m-%d").date()
+        
+        # 确保land在lands表中存在（如果不存在则创建）
+        # 从WAR_LANDS配置中获取土地信息
+        from application.services.alliance_service import AllianceService
+        land_meta = AllianceService.WAR_LANDS.get(land_id)
+        if land_meta:
+            # 检查land是否存在
+            check_sql = "SELECT id FROM lands WHERE id = %s"
+            existing = execute_query(check_sql, (land_id,))
+            if not existing:
+                # 如果不存在，创建land记录
+                insert_land_sql = """
+                    INSERT INTO lands (id, name, land_type, daily_reward_copper)
+                    VALUES (%s, %s, %s, %s)
+                """
+                try:
+                    execute_insert(insert_land_sql, (
+                        land_id,
+                        land_meta["land_name"],
+                        land_meta["land_type"],
+                        land_meta.get("daily_reward_copper", 0)
+                    ))
+                except Exception as e:
+                    # 如果插入失败（可能是并发插入），忽略错误
+                    import logging
+                    logger = logging.getLogger(__name__)
+                    logger.warning(f"创建land {land_id} 记录时出错（可能已存在）: {e}")
+        
         # 先删除旧记录
         delete_sql = "DELETE FROM alliance_land_occupation WHERE land_id = %s"
         execute_update(delete_sql, (land_id,))
@@ -1704,4 +1906,16 @@ class MySQLAllianceRepo(IAllianceRepo):
             INSERT INTO alliance_land_occupation (land_id, alliance_id, war_phase, war_date)
             VALUES (%s, %s, %s, %s)
         """
-        return execute_insert(sql, (land_id, alliance_id, war_phase, war_date))
+        result = execute_insert(sql, (land_id, alliance_id, war_phase, war_date))
+        
+        # 盟战结束，土地被占领后，删除该土地上的所有报名联盟记录
+        # 使用 try-except 确保即使删除失败也不影响土地占领的设置
+        try:
+            self.delete_land_registrations_by_land(land_id)
+        except Exception as e:
+            # 记录错误但不抛出异常，确保土地占领设置成功
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.warning(f"删除土地 {land_id} 的报名记录时出错: {e}")
+        
+        return result

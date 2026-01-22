@@ -78,6 +78,7 @@ def get_player_profile():
             "id": b.id,
             "name": b.name,
             "realm": b.realm,
+            "race": getattr(b, "race", ""),
             "level": b.level,
             "combat_power": b.combat_power,
         }
@@ -97,6 +98,7 @@ def get_player_profile():
                 "id": b.id,
                 "name": b.name,
                 "realm": b.realm,
+                "race": getattr(b, "race", ""),
                 "level": b.level,
                 "combat_power": total_power,
             })

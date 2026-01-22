@@ -7,7 +7,7 @@ class AllianceRules:
     TRAINING_DURATION_MINUTES = 120  # 默认2小时（兼容旧数据）
     TRAINING_DAILY_LIMIT = 1
     FIRE_ORE_CONTRIBUTION_COST = 5  # 领取火能原石需要消耗的贡献值
-    FIRE_ORE_ITEM_ID = 1004  # 火能原石物品ID
+    FIRE_ORE_ITEM_ID = 6103  # 火能原石物品ID
     MIN_TRAINING_PARTICIPANTS = 2  # 开始修行所需的最少人数
     
     # 修行时长和活力消耗配置（小时 -> 活力）
@@ -50,7 +50,7 @@ class AllianceRules:
             "contribution": 10,
         },
         "fire_crystal": {
-            "item_id": 1004,
+            "item_id": 6102,
             "item_name": "焚火晶",
             "funds": 0,
             "prosperity": 10,

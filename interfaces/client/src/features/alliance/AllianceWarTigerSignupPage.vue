@@ -1,14 +1,57 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import http from '@/services/http'
 
 const router = useRouter()
 
-const allTargets = ref([
-  { id: 3, seq: 1, name: '林中空地1号据点', signupCount: 4 },
-  { id: 4, seq: 2, name: '幻灵镇1号据点', signupCount: 7 },
-])
+const allTargets = ref([])
+const loading = ref(true)
+
+// 从后端API获取伏虎军可报名的据点列表
+const loadTargets = async () => {
+  loading.value = true
+  try {
+    // 通过查询参数指定军队类型为tiger，确保返回伏虎军的据点列表
+    const res = await http.get('/alliance/war/targets', { params: { army: 'tiger' } })
+    console.log('伏虎军报名页面 - API响应:', res?.data)
+    
+    if (res?.data?.ok) {
+      const lands = res.data.data?.lands || []
+      console.log('伏虎军报名页面 - 获取到的目标列表:', lands)
+      
+      // 伏虎军只能选择据点（land_type === 'stronghold'）
+      const filteredStrongholds = lands.filter(land => land.land_type === 'stronghold')
+      console.log('伏虎军报名页面 - 过滤后的据点列表:', filteredStrongholds)
+      
+      allTargets.value = filteredStrongholds.map((land, index) => ({
+        id: land.id,
+        seq: index + 1,
+        name: land.label,
+        signupCount: land.signup_count || 0
+      }))
+      
+      if (allTargets.value.length === 0) {
+        console.warn('伏虎军报名页面 - 没有找到可报名的据点')
+      }
+    } else {
+      const error = res?.data?.error || '未知错误'
+      console.error('获取据点列表失败', error)
+      // 如果API返回错误，显示错误信息
+      alert(`获取据点列表失败: ${error}`)
+    }
+  } catch (err) {
+    console.error('获取据点列表失败', err)
+    const errorMsg = err?.response?.data?.error || err?.message || '网络错误，请稍后重试'
+    alert(`获取据点列表失败: ${errorMsg}`)
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(() => {
+  loadTargets()
+})
 
 const visibleTargets = computed(() => allTargets.value)
 
@@ -41,7 +84,12 @@ const goHome = () => {
     <div class="section title">【据点详情】</div>
     <div class="section header">序号.据点.报名联盟数</div>
 
+    <div v-if="loading" class="section">加载中...</div>
+    <div v-else-if="visibleTargets.length === 0" class="section">
+      暂无可报名的据点
+    </div>
     <div
+      v-else
       v-for="target in visibleTargets"
       :key="target.id"
       class="section row"
