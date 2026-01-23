@@ -224,8 +224,52 @@ def battle():
         
         if not attacker_beasts:
             return jsonify({"ok": False, "error": "你没有出战幻兽"})
+        
+        # 允许挑战没有出战幻兽的对手（视为对手弃权，挑战者自动获胜）
         if not defender_beasts:
-            return jsonify({"ok": False, "error": "对方没有出战幻兽，无法切磋"})
+            # 所有检查通过后，才扣除活力
+            attacker.energy = current_energy - energy_cost
+            services.player_repo.save(attacker)
+            
+            # 对手没有幻兽，挑战者自动获胜
+            new_streak = record['current_streak'] + 1
+            new_max = max(new_streak, record['max_streak_today'])
+            
+            today = datetime.now().date()
+            execute_update(
+                """UPDATE arena_streak 
+                   SET current_streak = %s, max_streak_today = %s, 
+                       total_battles_today = total_battles_today + 1,
+                       last_battle_time = NOW()
+                   WHERE user_id = %s AND record_date = %s""",
+                (new_streak, new_max, user_id, today)
+            )
+            
+            # 构建简单的战斗数据
+            battle_data = {
+                "is_victory": True,
+                "attacker_name": attacker.nickname or f"玩家{user_id}",
+                "defender_name": defender.nickname or f"玩家{opponent_id}",
+                "current_streak": new_streak,
+                "message": f"对手没有出战幻兽，自动获胜！当前连胜{new_streak}次（消耗活力{energy_cost}点）",
+                "battles": [{
+                    "battle_num": 1,
+                    "winner": "attacker",
+                    "rounds": [{
+                        "round": 1,
+                        "action": f"『{defender.nickname or f'玩家{opponent_id}'}』没有出战幻兽，『{attacker.nickname or f'玩家{user_id}'}』不战而胜！",
+                        "a_hp": 0,
+                        "d_hp": 0
+                    }],
+                    "result": f"『{defender.nickname or f'玩家{opponent_id}'}』没有出战幻兽，『{attacker.nickname or f'玩家{user_id}'}』不战而胜！"
+                }]
+            }
+            
+            return jsonify({
+                "ok": True,
+                "victory": True,
+                "battle": battle_data
+            })
         
         # 所有检查通过后，才扣除活力
         attacker.energy = current_energy - energy_cost
