@@ -238,7 +238,7 @@ def _to_pvp_beasts_from_config(config_beasts: list) -> list[PvpBeast]:
         # 副本幻兽属性直接使用配置值，不计算装备加成
         hp = stats.get('hp', 0)
         pa = stats.get('atk', 0) if attack_type == 'physical' else 0
-        ma = stats.get('atk', 0) if attack_type == 'magic' else stats.get('matk', 0)
+        ma = stats.get('matk', 0) if attack_type == 'magic' else 0
         pd = stats.get('def', 0)
         md = stats.get('mdef', 0)
         spd = stats.get('speed', 0)
