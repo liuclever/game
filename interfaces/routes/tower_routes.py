@@ -62,6 +62,22 @@ def get_team_player_beasts(user_id: int) -> list:
 
 
 # ===== 闯塔接口 =====
+@tower_bp.get("/tower/inspire/status")
+def get_inspire_status():
+    """获取鼓舞状态（暂未实现，返回默认值）"""
+    user_id = get_current_user_id()
+    if not user_id:
+        return jsonify({"ok": False, "error": "请先登录"}), 401
+    
+    # 鼓舞功能暂未实现，返回默认状态
+    return jsonify({
+        "ok": True,
+        "active": False,
+        "remaining_seconds": 0,
+        "inspire_pill_count": 0
+    })
+
+
 @tower_bp.get("/tower/info")
 def get_tower_info():
     """获取闯塔信息"""
