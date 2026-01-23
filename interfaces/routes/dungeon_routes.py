@@ -362,6 +362,35 @@ def get_bone_soul_item_id(dungeon_name):
     return None
 
 
+def get_evolution_stone_item_id(dungeon_name):
+    """根据副本/地图获取对应的进化石 ID"""
+    dungeon_config = load_dungeon_config()
+    
+    # 查找所属地图
+    target_map = None
+    for m in dungeon_config['maps']:
+        for d in m['dungeons']:
+            if d['name'] == dungeon_name:
+                target_map = m
+                break
+        if target_map: break
+        
+    if not target_map:
+        return None
+        
+    map_name = target_map['map_name']
+    
+    # 根据地图返回对应的进化石ID
+    if map_name == "定老城": return 3001  # 黄阶进化石
+    if map_name == "迷雾城": return 3002  # 玄阶进化石
+    if map_name == "飞龙港": return 3003  # 地阶进化石
+    if map_name == "落龙镇": return 3004  # 天阶进化石
+    if map_name == "圣龙城": return 3005  # 飞马进化石
+    if map_name == "乌托邦": return 3006  # 天龙进化石
+        
+    return None
+
+
 @dungeon_bp.route('/dice-info', methods=['GET'])
 def get_dice_info():
     user_id = get_current_user_id()
@@ -1542,7 +1571,7 @@ def open_loot():
     rewards["crystal"] = {"id": crystal_id, "name": crystal_name, "amount": crystal_amount}
 
     if is_boss:
-        # BOSS 奖励：铜钱 600 + 30% 骨魂
+        # BOSS 奖励：铜钱 600 + 30% 骨魂 + 30% 进化石
         copper_amount = 600 * multiplier
         execute_update("UPDATE player SET gold = gold + %s WHERE user_id = %s", (copper_amount, user_id))
         rewards["copper"] = {"amount": copper_amount}
@@ -1564,6 +1593,24 @@ def open_loot():
                     "id": bone_soul_id,
                     "name": bone_soul_names.get(bone_soul_id, "骨魂"),
                     "amount": bone_soul_amount
+                }
+        
+        # 30% 概率出进化石
+        if random.random() < 0.3:
+            evolution_stone_id = get_evolution_stone_item_id(dungeon_name)
+            if evolution_stone_id:
+                evolution_stone_amount = 1 * multiplier
+                services.inventory_service.add_item(user_id, evolution_stone_id, evolution_stone_amount)
+                
+                # 获取进化石名称
+                evolution_stone_names = {
+                    3001: "黄阶进化石", 3002: "玄阶进化石", 3003: "地阶进化石",
+                    3004: "天阶进化石", 3005: "飞马进化石", 3006: "天龙进化石"
+                }
+                rewards["evolution_stone"] = {
+                    "id": evolution_stone_id,
+                    "name": evolution_stone_names.get(evolution_stone_id, "进化石"),
+                    "amount": evolution_stone_amount
                 }
     else:
         # 普通怪奖励：幻兽经验
