@@ -159,6 +159,9 @@ class InventoryService:
             # 战灵钥匙：跳转战灵功能页核销（前端会提示并跳转）
             if int(item_template.id) == 6006:
                 return (True, "使用")
+            # 灵力水晶：跳转战灵功能页兑换灵力（前端会提示并跳转）
+            if int(item_template.id) == 6101:
+                return (True, "使用")
             # 六系灵石（未开）：背包内直接“打开”
             if int(item_template.id) in (7101, 7102, 7103, 7104, 7105, 7106):
                 return (True, "打开")
