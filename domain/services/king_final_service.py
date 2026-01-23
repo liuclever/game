@@ -98,6 +98,11 @@ def run_final_stage(stage):
     player_ids = [p['user_id'] for p in players]
     print(f"[召唤之王] {stage}强赛共{len(player_ids)}名选手")
     
+    # 去重，防止同一个玩家有多条记录
+    player_ids = list(dict.fromkeys(player_ids))  # 保持顺序的去重
+    if len(player_ids) != len(players):
+        print(f"[召唤之王] 警告：发现重复记录，去重后剩余{len(player_ids)}名选手")
+    
     # 随机打乱顺序
     random.shuffle(player_ids)
     
@@ -110,6 +115,11 @@ def run_final_stage(stage):
             # 正常配对
             player1_id = player_ids[i]
             player2_id = player_ids[i + 1]
+            
+            # 防止自己和自己打（双重保险）
+            if player1_id == player2_id:
+                print(f"[召唤之王] 警告：检测到自己和自己配对，跳过")
+                continue
             
             print(f"[召唤之王] 第{match_id}场: {player1_id} vs {player2_id}")
             
