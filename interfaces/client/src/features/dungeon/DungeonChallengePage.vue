@@ -924,7 +924,7 @@ onUnmounted(() => {
         <div class="section">基础属性:</div>
         <div class="section">
           气血: {{ selectedBeast.stats?.hp || 0 }} | 
-          {{ selectedBeast.attack_type === 'physical' ? '物攻' : '法攻' }}: {{ selectedBeast.stats?.atk || 0 }}
+          {{ selectedBeast.attack_type === 'physical' ? '物攻' : '法攻' }}: {{ selectedBeast.attack_type === 'physical' ? (selectedBeast.stats?.atk || 0) : (selectedBeast.stats?.matk || 0) }}
         </div>
         <div class="section">
           物防: {{ selectedBeast.stats?.def || 0 }} | 
