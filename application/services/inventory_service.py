@@ -1173,9 +1173,9 @@ class InventoryService:
                             selected_items = random.sample(pool, min(count, len(pool)))
                             for item_id in selected_items:
                                 self.add_item(user_id, int(item_id), 1)
-                                item_name = item_cfg.get("name") or (
-                                    self.item_repo.get_by_id(int(item_id)).name if self.item_repo.get_by_id(
-                                        int(item_id)) else f"物品{item_id}")
+                                # 使用实际物品的名称，而不是配置中的"七类结晶"
+                                actual_item = self.item_repo.get_by_id(int(item_id))
+                                item_name = actual_item.name if actual_item else f"物品{item_id}"
                                 item_summary[item_name] = item_summary.get(item_name, 0) + 1
                     else:
                         # 普通物品，直接发放
