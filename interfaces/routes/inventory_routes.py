@@ -12,6 +12,53 @@ def get_current_user_id() -> int:
     return session.get('user_id', 0)
 
 
+def _get_chest_star_level(player_level: int) -> int:
+    """根据玩家等级获取宝箱星级
+    
+    30-39级: 3星
+    40-49级: 4星
+    50-59级: 5星
+    60-69级: 6星
+    70-79级: 7星
+    80级及以上: 8星
+    """
+    if player_level < 30:
+        return 0
+    elif player_level < 40:
+        return 3
+    elif player_level < 50:
+        return 4
+    elif player_level < 60:
+        return 5
+    elif player_level < 70:
+        return 6
+    elif player_level < 80:
+        return 7
+    else:
+        return 8
+
+
+def _get_star_prefix(star_level: int) -> str:
+    """根据星级数字获取中文星级前缀
+    
+    3 -> "三星"
+    4 -> "四星"
+    5 -> "五星"
+    6 -> "六星"
+    7 -> "七星"
+    8 -> "八星"
+    """
+    star_map = {
+        3: "三星",
+        4: "四星",
+        5: "五星",
+        6: "六星",
+        7: "七星",
+        8: "八星",
+    }
+    return star_map.get(star_level, "")
+
+
 @inventory_bp.get("/list")
 def get_inventory_list():
     """
@@ -38,16 +85,29 @@ def get_inventory_list():
     # 获取背包信息
     bag_info = services.inventory_service.get_bag_info(user_id)
     
+    # 获取玩家信息（用于计算宝箱星级）
+    player = services.player_service.get_player(user_id)
+    player_level = player.level if player else 0
+    
     result_items = []
     for item in items:
         # 再次过滤数量为0的物品（双重保险）
         if item.inv_item.quantity <= 0:
             continue
         can_use, action_name = services.inventory_service.can_use_or_open_item(item.item_info)
+        
+        # 动态生成镇妖宝箱的星级名称
+        item_name = item.item_info.name
+        if item.item_info.id in (92001, 92002):  # 试炼宝箱或炼狱宝箱
+            star_level = _get_chest_star_level(player_level)
+            star_prefix = _get_star_prefix(star_level)
+            if star_prefix:
+                item_name = f"{star_prefix}{item_name}"
+        
         result_items.append({
             "id": item.inv_item.id,
             "item_id": item.item_info.id,
-            "name": item.item_info.name,
+            "name": item_name,
             "type": item.item_info.type,
             "quantity": item.inv_item.quantity,
             "description": item.item_info.description,
@@ -73,16 +133,29 @@ def get_temp_items():
     
     items = services.inventory_service.get_temp_items(user_id)
     
+    # 获取玩家信息（用于计算宝箱星级）
+    player = services.player_service.get_player(user_id)
+    player_level = player.level if player else 0
+    
     result_items = []
     for item in items:
         # 过滤掉数量为0的物品
         if item.inv_item.quantity <= 0:
             continue
         can_use, action_name = services.inventory_service.can_use_or_open_item(item.item_info)
+        
+        # 动态生成镇妖宝箱的星级名称
+        item_name = item.item_info.name
+        if item.item_info.id in (92001, 92002):  # 试炼宝箱或炼狱宝箱
+            star_level = _get_chest_star_level(player_level)
+            star_prefix = _get_star_prefix(star_level)
+            if star_prefix:
+                item_name = f"{star_prefix}{item_name}"
+        
         result_items.append({
             "id": item.inv_item.id,
             "item_id": item.item_info.id,
-            "name": item.item_info.name,
+            "name": item_name,
             "type": item.item_info.type,
             "quantity": item.inv_item.quantity,
             "description": item.item_info.description,

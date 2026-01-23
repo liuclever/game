@@ -120,7 +120,7 @@ class ZhenyaoService:
 
         # 根据玩家等级确定宝箱星级
         star_level = self._get_chest_star_level(player_level)
-        star_prefix = f"{star_level}星" if star_level > 0 else ""
+        star_prefix = self._get_star_prefix(star_level)
         
         chest_item_id = ZHENYAO_TRIAL_CHEST_ITEM_ID if is_trial else ZHENYAO_HELL_CHEST_ITEM_ID
         chest_base_name = "试炼宝箱" if is_trial else "炼狱宝箱"
@@ -163,6 +163,26 @@ class ZhenyaoService:
             return 7
         else:
             return 8
+    
+    def _get_star_prefix(self, star_level: int) -> str:
+        """根据星级数字获取中文星级前缀
+        
+        3 -> "三星"
+        4 -> "四星"
+        5 -> "五星"
+        6 -> "六星"
+        7 -> "七星"
+        8 -> "八星"
+        """
+        star_map = {
+            3: "三星",
+            4: "四星",
+            5: "五星",
+            6: "六星",
+            7: "七星",
+            8: "八星",
+        }
+        return star_map.get(star_level, "")
 
     def check_and_grant_rewards(self, user_id: int) -> List[Dict]:
         """检查并为玩家发放已到期的占领奖励"""
