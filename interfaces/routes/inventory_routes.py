@@ -86,7 +86,7 @@ def get_inventory_list():
     bag_info = services.inventory_service.get_bag_info(user_id)
     
     # 获取玩家信息（用于计算宝箱星级）
-    player = services.player_service.get_player(user_id)
+    player = services.player_repo.get_by_id(user_id)
     player_level = player.level if player else 0
     
     result_items = []
@@ -134,7 +134,7 @@ def get_temp_items():
     items = services.inventory_service.get_temp_items(user_id)
     
     # 获取玩家信息（用于计算宝箱星级）
-    player = services.player_service.get_player(user_id)
+    player = services.player_repo.get_by_id(user_id)
     player_level = player.level if player else 0
     
     result_items = []

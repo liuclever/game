@@ -95,7 +95,7 @@ export function getItemUseHint(itemId, itemName) {
   const name = itemName || ''
   if (name.includes('喇叭')) return '小喇叭：请前往【世界频道】喊话时消耗。'
   if (name.includes('捕捉球')) return '捕捉球：请在【地图副本】捕捉幻兽时选择使用。'
-  if (name.includes('技能书') || name.includes('书')) return '技能书：请先前往【幻兽】选择目标幻兽后使用。'
+  if ((name.includes('技能书') || name.includes('书')) && !name.includes('口袋')) return '技能书：请先前往【幻兽】选择目标幻兽后使用。'
   if (name.includes('战骨') || name.includes('卷轴')) return '战骨相关道具：请先前往【幻兽】选择目标幻兽后使用/装备。'
   return '该道具不能在背包中直接使用，请前往对应功能界面核销。'
 }
@@ -126,7 +126,8 @@ export function getItemUseRoute(itemId, itemName) {
   }
   
   // 技能书 - 跳转到幻兽列表，让用户选择幻兽
-  if (name.includes('技能书') || name.includes('书')) {
+  // 排除：技能书口袋（6007）- 这是宝箱类道具，可以直接打开
+  if ((name.includes('技能书') || name.includes('书')) && !name.includes('口袋')) {
     return '/beast'
   }
   
