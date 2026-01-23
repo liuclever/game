@@ -6,6 +6,18 @@ import ChatPanel from '@/features/lobby/components/ChatPanel.vue'
 
 const router = useRouter()
 
+// 主页顶部固定活动时间（在时间范围内才展示）
+const ACTIVITY_TIME_TEXT = '2026.1.25-2026.2.20'
+// 注意：Date 构造使用本地时区；月份从 0 开始（1月=0，2月=1）
+const ACTIVITY_START = new Date(2026, 0, 25, 0, 0, 0, 0)
+const ACTIVITY_END = new Date(2026, 1, 20, 23, 59, 59, 999)
+const nowMs = ref(Date.now())
+let nowTimer = null
+const shouldShowActivityTime = computed(() => {
+  const now = new Date(nowMs.value)
+  return now >= ACTIVITY_START && now <= ACTIVITY_END
+})
+
 // 公告列表
 const announcements = ref([])
 const loadingAnnouncements = ref(true)
@@ -495,6 +507,11 @@ onMounted(async () => {
     await checkAuth()
     await loadAllianceTop3()
     await loadAnnouncements()
+    // 定时刷新“系统时间”，避免页面常开跨天导致展示状态不更新
+    if (nowTimer) clearInterval(nowTimer)
+    nowTimer = setInterval(() => {
+      nowMs.value = Date.now()
+    }, 30 * 1000)
     console.log('[MainPage] 数据加载完成')
   } catch (e) {
     console.error('[MainPage] 数据加载失败:', e)
@@ -506,6 +523,7 @@ onMounted(async () => {
 onUnmounted(() => {
   if (countdownTimer) clearInterval(countdownTimer)
   if (moveTimer) clearInterval(moveTimer)
+  if (nowTimer) clearInterval(nowTimer)
 })
 
 // 登出
@@ -683,6 +701,11 @@ const handleLink = (name) => {
 
 <template>
   <div class="main-page">
+    <!-- 固定活动时间（仅在活动期内展示） -->
+    <div class="section activity-time" v-if="shouldShowActivityTime">
+      活动时间：<span class="red bold">{{ ACTIVITY_TIME_TEXT }}</span>
+    </div>
+
     <!-- 公告列表 -->
     <div class="announcement-list" v-if="announcements.length > 0">
       <div 
@@ -881,6 +904,12 @@ const handleLink = (name) => {
   font-size: 18px;
   line-height: 1.8;
   font-family: SimSun, "宋体", serif;
+}
+
+.activity-time {
+  padding-bottom: 6px;
+  border-bottom: 1px dashed #CCCCCC;
+  margin-bottom: 6px;
 }
 
 .announcement-list {
