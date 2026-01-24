@@ -2,8 +2,8 @@
 import { ref, onMounted, computed, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import http from '@/services/http'
-// 测试按钮组件（可删除）
-import AllianceWarTestButton from './AllianceWarTestButton.vue'
+// 测试按钮组件（已注释，可删除）
+// import AllianceWarTestButton from './AllianceWarTestButton.vue'
 
 const router = useRouter()
 
@@ -12,6 +12,7 @@ const signupLoading = ref(false)
 const checkinLoading = ref(false)
 const errorMessage = ref('')
 const hasAlliance = ref(true)
+const userRole = ref(null) // 用户角色，用于权限控制
 const defaultStatistics = {
   dragon_count: 0,
   tiger_count: 0,
@@ -20,7 +21,7 @@ const defaultStatistics = {
 }
 
 const warInfo = ref({
-  seasonText: '第2025-12-24届',
+  seasonText: '第一届',
   countdownText: '倒计时',
   personal: null,
   statistics: { ...defaultStatistics },
@@ -46,12 +47,24 @@ const fetchWarInfo = async () => {
       return
     }
     hasAlliance.value = true
+    // 保存用户角色信息
+    userRole.value = allianceRes.data?.member_info?.role || null
 
     const res = await http.get('/alliance/war/info')
     if (res.data?.ok && res.data.data) {
       const data = res.data.data
+      // 计算届次显示文本
+      const sessionNumber = data.war_session_number || 1
+      const sessionText = `第${sessionNumber}届`
+      
+      // 如果 warInfo.personal.role 存在，优先使用它（更准确）
+      if (data.personal?.role !== undefined) {
+        userRole.value = data.personal.role
+      }
+      
       warInfo.value = {
         ...warInfo.value,
+        seasonText: sessionText,
         personal: data.personal || null,
         statistics: { ...defaultStatistics, ...(data.statistics || {}) },
         armies: data.armies || { dragon: [], tiger: [] },
@@ -62,8 +75,9 @@ const fetchWarInfo = async () => {
         },
       }
       scheduleInfo.value = data.schedule || null
-      if (scheduleInfo.value && typeof scheduleInfo.value.countdownSeconds === 'number') {
-        startCountdown(scheduleInfo.value.countdownSeconds)
+      if (scheduleInfo.value?.nextWarTime) {
+        // 基于nextWarTime计算倒计时，确保与显示的开战时间一致
+        startCountdown(scheduleInfo.value.nextWarTime)
       } else {
         clearCountdown()
       }
@@ -72,6 +86,11 @@ const fetchWarInfo = async () => {
     }
   } catch (err) {
     console.error('加载盟战信息失败', err)
+    // 未登录（401）：提示并引导去登录
+    if (err.response?.status === 401) {
+      errorMessage.value = err.response?.data?.error || '请先登录'
+      return
+    }
     // 如果是因为未加入联盟导致的错误，设置为未加入状态
     if (err.response?.data?.error?.includes('未加入联盟') || err.response?.data?.error?.includes('请先加入联盟')) {
       hasAlliance.value = false
@@ -101,6 +120,10 @@ const goToHall = () => {
 
 const goToCreateAlliance = () => {
   router.push('/alliance')
+}
+
+const goLogin = () => {
+  router.push('/login')
 }
 
 const goToDragonSignup = () => {
@@ -209,20 +232,53 @@ const handleCheckin = async () => {
   }
 }
 
-const startCountdown = (seconds) => {
+const startCountdown = (nextWarTime) => {
   clearCountdown()
-  countdownSeconds.value = Math.max(0, seconds)
-  if (countdownSeconds.value <= 0) {
+  if (!nextWarTime) {
+    countdownSeconds.value = 0
     return
   }
-  countdownTimer = setInterval(() => {
-    if (countdownSeconds.value <= 1) {
+  
+  // 基于nextWarTime和当前时间计算倒计时，确保准确性
+  const updateCountdown = () => {
+    try {
+      const now = new Date()
+      const targetTime = new Date(nextWarTime)
+      
+      // 验证日期是否有效
+      if (Number.isNaN(targetTime.getTime()) || Number.isNaN(now.getTime())) {
+        console.error('无效的日期时间:', { nextWarTime, now, targetTime })
+        countdownSeconds.value = 0
+        return
+      }
+      
+      const diff = Math.max(0, Math.floor((targetTime - now) / 1000))
+      
+      // 确保diff是有效数字
+      if (Number.isNaN(diff) || !Number.isFinite(diff)) {
+        console.error('倒计时计算错误:', { diff, targetTime, now })
+        countdownSeconds.value = 0
+        return
+      }
+      
+      countdownSeconds.value = diff
+      
+      if (diff <= 0) {
+        clearCountdown()
+        // 倒计时结束，重新获取信息
+        fetchWarInfo()
+      }
+    } catch (error) {
+      console.error('倒计时更新错误:', error)
       countdownSeconds.value = 0
-      clearCountdown()
-    } else {
-      countdownSeconds.value -= 1
     }
-  }, 1000)
+  }
+  
+  // 立即更新一次
+  updateCountdown()
+  
+  // 每秒更新一次
+  countdownTimer = setInterval(updateCountdown, 1000)
 }
 
 const clearCountdown = () => {
@@ -243,19 +299,30 @@ const nextWarDisplay = computed(() => {
   if (!scheduleInfo.value?.nextWarTime) {
     return '待定'
   }
-  // 后端返回的是UTC时间（带Z），需要转换为本地时间显示
-  const date = new Date(scheduleInfo.value.nextWarTime)
-  if (Number.isNaN(date.getTime())) {
-    return scheduleInfo.value.nextWarTime
+  try {
+    // 后端返回的是UTC时间（带Z），需要转换为本地时间显示
+    const date = new Date(scheduleInfo.value.nextWarTime)
+    if (Number.isNaN(date.getTime())) {
+      console.error('无效的开战时间:', scheduleInfo.value.nextWarTime)
+      return '时间错误'
+    }
+    // 使用本地时间来计算星期几和小时，确保显示的是用户本地时区的开战时间
+    const localWeekday = date.getDay() // 0=周日, 1=周一, ..., 6=周六
+    const localHour = date.getHours()
+    const localMinute = date.getMinutes()
+    
+    // 验证数据有效性
+    if (localWeekday < 0 || localWeekday > 6 || localHour < 0 || localHour > 23 || localMinute < 0 || localMinute > 59) {
+      console.error('时间数据无效:', { localWeekday, localHour, localMinute })
+      return '时间错误'
+    }
+    
+    // 使用本地时间显示，确保显示的是用户本地时区的周三20:00或周六20:00
+    return `${weekdayLabels[localWeekday]} ${pad(localHour)}:${pad(localMinute)}`
+  } catch (error) {
+    console.error('显示开战时间错误:', error)
+    return '时间错误'
   }
-  // 使用UTC时间来计算星期几和小时，避免时区转换问题
-  // 因为后端返回的UTC时间已经是正确的开战时间（周三20:00或周六20:00 UTC）
-  const utcWeekday = date.getUTCDay() // 0=周日, 1=周一, ..., 6=周六
-  const utcHour = date.getUTCHours()
-  const utcMinute = date.getUTCMinutes()
-  
-  // 直接使用UTC时间显示，确保显示的是周三20:00或周六20:00
-  return `${weekdayLabels[utcWeekday]} ${pad(utcHour)}:${pad(utcMinute)}`
 })
 
 const scheduleDetailText = computed(() => {
@@ -272,6 +339,10 @@ const countdownDisplay = computed(() => {
 })
 
 const formatCountdown = (seconds) => {
+  // 验证输入
+  if (Number.isNaN(seconds) || !Number.isFinite(seconds) || seconds < 0) {
+    return '计算中...'
+  }
   if (seconds <= 0) {
     return '即将开战'
   }
@@ -320,7 +391,12 @@ const formatCountdown = (seconds) => {
         创建条件：玩家拥有1个盟主证明，玩家等级达到30级或以上
       </div>
     </div>
-    <div v-else-if="errorMessage" class="section red">{{ errorMessage }}</div>
+    <div v-else-if="errorMessage" class="section red">
+      <div>{{ errorMessage }}</div>
+      <div v-if="errorMessage.includes('请先登录')" class="section">
+        <button class="btn" @click="goLogin">去登录</button>
+      </div>
+    </div>
 
     <template v-else-if="hasAlliance">
       <div class="section-group">
@@ -356,7 +432,7 @@ const formatCountdown = (seconds) => {
               {{ warInfo.targets?.dragon_registration ? '已报名' : '未报名' }}
             </span>
             <a
-              v-if="!warInfo.targets?.dragon_registration"
+              v-if="userRole === 1 && !warInfo.targets?.dragon_registration"
               class="link"
               @click.prevent="goToDragonSignup"
             >报名</a>
@@ -367,7 +443,7 @@ const formatCountdown = (seconds) => {
               {{ warInfo.targets?.tiger_registration ? '已报名' : '未报名' }}
             </span>
             <a
-              v-if="!warInfo.targets?.tiger_registration"
+              v-if="userRole === 1 && !warInfo.targets?.tiger_registration"
               class="link"
               @click.prevent="goToTigerSignup"
             >报名</a>
@@ -382,18 +458,21 @@ const formatCountdown = (seconds) => {
                 未报名
               </template>
             </span>
-            <a
-              v-if="!warInfo.personal?.signed_up"
-              class="link"
-              :class="{ disabled: signupDisabled }"
-              @click.prevent="handleSignup"
-            >{{ signupLoading ? '报名中...' : '报名' }}</a>
-            <a
-              v-else-if="warInfo.personal?.signed_up && !warInfo.personal?.checked_in"
-              class="link"
-              :class="{ disabled: checkinLoading }"
-              @click.prevent="handleCheckin"
-            >{{ checkinLoading ? '签到中...' : '签到' }}</a>
+            <!-- 只有盟主报名后，成员才能看到签到功能 -->
+            <template v-if="warInfo.targets?.dragon_registration || warInfo.targets?.tiger_registration">
+              <a
+                v-if="!warInfo.personal?.signed_up"
+                class="link"
+                :class="{ disabled: signupDisabled }"
+                @click.prevent="handleSignup"
+              >{{ signupLoading ? '报名中...' : '报名' }}</a>
+              <a
+                v-else-if="warInfo.personal?.signed_up && !warInfo.personal?.checked_in"
+                class="link"
+                :class="{ disabled: checkinLoading }"
+                @click.prevent="handleCheckin"
+              >{{ checkinLoading ? '签到中...' : '签到' }}</a>
+            </template>
           </div>
           <div>
             飞龙军签到人数：<span class="blue">{{ warInfo.statistics?.dragon_count ?? 0 }}</span>
@@ -421,7 +500,8 @@ const formatCountdown = (seconds) => {
         </div>
       </div>
 
-      <!-- 测试按钮组件（可删除） -->
+      <!-- 测试按钮组件 -->
+      <!-- 测试功能已注释 -->
       <!-- <AllianceWarTestButton /> -->
     </template>
 

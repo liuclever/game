@@ -25,7 +25,8 @@ const loadWarTargets = async () => {
   loading.value = true
   error.value = ''
   try {
-    const res = await fetchWarTargets()
+    // 传递 all=true 参数，获取所有目标（飞龙军+伏虎军）
+    const res = await fetchWarTargets(true)
     if (res?.ok && res.data?.lands) {
       landTargets.value = res.data.lands
     } else {

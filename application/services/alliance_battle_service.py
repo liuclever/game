@@ -50,6 +50,95 @@ class AllianceBattleService:
         self.player_beast_repo = player_beast_repo
         self.beast_pvp_service = beast_pvp_service
 
+    def _validate_registration_requirements(self, registration) -> Tuple[bool, str, bool]:
+        """验证报名联盟的参战人员是否满足要求
+        
+        返回: (is_valid, error_message, should_forfeit)
+        - is_valid: 是否满足参战要求
+        - error_message: 错误信息
+        - should_forfeit: 是否应该视为弃权（整个军队没有人签到）
+        """
+        now = datetime.utcnow()
+        weekday = now.weekday()
+        war_phase = "first" if weekday <= 2 else "second"
+        checkin_date = now.date()
+        
+        # 获取该军队的所有成员（优先使用 army_assignments，如果为空则回退到 get_members_by_army）
+        assignments = self.alliance_repo.get_army_assignments(registration.alliance_id)
+        army_assignments = [a for a in assignments if a.army == registration.army]
+        
+        # 如果 army_assignments 为空，回退到使用 get_members_by_army（基于自动分配）
+        if len(army_assignments) == 0:
+            from application.services.alliance_service import AllianceService
+            army_type_int = AllianceService.ARMY_DRAGON if registration.army == "dragon" else AllianceService.ARMY_TIGER
+            army_members = self.alliance_repo.get_members_by_army(registration.alliance_id, army_type_int)
+            
+            # 将 AllianceMember 转换为 AllianceArmyAssignment 格式
+            for member in army_members:
+                army_assignments.append(
+                    AllianceArmyAssignment(
+                        alliance_id=registration.alliance_id,
+                        user_id=member.user_id,
+                        army=registration.army,
+                        signed_at=None,
+                        nickname=member.nickname,
+                        level=member.level,
+                    )
+                )
+        
+        if len(army_assignments) == 0:
+            army_label = "飞龙军" if registration.army == "dragon" else "伏虎军"
+            return False, f"联盟 {registration.alliance_id} 的{army_label}没有成员", True
+        
+        # 检查是否有至少一个成员已签到
+        checked_in_count = 0
+        if not registration.id:
+            # 报名记录异常，无法检查签到
+            army_label = "飞龙军" if registration.army == "dragon" else "伏虎军"
+            return False, f"联盟 {registration.alliance_id} 的{army_label}报名记录异常", True
+        else:
+            for assign in army_assignments:
+                if self.alliance_repo.has_war_checkin(registration.id, assign.user_id):
+                    checked_in_count += 1
+        
+        # 如果整个军队都没有人签到，视为弃权
+        if checked_in_count == 0:
+            army_label = "飞龙军" if registration.army == "dragon" else "伏虎军"
+            return False, f"联盟 {registration.alliance_id} 的{army_label}没有任何成员签到，视为弃权", True
+        
+        # 检查每个已签到的成员是否满足其他参战要求（必须有出战幻兽）
+        invalid_members = []
+        valid_members = []
+        for assign in army_assignments:
+            # 只检查已签到的成员
+            if not self.alliance_repo.has_war_checkin(registration.id, assign.user_id):
+                continue  # 未签到的成员不参与对战，跳过
+            
+            issues = []
+            
+            # 检查是否有出战幻兽
+            team_beasts = self.player_beast_repo.get_team_beasts(assign.user_id)
+            if not team_beasts or len(team_beasts) == 0:
+                issues.append("没有出战幻兽")
+            
+            if issues:
+                player = self.player_repo.get_by_id(assign.user_id)
+                player_name = player.nickname if player else f"玩家{assign.user_id}"
+                invalid_members.append(f"{player_name}({', '.join(issues)})")
+            else:
+                valid_members.append(assign)
+        
+        # 如果所有已签到的成员都不满足参战要求（没有出战幻兽），仍然视为不满足要求
+        if len(valid_members) == 0 and len(invalid_members) > 0:
+            army_label = "飞龙军" if registration.army == "dragon" else "伏虎军"
+            return False, f"联盟 {registration.alliance_id} 的{army_label}中已签到的成员都不满足参战要求：{', '.join(invalid_members)}", False
+        
+        if invalid_members:
+            army_label = "飞龙军" if registration.army == "dragon" else "伏虎军"
+            return False, f"联盟 {registration.alliance_id} 的{army_label}中以下成员不满足参战要求：{', '.join(invalid_members)}", False
+        
+        return True, "", False
+
     def lock_and_pair_land(self, land_id: int, seed: Optional[int] = None) -> dict:
         """Lock confirmed registrations on a land and pair them into battles.
         
@@ -58,26 +147,101 @@ class AllianceBattleService:
         """
         from domain.entities.alliance_registration import STATUS_REGISTERED
         # 同时接受已确认和已报名的状态（兼容不同流程）
-        registrations = self.alliance_repo.list_land_registrations_by_land(
+        all_registrations = self.alliance_repo.list_land_registrations_by_land(
             land_id, statuses=[STATUS_CONFIRMED, STATUS_REGISTERED]
         )
-        waiting_regs = [r for r in registrations if r.bye_waiting_round is not None]
-        ready_regs = [r for r in registrations if r.bye_waiting_round is None]
-
-        if len(registrations) < 2:
+        
+        # 在配对前，验证所有报名的联盟是否满足参战要求
+        # 如果整个军队没有人签到，将其标记为弃权并从配对列表中移除
+        from domain.entities.alliance_registration import STATUS_ELIMINATED
+        validation_errors = []
+        forfeited_registrations = []
+        valid_registrations = []
+        
+        for reg in all_registrations:
+            is_valid, error_msg, should_forfeit = self._validate_registration_requirements(reg)
+            if should_forfeit:
+                # 整个军队没有人签到，标记为弃权
+                reg.status = STATUS_ELIMINATED
+                self.alliance_repo.save_land_registration(reg)
+                forfeited_registrations.append(reg)
+                army_label = "飞龙军" if reg.army == "dragon" else "伏虎军"
+                validation_errors.append(f"联盟 {reg.alliance_id} 的{army_label}没有任何成员签到，已标记为弃权")
+            elif not is_valid:
+                validation_errors.append(error_msg)
+            else:
+                valid_registrations.append(reg)
+        
+        # 如果有部分联盟被标记为弃权，记录日志
+        if forfeited_registrations:
+            import logging
+            logger = logging.getLogger(__name__)
+            for reg in forfeited_registrations:
+                army_label = "飞龙军" if reg.army == "dragon" else "伏虎军"
+                logger.info(f"联盟 {reg.alliance_id} 的{army_label}没有任何成员签到，已标记为弃权（报名ID: {reg.id}）")
+        
+        # 如果有验证错误但不是弃权的情况（比如没有出战幻兽），返回错误
+        non_forfeit_errors = [err for err in validation_errors if "已标记为弃权" not in err]
+        if non_forfeit_errors and len(valid_registrations) < 2:
             return {
                 "ok": False,
-                "error": "至少需要两个联盟报名才可配对",
-                "bye_registrations": [
-                    {
-                        "registration_id": reg.id,
-                        "alliance_id": reg.alliance_id,
-                        "bye_waiting_round": reg.bye_waiting_round,
-                        "last_bye_round": reg.last_bye_round,
-                    }
-                    for reg in waiting_regs
-                ],
+                "error": "以下联盟不满足参战要求：\n" + "\n".join(non_forfeit_errors),
+                "validation_errors": non_forfeit_errors,
             }
+        
+        # 使用有效的报名记录进行配对
+        registrations = valid_registrations
+        
+        # 如果所有报名都被标记为弃权，视为该土地没有联盟报名，返回成功但不进行配对
+        if len(registrations) == 0:
+            return {
+                "ok": True,
+                "message": "该土地没有有效的联盟报名（所有报名都已弃权）",
+                "battles": [],
+                "forfeited_count": len(forfeited_registrations),
+            }
+        
+        # 如果只剩下一个有效报名，直接让这个联盟占领土地
+        if len(registrations) == 1:
+            victor = registrations[0]
+            now = datetime.utcnow()
+            war_date = now.date()
+            weekday = now.weekday()
+            war_phase = "first" if weekday <= 2 else "second"
+            
+            # 将报名状态改为胜利者
+            from domain.entities.alliance_registration import STATUS_VICTOR
+            victor.status = STATUS_VICTOR
+            self.alliance_repo.save_land_registration(victor)
+            
+            # 更新赛季积分
+            season_key = now.strftime("%Y-%m")
+            self.alliance_repo.increment_alliance_war_score(victor.alliance_id, season_key, 1)
+            
+            # 设置土地占领
+            self.alliance_repo.set_land_occupation(land_id, victor.alliance_id, war_phase, war_date)
+            
+            import logging
+            logger = logging.getLogger(__name__)
+            army_label = "飞龙军" if victor.army == "dragon" else "伏虎军"
+            logger.info(f"土地 {land_id} 只有联盟 {victor.alliance_id} 的{army_label}有效报名，直接占领土地")
+            
+            return {
+                "ok": True,
+                "message": f"联盟 {victor.alliance_id} 的{army_label}是唯一有效报名，直接占领土地 {land_id}",
+                "battles": [],
+                "occupation": {
+                    "alliance_id": victor.alliance_id,
+                    "land_id": land_id,
+                    "status": "occupied",
+                    "reason": "only_valid_registration"
+                },
+                "forfeited_count": len(forfeited_registrations),
+            }
+
+        # 重新计算 waiting_regs 和 ready_regs（基于有效的报名记录）
+        waiting_regs = [r for r in registrations if r.bye_waiting_round is not None]
+        ready_regs = [r for r in registrations if r.bye_waiting_round is None]
 
         # Reactivate waiting registrations so they join the next pairing batch.
         if waiting_regs:
@@ -382,6 +546,25 @@ class AllianceBattleService:
             assign for assign in assignments if assign.army == registration.army
         ]
         
+        # 如果 army_assignments 为空，回退到使用 get_members_by_army（基于自动分配）
+        if len(filtered) == 0:
+            from application.services.alliance_service import AllianceService
+            army_type_int = AllianceService.ARMY_DRAGON if registration.army == "dragon" else AllianceService.ARMY_TIGER
+            army_members = self.alliance_repo.get_members_by_army(registration.alliance_id, army_type_int)
+            
+            # 将 AllianceMember 转换为 AllianceArmyAssignment 格式
+            for member in army_members:
+                filtered.append(
+                    AllianceArmyAssignment(
+                        alliance_id=registration.alliance_id,
+                        user_id=member.user_id,
+                        army=registration.army,
+                        signed_at=None,
+                        nickname=member.nickname,
+                        level=member.level,
+                    )
+                )
+        
         # 检查成员是否已签到（根据规则，只有已签到的成员才能参战）
         now = datetime.utcnow()
         weekday = now.weekday()
@@ -389,16 +572,14 @@ class AllianceBattleService:
         checkin_date = now.date()
         
         checked_in_assignments: List[AllianceArmyAssignment] = []
-        for assign in filtered:
-            # 检查该成员是否已签到
-            if self.alliance_repo.has_war_checkin(
-                registration.alliance_id, 
-                assign.user_id, 
-                war_phase, 
-                weekday, 
-                checkin_date
-            ):
-                checked_in_assignments.append(assign)
+        if not registration.id:
+            # 如果报名记录没有ID，跳过签到检查（理论上不应该发生）
+            checked_in_assignments = filtered
+        else:
+            for assign in filtered:
+                # 检查该成员是否已为本次报名签到
+                if self.alliance_repo.has_war_checkin(registration.id, assign.user_id):
+                    checked_in_assignments.append(assign)
         
         signups: List[AllianceArmySignup] = []
         for order, assign in enumerate(checked_in_assignments, start=1):

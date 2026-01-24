@@ -158,20 +158,28 @@ def assign_beast_to_user(user_id: int, template_id: int):
         traceback.print_exc()
         return None
 
-def ensure_war_checkin(alliance_id: int, user_id: int):
-    """确保用户已签到"""
+def ensure_war_checkin(registration_id: int, user_id: int):
+    """确保用户已为指定报名记录签到"""
     now = datetime.utcnow()
     weekday = now.weekday()
     war_phase = "first" if weekday <= 2 else "second"
     checkin_date = now.date()
     
     # 检查是否已签到
-    if services.alliance_repo.has_war_checkin(alliance_id, user_id, war_phase, weekday, checkin_date):
+    if services.alliance_repo.has_war_checkin(registration_id, user_id):
         return True
+    
+    # 获取报名记录以获取 alliance_id
+    registration = services.alliance_repo.get_land_registration_by_id(registration_id)
+    if not registration:
+        print(f"  [ERROR] 找不到报名记录 {registration_id}")
+        return False
     
     # 添加签到记录
     try:
-        services.alliance_repo.add_war_checkin(alliance_id, user_id, war_phase, weekday, checkin_date, 30000)
+        services.alliance_repo.add_war_checkin(
+            registration.alliance_id, user_id, registration_id, war_phase, weekday, checkin_date, 30000
+        )
         return True
     except Exception as e:
         print(f"  [ERROR] 签到失败: {str(e)}")
@@ -260,8 +268,11 @@ def setup_land_for_battle(land_id: int):
             else:
                 print(f"  用户 {user_id}: 已有战灵 [OK]")
             
-            # 确保已签到
-            if not ensure_war_checkin(alliance_id, user_id):
+            # 确保已签到（基于报名记录）
+            if not reg.id:
+                print(f"  [WARN] 报名记录没有ID，无法签到")
+                all_members_ready = False
+            elif not ensure_war_checkin(reg.id, user_id):
                 print(f"  [WARN] 用户 {user_id} 签到失败")
                 all_members_ready = False
     

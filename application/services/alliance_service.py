@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from datetime import datetime, timedelta, date
+from datetime import datetime, timedelta, date, timezone
 from typing import Optional, List, Dict, Tuple, Any
 from collections import defaultdict
 from domain.entities.alliance import (
@@ -156,12 +156,17 @@ class AllianceService:
         alliance_id = self.alliance_repo.create_alliance(new_alliance)
         
         # 8. 添加成员关系（盟主）
+        # 根据等级自动分配军队：40级以上飞龙军，40级及以下伏虎军
+        army_type = self._determine_army_type(player.level or 0)
         leader_member = AllianceMember(
             alliance_id=alliance_id,
             user_id=user_id,
             role=1  # 盟主
         )
+        leader_member.army_type = army_type
         self.alliance_repo.add_member(leader_member)
+        # 更新军队类型
+        self.alliance_repo.update_member_army(user_id, army_type)
         for building_key in AllianceRules.BUILDING_KEYS:
             self.alliance_repo.set_alliance_building_level(alliance_id, building_key, 1)
         # 创建联盟时不记录"加入联盟"动态，因为创建者不是"加入"，而是"创建"
@@ -305,35 +310,69 @@ class AllianceService:
 
     def get_my_alliance(self, user_id: int) -> dict:
         """获取玩家当前联盟信息"""
-        member = self.alliance_repo.get_member(user_id)
-        if not member:
-            return {"ok": False, "error": "未加入联盟"}
-        
-        alliance = self.alliance_repo.get_alliance_by_id(member.alliance_id)
-        if not alliance:
-            return {"ok": False, "error": "联盟数据异常"}
-        
-        # 同步当前成员的军队类型（如果等级变化导致军队类型变化）
-        player = self.player_repo.get_by_id(user_id)
-        if player:
-            self._sync_member_army(member, player.level or 0)
-        
-        members = self.alliance_repo.get_alliance_members(alliance.id)
-        member_capacity = AllianceRules.member_capacity(alliance.level or 1)
-        
-        # 检查火能原石领取状态
-        fire_ore_claimed_today = self.alliance_repo.has_claimed_fire_ore_today(user_id)
-        # 确保返回布尔值
-        fire_ore_claimed_today = bool(fire_ore_claimed_today)
-        
-        return {
-            "ok": True,
-            "alliance": alliance,
-            "member_info": member,
-            "member_count": len(members),
-            "member_capacity": member_capacity,
-            "fire_ore_claimed_today": fire_ore_claimed_today,
-        }
+        try:
+            member = self.alliance_repo.get_member(user_id)
+            if not member:
+                return {"ok": False, "error": "未加入联盟"}
+            
+            alliance = self.alliance_repo.get_alliance_by_id(member.alliance_id)
+            if not alliance:
+                # 联盟不存在，但成员记录还在，说明联盟已被解散但成员记录未清理
+                # 清理孤儿成员记录，并返回"未加入联盟"
+                try:
+                    self.alliance_repo.remove_member(user_id)
+                except Exception:
+                    pass  # 清理失败不影响返回结果
+                return {"ok": False, "error": "未加入联盟"}
+            
+            # 同步当前成员的军队类型（如果等级变化导致军队类型变化）
+            try:
+                player = self.player_repo.get_by_id(user_id)
+                if player:
+                    self._sync_member_army(member, player.level or 0)
+            except Exception as e:
+                # 同步军队类型失败不影响主要功能
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.warning(f"同步成员 {user_id} 军队类型时出错: {e}")
+            
+            try:
+                members = self.alliance_repo.get_alliance_members(alliance.id)
+                member_capacity = AllianceRules.member_capacity(alliance.level or 1)
+            except Exception as e:
+                # 获取成员列表失败，使用默认值
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.warning(f"获取联盟 {alliance.id} 成员列表时出错: {e}")
+                members = []
+                member_capacity = AllianceRules.member_capacity(alliance.level or 1)
+            
+            # 检查火能原石领取状态
+            try:
+                fire_ore_claimed_today = self.alliance_repo.has_claimed_fire_ore_today(user_id)
+                # 确保返回布尔值
+                fire_ore_claimed_today = bool(fire_ore_claimed_today)
+            except Exception as e:
+                # 检查火能原石状态失败，默认为未领取
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.warning(f"检查用户 {user_id} 火能原石领取状态时出错: {e}")
+                fire_ore_claimed_today = False
+            
+            return {
+                "ok": True,
+                "alliance": alliance,
+                "member_info": member,
+                "member_count": len(members),
+                "member_capacity": member_capacity,
+                "fire_ore_claimed_today": fire_ore_claimed_today,
+            }
+        except Exception as e:
+            # 捕获所有未预期的异常，返回友好的错误信息
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.exception(f"获取用户 {user_id} 联盟信息时出错: {e}")
+            return {"ok": False, "error": f"获取联盟信息失败: {str(e)}"}
 
     def get_alliance_notice(self, user_id: int) -> dict:
         """获取联盟公告"""
@@ -343,7 +382,12 @@ class AllianceService:
 
         alliance = self.alliance_repo.get_alliance_by_id(member.alliance_id)
         if not alliance:
-            return {"ok": False, "error": "联盟数据异常"}
+            # 联盟不存在，但成员记录还在，说明联盟已被解散但成员记录未清理
+            try:
+                self.alliance_repo.remove_member(user_id)
+            except Exception:
+                pass
+            return {"ok": False, "error": "未加入联盟"}
 
         return {
             "ok": True,
@@ -382,7 +426,12 @@ class AllianceService:
 
         alliance = self.alliance_repo.get_alliance_by_id(member.alliance_id)
         if not alliance:
-            return {"ok": False, "error": "联盟数据异常"}
+            # 联盟不存在，但成员记录还在，说明联盟已被解散但成员记录未清理
+            try:
+                self.alliance_repo.remove_member(user_id)
+            except Exception:
+                pass
+            return {"ok": False, "error": "未加入联盟"}
 
         validation_error = AllianceRules.validate_alliance_name(new_name)
         if validation_error:
@@ -436,7 +485,12 @@ class AllianceService:
 
         alliance = self.alliance_repo.get_alliance_by_id(member.alliance_id)
         if not alliance:
-            return {"ok": False, "error": "联盟数据异常"}
+            # 联盟不存在，但成员记录还在，说明联盟已被解散但成员记录未清理
+            try:
+                self.alliance_repo.remove_member(user_id)
+            except Exception:
+                pass
+            return {"ok": False, "error": "未加入联盟"}
 
         members = self.alliance_repo.get_alliance_members(member.alliance_id)
         
@@ -672,7 +726,12 @@ class AllianceService:
 
         alliance = self.alliance_repo.get_alliance_by_id(member.alliance_id)
         if not alliance:
-            return {"ok": False, "error": "联盟数据异常"}
+            # 联盟不存在，但成员记录还在，说明联盟已被解散但成员记录未清理
+            try:
+                self.alliance_repo.remove_member(user_id)
+            except Exception:
+                pass
+            return {"ok": False, "error": "未加入联盟"}
 
         building_map = self._get_building_level_map(alliance.id)
         talent_pool_level = building_map.get("talent", 1)
@@ -732,7 +791,12 @@ class AllianceService:
 
         alliance = self.alliance_repo.get_alliance_by_id(member.alliance_id)
         if not alliance:
-            return {"ok": False, "error": "联盟数据异常"}
+            # 联盟不存在，但成员记录还在，说明联盟已被解散但成员记录未清理
+            try:
+                self.alliance_repo.remove_member(user_id)
+            except Exception:
+                pass
+            return {"ok": False, "error": "未加入联盟"}
 
         building_map = self._get_building_level_map(alliance.id)
         talent_pool_level = building_map.get("talent", 1)
@@ -779,7 +843,12 @@ class AllianceService:
 
         alliance = self.alliance_repo.get_alliance_by_id(member.alliance_id)
         if not alliance:
-            return {"ok": False, "error": "联盟数据异常"}
+            # 联盟不存在，但成员记录还在，说明联盟已被解散但成员记录未清理
+            try:
+                self.alliance_repo.remove_member(user_id)
+            except Exception:
+                pass
+            return {"ok": False, "error": "未加入联盟"}
 
         building_map = self._get_building_level_map(alliance.id)
         talent_pool_level = building_map.get("talent", 1)
@@ -868,7 +937,13 @@ class AllianceService:
             return None, None, {"ok": False, "error": "未加入联盟"}
         alliance = self.alliance_repo.get_alliance_by_id(member.alliance_id)
         if not alliance:
-            return None, None, {"ok": False, "error": "联盟数据异常"}
+            # 联盟不存在，但成员记录还在，说明联盟已被解散但成员记录未清理
+            # 清理孤儿成员记录，并返回"未加入联盟"
+            try:
+                self.alliance_repo.remove_member(user_id)
+            except Exception:
+                pass  # 清理失败不影响返回结果
+            return None, None, {"ok": False, "error": "未加入联盟"}
         return member, alliance, None
 
     def get_donation_info(self, user_id: int) -> dict:
@@ -2408,8 +2483,8 @@ class AllianceService:
         if error:
             return error
 
-        if member.role not in (AllianceRules.ROLE_LEADER, AllianceRules.ROLE_VICE_LEADER):
-            return {"ok": False, "error": "只有盟主或副盟主可以报名"}
+        if member.role != AllianceRules.ROLE_LEADER:
+            return {"ok": False, "error": "只有盟主可以报名"}
 
         # 检查是否在报名时间内
         now = datetime.utcnow()
@@ -2446,6 +2521,12 @@ class AllianceService:
             if len(members_without_beasts) > 3:
                 member_names.append(f"等{len(members_without_beasts)}人")
             return {"ok": False, "error": f"{army_label}中以下成员没有出战幻兽：{', '.join(member_names)}，无法报名攻打"}
+        
+        # 自动为所有符合条件的成员创建 army_assignments 记录
+        # 确保配对时能够找到这些成员
+        army_str = "dragon" if normalized_army == AllianceRules.ARMY_DRAGON else "tiger"
+        for member in army_members:
+            self.alliance_repo.upsert_army_assignment(alliance.id, member.user_id, army_str)
         
         allowed_land_ids = (
             self.DRAGON_ONLY_LANDS if normalized_army == AllianceRules.ARMY_DRAGON else self.TIGER_ONLY_LANDS
@@ -2548,52 +2629,125 @@ class AllianceService:
 
     def get_land_detail(self, land_id: int) -> dict:
         """土地详情查询：用于前端详情页展示土地属性与报名联盟名单。"""
-        land_meta = self.WAR_LANDS.get(land_id)
-        if not land_meta:
-            return {"ok": False, "error": "未找到该土地"}
+        try:
+            land_meta = self.WAR_LANDS.get(land_id)
+            if not land_meta:
+                return {"ok": False, "error": "未找到该土地"}
 
-        # 显示所有活跃状态的报名记录（包括已报名、待审核、已确认、战斗中）
-        statuses = [STATUS_REGISTERED, STATUS_PENDING, STATUS_CONFIRMED, STATUS_IN_BATTLE]
-        registrations = self.alliance_repo.list_land_registrations_by_land(
-            land_id, statuses=statuses
-        )
+            # 显示所有活跃状态的报名记录（包括已报名、待审核、已确认、战斗中）
+            statuses = [STATUS_REGISTERED, STATUS_PENDING, STATUS_CONFIRMED, STATUS_IN_BATTLE]
+            registrations = self.alliance_repo.list_land_registrations_by_land(
+                land_id, statuses=statuses
+            )
 
-        alliances = []
-        seen_ids = set()
-        for reg in registrations:
-            if reg.alliance_id in seen_ids:
-                continue
-            alliance = self.alliance_repo.get_alliance_by_id(reg.alliance_id)
-            # 只添加存在的联盟
-            if alliance:
-                alliances.append(
-                    {
-                        "alliance_id": reg.alliance_id,
-                        "name": alliance.name,
-                    }
-                )
-            seen_ids.add(reg.alliance_id)
+            alliances = []
+            seen_ids = set()
+            for reg in registrations:
+                if reg.alliance_id in seen_ids:
+                    continue
+                try:
+                    alliance = self.alliance_repo.get_alliance_by_id(reg.alliance_id)
+                    # 只添加存在的联盟
+                    if alliance:
+                        alliances.append(
+                            {
+                                "alliance_id": reg.alliance_id,
+                                "name": alliance.name,
+                            }
+                        )
+                    seen_ids.add(reg.alliance_id)
+                except Exception as e:
+                    # 如果查询联盟信息出错，跳过该联盟，不影响其他联盟的显示
+                    import logging
+                    logger = logging.getLogger(__name__)
+                    logger.warning(f"查询联盟 {reg.alliance_id} 信息时出错: {e}")
+                    continue
 
-        data = {
-            "land_id": land_id,
-            "land_name": land_meta["land_name"],
-            "buffs": land_meta.get("buffs", []),  # 安全获取buffs字段，如果不存在则返回空列表
-            "alliances": alliances,
-        }
-        return {"ok": True, "data": data}
+            data = {
+                "land_id": land_id,
+                "land_name": land_meta["land_name"],
+                "buffs": land_meta.get("buffs", []),  # 安全获取buffs字段，如果不存在则返回空列表
+                "alliances": alliances,
+            }
+            return {"ok": True, "data": data}
+        except Exception as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.exception(f"获取土地 {land_id} 详情时出错: {e}")
+            return {"ok": False, "error": f"获取土地详情失败: {str(e)}"}
 
-    def list_war_lands(self) -> dict:
-        """获取所有盟战土地列表及其占领联盟信息（只显示通过对战获胜占领的联盟）"""
+    def list_war_lands(self, user_id: Optional[int] = None, army_type: Optional[str] = None) -> dict:
+        """获取盟战土地/据点列表及其占领联盟信息
+        
+        根据用户的军队类型返回对应的目标：
+        - 飞龙军：只返回土地（迷雾城1号土地、飞龙港1号土地）
+        - 伏虎军：只返回据点（幻灵镇1号据点、定老城1号据点）
+        
+        如果未提供user_id和army_type，返回所有目标（用于管理界面）
+        """
+        # 确定要返回的土地/据点ID
+        # 优先级：army_type 参数 > user_id 的实际军队类型
+        # 这样可以确保飞龙军报名页面和伏虎军报名页面能够正确显示对应的目标
+        if army_type:
+            # 优先使用明确指定的军队类型参数（用于特定军队的报名页面）
+            if army_type.lower() in ("dragon", "飞龙军", "1"):
+                allowed_land_ids = self.DRAGON_ONLY_LANDS
+            elif army_type.lower() in ("tiger", "伏虎军", "2"):
+                allowed_land_ids = self.TIGER_ONLY_LANDS
+            else:
+                allowed_land_ids = set(self.WAR_LANDS.keys())  # 未知类型，返回所有
+        elif user_id:
+            # 如果没有指定army_type，则根据用户的实际军队类型确定
+            member = self.alliance_repo.get_member(user_id)
+            if member:
+                # 根据成员的army_type确定
+                if member.army_type == self.ARMY_DRAGON:
+                    allowed_land_ids = self.DRAGON_ONLY_LANDS
+                elif member.army_type == self.ARMY_TIGER:
+                    allowed_land_ids = self.TIGER_ONLY_LANDS
+                else:
+                    # 未分配军队，根据等级自动判断
+                    player = self.player_repo.get_by_id(user_id)
+                    if player:
+                        army_type_int = self._determine_army_type(player.level or 0)
+                        allowed_land_ids = self.DRAGON_ONLY_LANDS if army_type_int == self.ARMY_DRAGON else self.TIGER_ONLY_LANDS
+                    else:
+                        allowed_land_ids = set()  # 玩家不存在，返回空列表
+            else:
+                # 未加入联盟，根据等级自动判断
+                player = self.player_repo.get_by_id(user_id)
+                if player:
+                    army_type_int = self._determine_army_type(player.level or 0)
+                    allowed_land_ids = self.DRAGON_ONLY_LANDS if army_type_int == self.ARMY_DRAGON else self.TIGER_ONLY_LANDS
+                else:
+                    allowed_land_ids = set()  # 玩家不存在，返回空列表
+        else:
+            # 未提供用户ID和军队类型，返回所有目标（用于管理界面）
+            allowed_land_ids = set(self.WAR_LANDS.keys())
+        
         lands = []
         for land_id, land_meta in self.WAR_LANDS.items():
+            # 只返回允许的土地/据点
+            if land_id not in allowed_land_ids:
+                continue
+            
             # 获取占领信息（只返回通过对战获胜的联盟，使用INNER JOIN确保联盟存在）
             occupation = self.alliance_repo.get_land_occupation(land_id)
             owner_name = occupation.get("alliance_name") if occupation else None
+            
+            # 获取报名联盟数量
+            all_registrations = self.alliance_repo.list_land_registrations_by_land(land_id)
+            # 只统计活跃状态的报名（已报名、待审核、已确认、战斗中）
+            from domain.entities.alliance_registration import STATUS_REGISTERED, STATUS_PENDING, STATUS_CONFIRMED, STATUS_IN_BATTLE
+            active_statuses = [STATUS_REGISTERED, STATUS_PENDING, STATUS_CONFIRMED, STATUS_IN_BATTLE]
+            signup_count = len([r for r in all_registrations if r.status in active_statuses])
             
             lands.append({
                 "id": land_id,
                 "label": land_meta["land_name"],
                 "owner": owner_name if owner_name else "无",
+                "signup_count": signup_count,
+                "land_type": land_meta.get("land_type", "land"),  # land 或 stronghold
             })
         
         return {"ok": True, "data": {"lands": lands}}
@@ -2735,29 +2889,37 @@ class AllianceService:
             dragon_members = [self._member_army_row(m) for m in dragon]
             tiger_members = [self._member_army_row(m) for m in tiger]
             
-            # 检查是否已签到
-            if signed_up:
-                now = datetime.utcnow()
-                is_war, phase, status = self._is_war_time(now)
-                if is_war and status == "signup":
-                    weekday = now.weekday()
-                    checkin_date = now.date()
-                    checked_in = self.alliance_repo.has_war_checkin(alliance.id, user_id, phase, weekday, checkin_date)
-            
-            # 获取攻城目标信息
+            # 获取攻城目标信息并检查是否已签到
+            active_registration = None
             for land_id in self.DRAGON_ONLY_LANDS:
                 reg = self.alliance_repo.get_land_registration(alliance.id, land_id)
                 if reg and reg.is_active():
                     dragon_reg = {"land_id": land_id, "land_name": self.WAR_LANDS.get(land_id, {}).get("land_name", f"土地{land_id}")}
+                    if not active_registration:
+                        active_registration = reg
                     break
             for land_id in self.TIGER_ONLY_LANDS:
                 reg = self.alliance_repo.get_land_registration(alliance.id, land_id)
                 if reg and reg.is_active():
                     tiger_reg = {"land_id": land_id, "land_name": self.WAR_LANDS.get(land_id, {}).get("land_name", f"据点{land_id}")}
+                    if not active_registration:
+                        active_registration = reg
                     break
+            
+            # 检查是否已签到（基于当前活跃的报名记录）
+            if signed_up and active_registration and active_registration.id:
+                checked_in = self.alliance_repo.has_war_checkin(active_registration.id, user_id)
 
         schedule_payload = self._build_war_schedule_payload()
+        
+        # 计算盟战届次（按照实际开战次数）
+        war_session_number = self._get_war_session_number()
 
+        # 获取用户角色（用于前端权限控制）
+        user_role = None
+        if member:
+            user_role = member.role
+        
         return {
             "ok": True,
             "data": {
@@ -2771,6 +2933,7 @@ class AllianceService:
                     "current_army_label": self._army_label(assigned_army) if assigned_army else "未报名",
                     "recommended_army": recommended_army,
                     "recommended_army_label": self._army_label(recommended_army),
+                    "role": user_role,  # 添加角色信息，用于前端权限控制
                 },
                 "statistics": {
                     "dragon_count": dragon_count,
@@ -2787,6 +2950,7 @@ class AllianceService:
                     "dragon_registration": dragon_reg,
                     "tiger_registration": tiger_reg,
                 },
+                "war_session_number": war_session_number,
             },
         }
 
@@ -3113,27 +3277,39 @@ class AllianceService:
 
     def _next_war_start(self, now: Optional[datetime] = None) -> datetime:
         if not now:
-            now = datetime.utcnow()
-        # 盟战开始时间：周三20:00和周六20:00
+            # 使用中国时区（UTC+8）的当前时间
+            china_tz = timezone(timedelta(hours=8))
+            now = datetime.now(china_tz)
+        else:
+            # 如果传入的now没有时区信息，假设它是UTC时间，转换为中国时区
+            if now.tzinfo is None:
+                utc_tz = timezone.utc
+                china_tz = timezone(timedelta(hours=8))
+                now = now.replace(tzinfo=utc_tz).astimezone(china_tz)
+        
+        # 盟战开始时间：周三20:00和周六20:00（中国时区）
         war_weekdays = {self.WAR_FIRST_END_WEEKDAY, self.WAR_SECOND_END_WEEKDAY}  # 周三和周六 (2, 5)
         
-        # 从今天开始，查找下一个符合条件的开战时间
-        # 先检查今天是否已经是开战日且还没过20:00
-        today_at_20 = datetime(
-            now.year,
-            now.month,
-            now.day,
-            self.WAR_BATTLE_START_HOUR,
-            0,
-        )
+        # 计算今天的20:00时间（中国时区）
+        today_at_20 = now.replace(hour=self.WAR_BATTLE_START_HOUR, minute=0, second=0, microsecond=0)
         
         # 如果今天是开战日且还没到20:00，返回今天的20:00
         if today_at_20.weekday() in war_weekdays and today_at_20 > now:
             return today_at_20
         
-        # 否则，从明天开始查找下一个开战日
+        # 如果今天是开战日但已经过了20:00，或者今天不是开战日，从明天开始查找
+        # 从明天开始查找下一个开战日
         for day_offset in range(1, 8):
-            candidate = today_at_20 + timedelta(days=day_offset)
+            candidate_date = (now + timedelta(days=day_offset)).date()
+            candidate = datetime(
+                candidate_date.year,
+                candidate_date.month,
+                candidate_date.day,
+                self.WAR_BATTLE_START_HOUR,
+                0,
+                0,
+                tzinfo=now.tzinfo,
+            )
             if candidate.weekday() in war_weekdays:
                 return candidate
         
@@ -3141,11 +3317,29 @@ class AllianceService:
         days_until_wednesday = (self.WAR_FIRST_END_WEEKDAY - now.weekday() + 7) % 7
         if days_until_wednesday == 0:
             days_until_wednesday = 7  # 如果今天是周三，返回下周三
-        return today_at_20 + timedelta(days=days_until_wednesday)
+        next_wednesday_date = (now + timedelta(days=days_until_wednesday)).date()
+        return datetime(
+            next_wednesday_date.year,
+            next_wednesday_date.month,
+            next_wednesday_date.day,
+            self.WAR_BATTLE_START_HOUR,
+            0,
+            0,
+            tzinfo=now.tzinfo,
+        )
 
     def _build_war_schedule_payload(self, now: Optional[datetime] = None) -> Dict[str, Any]:
         if not now:
-            now = datetime.utcnow()
+            # 使用中国时区（UTC+8）的当前时间
+            china_tz = timezone(timedelta(hours=8))
+            now = datetime.now(china_tz)
+        else:
+            # 如果传入的now没有时区信息，假设它是UTC时间，转换为中国时区
+            if now.tzinfo is None:
+                utc_tz = timezone.utc
+                china_tz = timezone(timedelta(hours=8))
+                now = now.replace(tzinfo=utc_tz).astimezone(china_tz)
+        
         next_start = self._next_war_start(now)
         countdown_seconds = max(0, int((next_start - now).total_seconds()))
         # 盟战开始时间：周三20:00和周六20:00
@@ -3159,8 +3353,25 @@ class AllianceService:
             }
             for day in war_weekdays
         ]
+        # 将时区时间转换为UTC时间返回（前端会转换为本地时间显示）
+        next_start_utc = next_start.astimezone(timezone.utc) if next_start.tzinfo else next_start
+        # 确保返回正确的ISO格式（UTC时间，以Z结尾）
+        if next_start_utc.tzinfo:
+            # 如果有时区信息，转换为UTC并格式化为标准ISO格式
+            next_start_utc = next_start_utc.replace(microsecond=0)
+            iso_str = next_start_utc.isoformat()
+            # 如果isoformat()返回的是+00:00格式，替换为Z
+            if iso_str.endswith('+00:00'):
+                iso_str = iso_str[:-6] + 'Z'
+            elif not iso_str.endswith('Z'):
+                # 如果没有Z，添加Z（假设已经是UTC时间）
+                iso_str = iso_str + 'Z'
+        else:
+            # 如果没有时区信息，假设是UTC并添加Z
+            iso_str = next_start_utc.replace(microsecond=0).isoformat() + 'Z'
+        
         return {
-            "nextWarTime": next_start.replace(microsecond=0).isoformat() + "Z",
+            "nextWarTime": iso_str,
             "countdownSeconds": countdown_seconds,
             "weekdays": war_weekdays,
             "weekdaysDetail": detail,
@@ -3171,6 +3382,50 @@ class AllianceService:
     def _weekday_label(self, weekday: int) -> str:
         labels = ["周一", "周二", "周三", "周四", "周五", "周六", "周日"]
         return labels[weekday % 7]
+    
+    def _get_war_session_number(self) -> int:
+        """获取盟战届次（从配置表读取，初始为1）"""
+        from infrastructure.db.connection import execute_query, execute_update
+        # 尝试从配置表读取当前届次
+        sql = """
+            SELECT session_number FROM alliance_war_session_config 
+            WHERE config_key = 'current_session' 
+            LIMIT 1
+        """
+        rows = execute_query(sql)
+        if rows and rows[0].get('session_number'):
+            return rows[0]['session_number']
+        # 如果配置不存在，创建并初始化为1
+        create_sql = """
+            INSERT INTO alliance_war_session_config (config_key, session_number, updated_at)
+            VALUES ('current_session', 1, NOW())
+            ON DUPLICATE KEY UPDATE session_number = 1
+        """
+        execute_update(create_sql)
+        return 1
+    
+    def _increment_war_session_number(self) -> int:
+        """递增盟战届次（在开战结束后调用）"""
+        from infrastructure.db.connection import execute_update, execute_query
+        # 递增届次
+        update_sql = """
+            INSERT INTO alliance_war_session_config (config_key, session_number, updated_at)
+            VALUES ('current_session', 1, NOW())
+            ON DUPLICATE KEY UPDATE 
+                session_number = session_number + 1,
+                updated_at = NOW()
+        """
+        execute_update(update_sql)
+        # 返回新的届次
+        sql = """
+            SELECT session_number FROM alliance_war_session_config 
+            WHERE config_key = 'current_session' 
+            LIMIT 1
+        """
+        rows = execute_query(sql)
+        if rows and rows[0].get('session_number'):
+            return rows[0]['session_number']
+        return 1
 
     def _determine_army_type(self, level: int) -> int:
         """根据等级确定军队类型：40级以上飞龙军，40级及以下伏虎军"""
@@ -3264,27 +3519,28 @@ class AllianceService:
         if not is_war or status != "signup":
             return {"ok": False, "error": "当前不在盟战签到时间内"}
 
-        # 检查联盟是否已报名土地或据点
+        # 检查联盟是否已报名土地或据点，并获取报名记录
         all_land_ids = list(self.DRAGON_ONLY_LANDS) + list(self.TIGER_ONLY_LANDS)
-        has_registration = False
+        active_registration = None
         for land_id in all_land_ids:
             reg = self.alliance_repo.get_land_registration(alliance.id, land_id)
             if reg and reg.is_active():
-                has_registration = True
+                active_registration = reg
                 break
         
-        if not has_registration:
+        if not active_registration:
             return {"ok": False, "error": "联盟尚未报名土地或据点，请先由盟主或副盟主报名"}
 
         # 检查玩家是否已报名军队
         if not member.army_type:
             return {"ok": False, "error": "请先报名加入军队"}
 
-        # 检查是否已签到
-        weekday = now.weekday()
-        checkin_date = now.date()
-        if self.alliance_repo.has_war_checkin(alliance.id, user_id, phase, weekday, checkin_date):
-            return {"ok": False, "error": "本次盟战已签到"}
+        # 检查是否已为该报名记录签到（每次报名只能签到一次）
+        if not active_registration.id:
+            return {"ok": False, "error": "报名记录异常，无法签到"}
+        
+        if self.alliance_repo.has_war_checkin(active_registration.id, user_id):
+            return {"ok": False, "error": "本次报名已签到，请等待盟战结束后再次报名才能签到"}
 
         # 发放奖励
         player = self.player_repo.get_by_id(user_id)
@@ -3299,9 +3555,11 @@ class AllianceService:
         player.gold = current_gold + self.WAR_CHECKIN_REWARD_COPPER  # 兼容旧字段
         self.player_repo.save(player)
 
-        # 记录签到
+        # 记录签到（关联到报名记录）
+        weekday = now.weekday()
+        checkin_date = now.date()
         self.alliance_repo.add_war_checkin(
-            alliance.id, user_id, phase, weekday, checkin_date, self.WAR_CHECKIN_REWARD_COPPER
+            alliance.id, user_id, active_registration.id, phase, weekday, checkin_date, self.WAR_CHECKIN_REWARD_COPPER
         )
 
         self._record_activity(
@@ -3358,13 +3616,16 @@ class AllianceService:
 
     def _sync_member_army(self, member: AllianceMember, level: int) -> None:
         """同步成员军队类型：根据等级自动分配（40级及以下伏虎军，40级以上飞龙军）
-        注意：如果army_type为0（未分配），则不会自动同步，保持未分配状态
+        
+        规则：
+        - 如果成员未分配（army_type=0），自动根据等级分配
+        - 如果成员已分配，但等级变化导致需要重新分配，则自动重新分配
+        - 特例：如果玩家加入时为40级（分到伏虎军），后面升级为43级，系统会将其重新分到飞龙军
         """
-        # 如果成员已经被手动设置为未分配（army_type=0），则不自动同步
-        if member.army_type == 0:
-            return
         expected = self._determine_army_type(level)
-        if member.army_type != expected:
+        
+        # 如果未分配或需要重新分配，则更新
+        if member.army_type == 0 or member.army_type != expected:
             self.alliance_repo.update_member_army(member.user_id, expected)
             member.army_type = expected
     
@@ -3603,24 +3864,29 @@ class AllianceService:
         weekday = now.weekday()
         checkin_date = now.date()
 
-        # 检查是否已签到
-        has_checkin = False
-        if is_war and phase:
-            has_checkin = self.alliance_repo.has_war_checkin(alliance.id, user_id, phase, weekday, checkin_date)
-
         # 获取报名情况
         dragon_reg = None
         tiger_reg = None
+        active_registration = None
         for land_id in self.DRAGON_ONLY_LANDS:
             reg = self.alliance_repo.get_land_registration(alliance.id, land_id)
             if reg and reg.is_active():
                 dragon_reg = {"land_id": land_id, "land_name": self.WAR_LANDS.get(land_id, {}).get("land_name", f"土地{land_id}")}
+                if not active_registration:
+                    active_registration = reg
                 break
         for land_id in self.TIGER_ONLY_LANDS:
             reg = self.alliance_repo.get_land_registration(alliance.id, land_id)
             if reg and reg.is_active():
                 tiger_reg = {"land_id": land_id, "land_name": self.WAR_LANDS.get(land_id, {}).get("land_name", f"据点{land_id}")}
+                if not active_registration:
+                    active_registration = reg
                 break
+
+        # 检查是否已签到（基于当前活跃的报名记录）
+        has_checkin = False
+        if is_war and phase and active_registration and active_registration.id:
+            has_checkin = self.alliance_repo.has_war_checkin(active_registration.id, user_id)
 
         # 获取联盟战功
         current_honor, historical_honor = self.alliance_repo.get_alliance_war_points(alliance.id)

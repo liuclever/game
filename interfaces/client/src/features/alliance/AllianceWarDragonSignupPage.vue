@@ -1,19 +1,89 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import http from '@/services/http'
 
 const router = useRouter()
 
-const allTargets = ref([
-  { id: 1, seq: 1, name: '林中空地1号土地', signupCount: 18 },
-  { id: 2, seq: 2, name: '幻灵镇1号土地', signupCount: 26 },
-  { id: 3, seq: 3, name: '林中空地2号土地', signupCount: 9 },
-  { id: 4, seq: 4, name: '林中空地1号据点', signupCount: 4 },
-  { id: 5, seq: 5, name: '幻灵镇1号据点', signupCount: 7 },
-])
+const allTargets = ref([])
+const loading = ref(true)
 
-const visibleTargets = computed(() => allTargets.value.filter((target) => target.id !== 3))
+// 从后端API获取飞龙军可报名的土地列表
+const loadTargets = async () => {
+  loading.value = true
+  try {
+    // 通过查询参数指定军队类型为dragon，确保返回飞龙军的土地列表
+    const res = await http.get('/alliance/war/targets', { params: { army: 'dragon' } })
+    
+    // axios 返回的 res.data 就是后端返回的 JSON 对象 {ok: true, data: {lands: [...]}}
+    const responseData = res?.data
+    
+    console.log('[飞龙军报名] API响应:', responseData)
+    
+    if (responseData?.ok) {
+      // 后端已经根据 army=dragon 过滤了，只返回土地（land_type === 'land'）
+      const lands = responseData.data?.lands || []
+      
+      console.log('[飞龙军报名] 获取到的土地列表:', lands)
+      console.log('[飞龙军报名] 土地数量:', lands.length)
+      
+      // 后端已经过滤了，但为了安全起见，前端再过滤一次，确保只显示土地类型的目标
+      const filteredLands = lands.filter(land => {
+        const isLand = land.land_type === 'land'
+        console.log(`[飞龙军报名] 土地 ${land.id}: land_type=${land.land_type}, isLand=${isLand}`)
+        return isLand
+      })
+      
+      console.log('[飞龙军报名] 过滤后的土地列表:', filteredLands)
+      console.log('[飞龙军报名] 过滤后数量:', filteredLands.length)
+      
+      allTargets.value = filteredLands.map((land, index) => ({
+        id: land.id,
+        seq: index + 1,
+        name: land.label || land.name || `土地${land.id}`,
+        signupCount: land.signup_count || land.signupCount || 0
+      }))
+      
+      console.log('[飞龙军报名] 最终目标列表:', allTargets.value)
+      
+      if (allTargets.value.length === 0 && lands.length > 0) {
+        console.warn('[飞龙军报名] 警告：后端返回了土地但过滤后为空', {
+          lands,
+          filteredLands
+        })
+      }
+    } else {
+      const error = responseData?.error || '未知错误'
+      console.error('[飞龙军报名] 获取土地列表失败', error)
+      console.error('[飞龙军报名] 响应数据:', responseData)
+      alert(`获取土地列表失败: ${error}`)
+    }
+  } catch (err) {
+    console.error('[飞龙军报名] 获取土地列表异常', err)
+    console.error('[飞龙军报名] 错误详情:', {
+      message: err?.message,
+      response: err?.response,
+      status: err?.response?.status,
+      data: err?.response?.data
+    })
+    
+    // 如果是401错误（未登录），给出更明确的提示
+    if (err?.response?.status === 401) {
+      alert('请先登录后再访问')
+    } else {
+      const errorMsg = err?.response?.data?.error || err?.message || '网络错误，请稍后重试'
+      alert(`获取土地列表失败: ${errorMsg}`)
+    }
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(() => {
+  loadTargets()
+})
+
+const visibleTargets = computed(() => allTargets.value)
 
 const handleAttack = (target) => {
   // 跳转到确认页面
@@ -44,7 +114,12 @@ const goHome = () => {
     <div class="section title">【土地详情】</div>
     <div class="section header">序号.土地.报名联盟数</div>
 
+    <div v-if="loading" class="section">加载中...</div>
+    <div v-else-if="visibleTargets.length === 0" class="section">
+      暂无可报名的土地
+    </div>
     <div
+      v-else
       v-for="target in visibleTargets"
       :key="target.id"
       class="section row"

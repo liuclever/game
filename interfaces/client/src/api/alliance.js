@@ -2,10 +2,12 @@ import http from '@/services/http'
 
 /**
  * 获取盟战土地列表及其占领联盟信息
+ * @param {boolean} all - 如果为 true，返回所有目标（飞龙军+伏虎军），用于"查看全部攻城目标"
  * @returns {Promise<object>} API 响应数据
  */
-export async function fetchWarTargets() {
-  const res = await http.get('/alliance/war/targets')
+export async function fetchWarTargets(all = false) {
+  const params = all ? { all: 'true' } : {}
+  const res = await http.get('/alliance/war/targets', { params })
   return res.data
 }
 

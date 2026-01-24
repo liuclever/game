@@ -16,6 +16,7 @@ from typing import Optional
 from pathlib import Path
 
 from apscheduler.schedulers.background import BackgroundScheduler
+from datetime import timezone, timedelta
 
 from infrastructure.db.connection import execute_query, execute_update
 from infrastructure.db.player_repo_mysql import MySQLPlayerRepo
@@ -245,6 +246,7 @@ def _run_alliance_war_battle():
         from infrastructure.db.player_beast_repo_mysql import MySQLPlayerBeastRepo
         from application.services.alliance_battle_service import AllianceBattleService
         from application.services.beast_pvp_service import BeastPvpService
+        from datetime import datetime
         
         alliance_repo = MySQLAllianceRepo()
         player_repo = MySQLPlayerRepo()
@@ -258,6 +260,25 @@ def _run_alliance_war_battle():
             beast_pvp_service=beast_pvp_service,
         )
         
+        # 验证当前时间是否在对战时间内（定时任务应该在对战时间触发，但做双重检查）
+        from application.services.alliance_service import AllianceService
+        from datetime import timezone, timedelta
+        alliance_service = AllianceService(
+            alliance_repo=alliance_repo,
+            player_repo=player_repo,
+            inventory_service=None,  # 定时任务不需要
+            beast_repo=player_beast_repo,
+        )
+        # 使用中国时区（UTC+8）的当前时间
+        china_tz = timezone(timedelta(hours=8))
+        now = datetime.now(china_tz)
+        is_war, phase, status = alliance_service._is_war_time(now)
+        if not is_war or status != "battle":
+            logger.warning(
+                f"[Scheduler] 当前不在对战时间内（状态：{status}），但定时任务已触发。"
+                f"将继续执行对战流程以确保土地争夺战正常进行。"
+            )
+        
         # 所有土地ID（1-4）
         land_ids = [1, 2, 3, 4]
         total_battles = 0
@@ -265,42 +286,172 @@ def _run_alliance_war_battle():
         
         for land_id in land_ids:
             try:
-                # 配对联盟
-                pair_result = battle_service.lock_and_pair_land(land_id)
-                if not pair_result.get("ok"):
-                    error = pair_result.get("error", "未知错误")
-                    if "至少需要两个联盟报名" not in error:
-                        logger.warning(f"[Scheduler] 土地 {land_id} 配对失败: {error}")
-                    continue
+                # 执行完整对战流程（类似测试功能的"测试开战-全部土地"）
+                from domain.entities.alliance_registration import (
+                    STATUS_VICTOR, STATUS_REGISTERED, STATUS_CONFIRMED,
+                    STATUS_ELIMINATED, STATUS_CANCELLED, STATUS_IN_BATTLE
+                )
                 
-                battles = pair_result.get("battles", [])
-                if not battles:
-                    continue
+                # 1. 修复报名状态：将异常状态重置为已报名
+                all_registrations = alliance_repo.list_land_registrations_by_land(land_id)
+                fixed_count = 0
+                for reg in all_registrations:
+                    if reg.status not in [STATUS_REGISTERED, STATUS_CONFIRMED, STATUS_VICTOR, STATUS_CANCELLED]:
+                        reg.status = STATUS_REGISTERED
+                        alliance_repo.save_land_registration(reg)
+                        fixed_count += 1
                 
-                total_battles += len(battles)
+                if fixed_count > 0:
+                    logger.info(f"[Scheduler] 土地 {land_id} 修复了 {fixed_count} 个报名状态")
                 
-                # 执行每场对战的所有回合
-                for battle_info in battles:
-                    battle_id = battle_info["battle_id"]
-                    left_alliance_id = battle_info["left_alliance_id"]
-                    right_alliance_id = battle_info["right_alliance_id"]
+                # 2. 循环配对和执行对战，直到只剩下一个胜利者
+                round_number = 0
+                max_rounds = 10  # 防止无限循环
+                
+                while round_number < max_rounds:
+                    round_number += 1
+                    logger.info(f"[Scheduler] 土地 {land_id} 第 {round_number} 轮配对")
                     
-                    # 循环推进回合直到战斗结束
-                    while True:
-                        advance_result = battle_service.advance_round(battle_id)
-                        if not advance_result.get("ok"):
-                            logger.warning(
-                                f"[Scheduler] 土地 {land_id} 对战 {battle_id} 推进失败: {advance_result.get('error')}"
-                            )
-                            break
+                    # 检查当前有多少个活跃的报名
+                    all_registrations = alliance_repo.list_land_registrations_by_land(land_id)
+                    active_registrations = [r for r in all_registrations if r.is_active() or r.status == STATUS_VICTOR]
+                    victor_registrations = [r for r in all_registrations if r.status == STATUS_VICTOR]
+                    
+                    # 如果有多个胜利者，重置状态以便下一轮配对
+                    if len(victor_registrations) > 1:
+                        for victor in victor_registrations:
+                            victor.status = STATUS_REGISTERED
+                            alliance_repo.save_land_registration(victor)
+                        logger.info(f"[Scheduler] 土地 {land_id} 有 {len(victor_registrations)} 个胜利者，重置状态以便下一轮配对")
+                    
+                    # 检查是否只剩下一个胜利者
+                    if len(victor_registrations) == 1 and len(active_registrations) == 1:
+                        victor = victor_registrations[0]
+                        war_date = now.date()
+                        weekday = now.weekday()
+                        war_phase = "first" if weekday <= 2 else "second"
+                        season_key = now.strftime("%Y-%m")
+                        alliance_repo.increment_alliance_war_score(victor.alliance_id, season_key, 1)
+                        alliance_repo.set_land_occupation(land_id, victor.alliance_id, war_phase, war_date)
+                        logger.info(f"[Scheduler] 土地 {land_id} 已被联盟 {victor.alliance_id} 占领（最终胜利者）")
+                        success_count += 1
+                        break
+                    
+                    # 如果只有一个活跃的报名，自动成为胜利者并占领土地
+                    if len(active_registrations) == 1 and len(victor_registrations) == 0:
+                        victor = active_registrations[0]
+                        victor.status = STATUS_VICTOR
+                        alliance_repo.save_land_registration(victor)
+                        war_date = now.date()
+                        weekday = now.weekday()
+                        war_phase = "first" if weekday <= 2 else "second"
+                        season_key = now.strftime("%Y-%m")
+                        alliance_repo.increment_alliance_war_score(victor.alliance_id, season_key, 1)
+                        alliance_repo.set_land_occupation(land_id, victor.alliance_id, war_phase, war_date)
+                        logger.info(f"[Scheduler] 土地 {land_id} 已被联盟 {victor.alliance_id} 占领（唯一报名者）")
+                        success_count += 1
+                        break
+                    
+                    # 配对联盟
+                    try:
+                        pair_result = battle_service.lock_and_pair_land(land_id)
+                    except Exception as e:
+                        logger.exception(f"[Scheduler] 土地 {land_id} 配对时发生异常")
+                        break
+                    
+                    if not pair_result.get("ok"):
+                        error = pair_result.get("error", "未知错误")
+                        if "至少需要两个联盟报名" not in error:
+                            logger.warning(f"[Scheduler] 土地 {land_id} 配对失败: {error}")
+                        break
+                    
+                    # 如果已经直接占领了
+                    if pair_result.get("occupation"):
+                        logger.info(f"[Scheduler] 土地 {land_id} 已被直接占领")
+                        success_count += 1
+                        break
+                    
+                    # 如果所有报名都弃权了
+                    battles = pair_result.get("battles", [])
+                    if not battles or len(battles) == 0:
+                        logger.info(f"[Scheduler] 土地 {land_id} 没有需要配对的对战（所有报名都已弃权）")
+                        break
+                    
+                    total_battles += len(battles)
+                    logger.info(f"[Scheduler] 土地 {land_id} 配对成功，共 {len(battles)} 场对战")
+                    
+                    # 执行每场对战的所有回合
+                    for battle_info in battles:
+                        battle_id = battle_info["battle_id"]
+                        left_alliance_id = battle_info["left_alliance_id"]
+                        right_alliance_id = battle_info["right_alliance_id"]
                         
-                        if advance_result.get("battle_finished"):
-                            success_count += 1
-                            logger.info(
-                                f"[Scheduler] 土地 {land_id} 对战 {battle_id} 完成: "
-                                f"联盟 {left_alliance_id} vs 联盟 {right_alliance_id}"
+                        logger.info(
+                            f"[Scheduler] 开始执行土地 {land_id} 对战 {battle_id}: "
+                            f"联盟 {left_alliance_id} vs 联盟 {right_alliance_id}"
+                        )
+                        
+                        # 循环推进回合直到战斗结束
+                        rounds_executed = 0
+                        battle_finished = False
+                        max_rounds_per_battle = 20
+                        
+                        while not battle_finished and rounds_executed < max_rounds_per_battle:
+                            try:
+                                advance_result = battle_service.advance_round(battle_id)
+                                if not advance_result.get("ok"):
+                                    logger.warning(
+                                        f"[Scheduler] 土地 {land_id} 对战 {battle_id} 第 {rounds_executed + 1} 回合推进失败: {advance_result.get('error')}"
+                                    )
+                                    break
+                                
+                                rounds_executed += 1
+                                
+                                if advance_result.get("battle_finished"):
+                                    battle_finished = True
+                                    success_count += 1
+                                    logger.info(
+                                        f"[Scheduler] 土地 {land_id} 对战 {battle_id} 完成（共 {rounds_executed} 回合）"
+                                    )
+                                    break
+                            except Exception as e:
+                                logger.exception(f"[Scheduler] 土地 {land_id} 对战 {battle_id} 执行异常")
+                                break
+                        
+                        if rounds_executed >= max_rounds_per_battle:
+                            logger.warning(
+                                f"[Scheduler] 土地 {land_id} 对战 {battle_id} 达到最大回合数限制"
                             )
-                            break
+                    
+                    # 执行完所有对战后，检查最终胜利者
+                    all_registrations = alliance_repo.list_land_registrations_by_land(land_id)
+                    victor_registrations = [r for r in all_registrations if r.status == STATUS_VICTOR]
+                    
+                    # 如果只有一个胜利者，是最终胜利者
+                    if len(victor_registrations) == 1:
+                        victor = victor_registrations[0]
+                        war_date = now.date()
+                        weekday = now.weekday()
+                        war_phase = "first" if weekday <= 2 else "second"
+                        season_key = now.strftime("%Y-%m")
+                        alliance_repo.increment_alliance_war_score(victor.alliance_id, season_key, 1)
+                        alliance_repo.set_land_occupation(land_id, victor.alliance_id, war_phase, war_date)
+                        logger.info(f"[Scheduler] 土地 {land_id} 已被联盟 {victor.alliance_id} 占领（最终胜利者）")
+                        success_count += 1
+                        break
+                    
+                    # 如果有多个胜利者，继续下一轮配对
+                    if len(victor_registrations) > 1:
+                        continue
+                    
+                    # 如果没有胜利者，可能所有报名都已弃权或被淘汰
+                    active_registrations = [r for r in all_registrations if r.is_active() or r.status == STATUS_VICTOR]
+                    if len(active_registrations) == 0:
+                        logger.info(f"[Scheduler] 土地 {land_id} 没有活跃的报名，对战结束")
+                        break
+                
+                if round_number >= max_rounds:
+                    logger.warning(f"[Scheduler] 土地 {land_id} 达到最大轮数限制，停止执行")
                 
             except Exception as e:
                 logger.exception(f"[Scheduler] 土地 {land_id} 对战执行异常: {e}")
@@ -309,6 +460,13 @@ def _run_alliance_war_battle():
             f"[Scheduler] 盟战自动对战任务完成，共执行 {total_battles} 场对战，"
             f"成功完成 {success_count} 场"
         )
+        
+        # 所有土地对战完成后，递增届次
+        try:
+            new_session = alliance_service._increment_war_session_number()
+            logger.info(f"[Scheduler] 盟战届次已递增至第 {new_session} 届")
+        except Exception as e:
+            logger.exception(f"[Scheduler] 递增盟战届次时发生异常: {e}")
     except Exception as e:
         logger.exception(f"[Scheduler] 盟战自动对战任务异常: {e}")
 
@@ -319,7 +477,9 @@ def start_scheduler():
     if _scheduler is not None:
         return  # 已启动
 
-    _scheduler = BackgroundScheduler(daemon=True)
+    # 使用中国时区（UTC+8）
+    china_tz = timezone(timedelta(hours=8))
+    _scheduler = BackgroundScheduler(daemon=True, timezone=china_tz)
     # 每天 00:05 触发
     _scheduler.add_job(
         _run_daily_battlefield,

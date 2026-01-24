@@ -337,12 +337,12 @@ const viewBeast = (beast) => {
         铜钱:{{ player.gold || 0 }}
       </div>
 
-      <!-- 战龙（幻兽）-->
+      <!-- 战宠-->
       <div class="section">
-        战龙: 
+        战宠: 
         <template v-if="beasts.length > 0">
           <template v-for="(beast, index) in beasts" :key="beast.id">
-            <a class="link" @click="viewBeast(beast)">{{ beast.name }}-{{ beast.realm }}</a>
+            <a class="link" @click="viewBeast(beast)">{{ beast.name }}-{{ beast.realm }}{{ beast.race ? `(${beast.race})` : '' }}</a>
             <span v-if="index < beasts.length - 1">  </span>
           </template>
         </template>

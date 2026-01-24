@@ -369,12 +369,12 @@ onMounted(async () => {
         <div class="section">水晶塔:{{ player.crystalTower }} <a v-if="isOtherPlayer" class="link" @click="doInfuse">{{ infusing ? '灌注中...' : '灌注' }}</a></div>
       <div class="section">铜钱:{{ player.gold }}</div>
 
-      <!-- 战宠（战斗队） -->
+      <!-- 战宠 -->
       <div class="section">
-        战宠(战斗队):
+        战宠:
         <template v-if="player.beasts && player.beasts.length">
           <template v-for="(beast, index) in player.beasts" :key="beast.id || index">
-            <a class="link orange" @click="viewBeast(beast)">{{ beast.name }}-{{ beast.realm }}</a>
+            <a class="link orange" @click="viewBeast(beast)">{{ beast.name }}-{{ beast.realm }}{{ beast.race ? `(${beast.race})` : '' }}</a>
             <template v-if="index < player.beasts.length - 1"> </template>
           </template>
         </template>
