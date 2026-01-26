@@ -122,8 +122,9 @@ def get_info():
         )
         refresh_seconds = 300
     
-    # 获取当前连胜王
-    today = datetime.now().date()
+    # 获取当前连胜王（今日）
+    now = datetime.now()
+    today = now.date()
     streak_king = execute_query(
         """SELECT p.user_id, p.nickname, a.max_streak_today 
            FROM arena_streak a 
@@ -132,6 +133,29 @@ def get_info():
            ORDER BY a.max_streak_today DESC LIMIT 1""",
         (today,)
     )
+    
+    # 获取昨日连胜王信息（用于大奖领取）
+    from datetime import timedelta
+    yesterday = today - timedelta(days=1)
+    yesterday_king = execute_query(
+        """SELECT p.user_id, p.nickname, a.max_streak_today, a.claimed_grand_prize 
+           FROM arena_streak a 
+           JOIN player p ON a.user_id = p.user_id 
+           WHERE a.record_date = %s 
+           ORDER BY a.max_streak_today DESC LIMIT 1""",
+        (yesterday,)
+    )
+    
+    # 判断当前用户是否是昨日连胜王
+    is_yesterday_king = False
+    yesterday_claimed = True  # 默认已领取（如果不是连胜王）
+    if yesterday_king:
+        is_yesterday_king = yesterday_king[0]['user_id'] == user_id
+        yesterday_claimed = yesterday_king[0].get('claimed_grand_prize', 0) == 1
+    
+    # 判断是否在大奖领取时间窗口内（00:00-08:00）
+    current_hour = now.hour
+    can_claim_grand_prize = is_yesterday_king and not yesterday_claimed and current_hour < 8
     
     return jsonify({
         "ok": True,
@@ -151,7 +175,17 @@ def get_info():
             "streak": streak_king[0]['max_streak_today'] if streak_king else 0
         },
         "claimed_rewards": record['claimed_rewards'],
-        "claimed_grand_prize": record.get('claimed_grand_prize', 0)
+        "claimed_grand_prize": record.get('claimed_grand_prize', 0),
+        # 新增：昨日连胜王信息和大奖领取状态
+        "yesterday_king": {
+            "user_id": yesterday_king[0]['user_id'] if yesterday_king else None,
+            "nickname": yesterday_king[0]['nickname'] if yesterday_king else "暂无",
+            "streak": yesterday_king[0]['max_streak_today'] if yesterday_king else 0
+        },
+        "is_yesterday_king": is_yesterday_king,
+        "can_claim_grand_prize": can_claim_grand_prize,
+        "grand_prize_time_window": "00:00-08:00",
+        "current_hour": current_hour
     })
 
 @arena_streak_bp.post('/refresh')
@@ -533,6 +567,11 @@ def claim_reward():
 def claim_grand_prize():
     """领取连胜大奖（每天只有全服连胜次数最多的玩家可以领取一次）
     
+    领取规则：
+    - 领取时间：每天00:00-08:00
+    - 领取资格：前一天全服连胜次数最多的玩家
+    - 过期机制：超过08:00后无法领取
+    
     奖励内容：
     - 铜钱×600,000
     - 追魂法宝×1 (item_id: 6019)
@@ -543,36 +582,52 @@ def claim_grand_prize():
     if not user_id:
         return jsonify({"ok": False, "error": "请先登录"})
     
-    # 获取今日记录
-    record = get_today_record(user_id)
+    # 获取当前时间
+    now = datetime.now()
+    current_hour = now.hour
+    today = now.date()
     
-    # 检查是否已领取
-    if record.get('claimed_grand_prize'):
-        return jsonify({"ok": False, "error": "今日已领取过连胜大奖"})
+    # 检查是否在领取时间窗口内（00:00-08:00）
+    if current_hour >= 8:
+        return jsonify({"ok": False, "error": "连胜大奖领取时间为每天00:00-08:00，当前已过期"})
     
-    # 获取今日全服连胜王
-    today = datetime.now().date()
+    # 计算前一天的日期（大奖是领取前一天的）
+    from datetime import timedelta
+    yesterday = today - timedelta(days=1)
+    
+    # 获取前一天的全服连胜王
     streak_king = execute_query(
         """SELECT user_id, max_streak_today 
            FROM arena_streak 
            WHERE record_date = %s 
            ORDER BY max_streak_today DESC LIMIT 1""",
-        (today,)
+        (yesterday,)
     )
     
     if not streak_king:
-        return jsonify({"ok": False, "error": "今日暂无连胜记录"})
+        return jsonify({"ok": False, "error": "昨日暂无连胜记录"})
     
     king_user_id = streak_king[0]['user_id']
     king_streak = streak_king[0]['max_streak_today']
     
     # 检查是否是连胜王
     if king_user_id != user_id:
-        return jsonify({"ok": False, "error": "只有全服连胜次数最多的玩家才能领取大奖"})
+        return jsonify({"ok": False, "error": "只有昨日全服连胜次数最多的玩家才能领取大奖"})
     
     # 检查连胜次数是否大于0
     if king_streak <= 0:
         return jsonify({"ok": False, "error": "连胜次数不足，无法领取大奖"})
+    
+    # 检查是否已领取（检查前一天的记录）
+    yesterday_record = execute_query(
+        """SELECT claimed_grand_prize 
+           FROM arena_streak 
+           WHERE user_id = %s AND record_date = %s""",
+        (user_id, yesterday)
+    )
+    
+    if yesterday_record and yesterday_record[0].get('claimed_grand_prize'):
+        return jsonify({"ok": False, "error": "已领取过该大奖"})
     
     # 发放奖励
     try:
@@ -594,10 +649,10 @@ def claim_grand_prize():
         # 招财神符×1 (item_id: 6004)
         services.inventory_service.add_item(user_id, 6004, 1)
         
-        # 3. 标记已领取
+        # 3. 标记已领取（更新前一天的记录）
         execute_update(
             "UPDATE arena_streak SET claimed_grand_prize = 1 WHERE user_id = %s AND record_date = %s",
-            (user_id, today)
+            (user_id, yesterday)
         )
         
         return jsonify({
