@@ -6,17 +6,50 @@ import ChatPanel from '@/features/lobby/components/ChatPanel.vue'
 
 const router = useRouter()
 
-// 主页顶部固定活动时间（在时间范围内才展示）
-const ACTIVITY_TIME_TEXT = '2026.1.25-2026.2.20'
+// 主页顶部固定活动时间（时间过期则不显示；未开始也展示，但需要标记“未开始”）
+const ACTIVITY_TIME_TEXT = '1.27-2.21'
 // 注意：Date 构造使用本地时区；月份从 0 开始（1月=0，2月=1）
-const ACTIVITY_START = new Date(2026, 0, 25, 0, 0, 0, 0)
-const ACTIVITY_END = new Date(2026, 1, 20, 23, 59, 59, 999)
+const ACTIVITY_START = new Date(2026, 0, 27, 0, 0, 0, 0)
+const ACTIVITY_END = new Date(2026, 1, 21, 23, 59, 59, 999)
 const nowMs = ref(Date.now())
 let nowTimer = null
 const shouldShowActivityTime = computed(() => {
   const now = new Date(nowMs.value)
-  return now >= ACTIVITY_START && now <= ACTIVITY_END
+  return now <= ACTIVITY_END
 })
+const shouldShowActivityNotStartedTag = computed(() => {
+  const now = new Date(nowMs.value)
+  return now < ACTIVITY_START && now <= ACTIVITY_END
+})
+
+const parseAnnouncementTime = (dateStr, endOfDay = false) => {
+  const raw = String(dateStr || '').trim()
+  if (!raw) return null
+  const matchYmd = raw.match(/^(\d{4})-(\d{2})-(\d{2})/)
+  if (matchYmd) {
+    const y = Number(matchYmd[1])
+    const m = Number(matchYmd[2])
+    const d = Number(matchYmd[3])
+    return endOfDay
+      ? new Date(y, m - 1, d, 23, 59, 59, 999)
+      : new Date(y, m - 1, d, 0, 0, 0, 0)
+  }
+  const dt = new Date(raw)
+  return Number.isNaN(dt.getTime()) ? null : dt
+}
+
+const isAnnouncementActive = (ann) => {
+  const now = new Date(nowMs.value)
+  const start = parseAnnouncementTime(ann?.start_time, false)
+  const end = parseAnnouncementTime(ann?.end_time, true)
+  if (!start || !end) return false
+  return now >= start && now <= end
+}
+
+const handleAnnouncementClick = (ann) => {
+  if (!isAnnouncementActive(ann)) return
+  goAnnouncementDetail(ann.id)
+}
 
 // 公告列表
 const announcements = ref([])
@@ -29,13 +62,7 @@ const loadAnnouncements = async () => {
     const response = await fetch('/configs/announcements.json')
     if (response.ok) {
       const data = await response.json()
-      // 过滤当前有效的公告（在活动时间内）
-      const now = new Date()
-      announcements.value = (data.announcements || []).filter(a => {
-        const start = new Date(a.start_time)
-        const end = new Date(a.end_time)
-        return now >= start && now <= end
-      })
+      announcements.value = data.announcements || []
     }
   } catch (e) {
     console.error('加载公告失败', e)
@@ -701,21 +728,19 @@ const handleLink = (name) => {
 
 <template>
   <div class="main-page">
-    <!-- 固定活动时间（仅在活动期内展示） -->
-    <div class="section activity-time" v-if="shouldShowActivityTime">
-      活动时间：<span class="red bold">{{ ACTIVITY_TIME_TEXT }}</span>
-    </div>
-
     <!-- 公告列表 -->
-    <div class="announcement-list" v-if="announcements.length > 0">
+    <div class="announcement-list" v-if="shouldShowActivityTime && announcements.length > 0">
       <div 
         v-for="ann in announcements" 
         :key="ann.id" 
         class="announcement-item"
-        @click="goAnnouncementDetail(ann.id)"
+        :class="{ disabled: !isAnnouncementActive(ann) }"
+        @click="handleAnnouncementClick(ann)"
       >
         <span class="ann-new">[新]</span>
-        <span class="ann-title">{{ ann.title }}</span>
+        <span class="ann-title">
+          {{ ann.title }}<span class="ann-suffix" v-if="shouldShowActivityNotStartedTag">（{{ ACTIVITY_TIME_TEXT }} 未开始）</span>
+        </span>
       </div>
     </div>
 
@@ -927,6 +952,23 @@ const handleLink = (name) => {
   background: #F5F5F5;
 }
 
+.announcement-item.disabled {
+  cursor: default;
+}
+
+.announcement-item.disabled:hover {
+  background: transparent;
+}
+
+.announcement-item.disabled .ann-title {
+  color: #666666;
+  cursor: default;
+}
+
+.announcement-item.disabled .ann-title:hover {
+  text-decoration: none;
+}
+
 .ann-new {
   color: #CC0000;
   font-weight: bold;
@@ -936,6 +978,11 @@ const handleLink = (name) => {
 .ann-title {
   color: #0066CC;
   cursor: pointer;
+}
+
+.ann-suffix {
+  color: #666666;
+  margin-left: 4px;
 }
 
 .ann-title:hover {

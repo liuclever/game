@@ -22,6 +22,14 @@ router.afterEach((to, from) => {
   <div class="app-container">
     <!-- 路由视图：使用 key 强制组件重新渲染 -->
     <router-view :key="$route.fullPath" />
+    <div class="icp-footer">
+      <a
+        class="icp-link"
+        href="https://beian.miit.gov.cn"
+        target="_blank"
+        rel="noopener noreferrer"
+      >渝ICP备2025077101号</a>
+    </div>
     <UiToast />
     <UiDialog />
     <!-- <DebugPanel /> -->
@@ -39,5 +47,24 @@ router.afterEach((to, from) => {
 body {
   font-family: SimSun, "宋体", serif;
   background-color: #ffffff !important; /* 确保背景为白色 */
+}
+
+.icp-footer {
+  background: #ffffff;
+  border-top: 1px solid #eeeeee;
+  padding: 10px 16px 14px;
+  font-size: 22px;
+  line-height: 1.8;
+  color: #666666;
+}
+
+.icp-link {
+  color: #0066cc;
+  font-size: 60%;
+  text-decoration: none;
+}
+
+.icp-link:hover {
+  text-decoration: underline;
 }
 </style>

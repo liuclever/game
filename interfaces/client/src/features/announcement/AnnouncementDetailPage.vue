@@ -381,7 +381,12 @@ const claimRebate = async (tierGems) => {
 // 格式化日期
 const formatDate = (dateStr) => {
   if (!dateStr) return ''
-  const date = new Date(dateStr)
+  const raw = String(dateStr).trim()
+  const matchYmd = raw.match(/^(\d{4})-(\d{2})-(\d{2})/)
+  const date = matchYmd
+    ? new Date(Number(matchYmd[1]), Number(matchYmd[2]) - 1, Number(matchYmd[3]), 0, 0, 0, 0)
+    : new Date(raw)
+  if (Number.isNaN(date.getTime())) return ''
   const y = date.getFullYear()
   const m = String(date.getMonth() + 1).padStart(2, '0')
   const d = String(date.getDate()).padStart(2, '0')
