@@ -560,6 +560,9 @@ def use_skill_book_api():
     
     # 更新幻兽技能
     beast.skills = result.final_skills
+    
+    # 重新计算幻兽属性（应用增幅技能加成）
+    beast = _calc_beast_stats(beast)
     services.player_beast_repo.update_beast(beast)
     
     # 扣除技能书道具
@@ -577,6 +580,15 @@ def use_skill_book_api():
         "replacedSkill": result.replaced_skill,
         "finalSkills": result.final_skills,
         "message": result.message,
+        "updatedStats": {
+            "hp": beast.hp,
+            "physical_attack": beast.physical_attack,
+            "magic_attack": beast.magic_attack,
+            "physical_defense": beast.physical_defense,
+            "magic_defense": beast.magic_defense,
+            "speed": beast.speed,
+            "combat_power": beast.combat_power,
+        }
     })
 
 
@@ -752,6 +764,14 @@ def _calc_beast_stats(beast, attack_type: str = None):
         setattr(beast, 'attack_type', effective_attack_type)
     setattr(beast, 'nature', nature)
     
+    # 获取幻兽技能列表
+    beast_skills = getattr(beast, 'skills', []) or []
+    if isinstance(beast_skills, str):
+        try:
+            beast_skills = json.loads(beast_skills)
+        except:
+            beast_skills = []
+    
     attrs = calc_beast_attributes(
         hp_aptitude=beast.hp_aptitude,
         speed_aptitude=getattr(beast, 'speed_aptitude', 0),
@@ -764,6 +784,7 @@ def _calc_beast_stats(beast, attack_type: str = None):
         max_realm=max_realm,
         growth_score=beast.growth_rate or 840,
         nature=nature,
+        skills=beast_skills,
     )
     
     beast.hp = attrs["hp"]
