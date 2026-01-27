@@ -1190,6 +1190,10 @@ const router = createRouter({
   routes,
 })
 
+// 缓存游戏配置，避免每次导航都请求
+let gameConfigCache = null
+let gameConfigPromise = null
+
 // 路由守卫：测试模式下禁止访问某些页面
 router.beforeEach(async (to, from, next) => {
   console.log('[Router] beforeEach:', from.path, '→', to.path)
@@ -1200,13 +1204,30 @@ router.beforeEach(async (to, from, next) => {
   
   if (isBlocked) {
     try {
-      const res = await http.get('/auth/game-config')
-      if (res.data.is_test_mode) {
+      // 使用缓存或复用正在进行的请求
+      if (!gameConfigCache && !gameConfigPromise) {
+        gameConfigPromise = http.get('/auth/game-config')
+          .then(res => {
+            gameConfigCache = res.data
+            gameConfigPromise = null
+            return res.data
+          })
+          .catch(e => {
+            console.error('[Router] 获取游戏配置失败', e)
+            gameConfigPromise = null
+            return null
+          })
+      }
+      
+      const config = gameConfigCache || await gameConfigPromise
+      
+      if (config && config.is_test_mode) {
         alert('测试模式下该功能未开放')
         return next(false)
       }
     } catch (e) {
-      console.error('[Router] 获取游戏配置失败', e)
+      console.error('[Router] 路由守卫异常', e)
+      // 如果获取配置失败，允许继续导航（降级处理）
     }
   }
   next()

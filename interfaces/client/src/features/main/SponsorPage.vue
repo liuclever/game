@@ -271,7 +271,6 @@ onMounted(() => {
     </div>
     <div class="section nav-links">
       <a class="link" @click="goHome">返回游戏首页</a>
-      | <a class="link" @click="goVipTest">VIP测试面板</a>
     </div>
   </div>
 </template>
