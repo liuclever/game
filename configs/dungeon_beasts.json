@@ -98,6 +98,102 @@
         }
       }
     },
+    "2a": {
+      "dungeon_id": "2a",
+      "name": "宁静之森",
+      "map_name": "林中空地",
+      "level_range": [4, 6],
+      "beasts": {
+        "normal": [
+          {
+            "id": "d2_normal_1",
+            "name": "小黑鼠",
+            "level": 4,
+            "count": 1,
+            "stats": {"hp": 101, "atk": 52, "def": 45, "mdef": 44, "speed": 1},
+            "attack_type": "physical",
+            "skills": ["高级撕咬", "闪避"]
+          },
+          {
+            "id": "d2_normal_2",
+            "name": "大黄蜂",
+            "level": 4,
+            "count": 1,
+            "stats": {"hp": 119, "atk": 45, "def": 34, "mdef": 50, "speed": 1},
+            "attack_type": "physical",
+            "skills": ["高级撕咬", "闪避"]
+          }
+        ],
+        "elite": [
+          {
+            "id": "d2_elite_1",
+            "name": "精英·血螳螂",
+            "level": 4,
+            "count": 1,
+            "stats": {"hp": 108, "atk": 60, "def": 42, "mdef": 39, "speed": 1},
+            "attack_type": "physical",
+            "skills": ["高级必杀", "闪避"]
+          }
+        ],
+        "boss": {
+          "id": "d2_boss",
+          "name": "树灵",
+          "level": 7,
+          "count": 1,
+          "stats": {"hp": 187, "matk": 83, "def": 80, "mdef": 82, "speed": 2},
+          "attack_type": "magical",
+          "skills": []
+        }
+      }
+    },
+    "2b": {
+      "dungeon_id": "2b",
+      "name": "森林秘境",
+      "map_name": "林中空地",
+      "level_range": [7, 9],
+      "beasts": {
+        "normal": [
+          {
+            "id": "d3_normal_1",
+            "name": "小黑鼠",
+            "level": 7,
+            "count": 1,
+            "stats": {"hp": 170, "atk": 95, "def": 80, "mdef": 77, "speed": 5},
+            "attack_type": "physical",
+            "skills": ["高级撕咬", "闪避"]
+          },
+          {
+            "id": "d3_normal_2",
+            "name": "大黄蜂",
+            "level": 7,
+            "count": 1,
+            "stats": {"hp": 214, "atk": 80, "def": 55, "mdef": 92, "speed": 4},
+            "attack_type": "physical",
+            "skills": ["高级撕咬", "闪避"]
+          }
+        ],
+        "elite": [
+          {
+            "id": "d3_elite_1",
+            "name": "精英·血螳螂",
+            "level": 7,
+            "count": 1,
+            "stats": {"hp": 177, "atk": 114, "def": 76, "mdef": 64, "speed": 4},
+            "attack_type": "physical",
+            "skills": ["高级必杀", "闪避"]
+          }
+        ],
+        "boss": {
+          "id": "d3_boss",
+          "name": "巨蟒",
+          "level": 9,
+          "count": 1,
+          "stats": {"hp": 157, "matk": 94, "def": 53, "mdef": 45, "speed": 5},
+          "attack_type": "magical",
+          "skills": []
+        }
+      }
+    },
     "3": {
       "dungeon_id": 3,
       "name": "宁静之森(7-9级)",
