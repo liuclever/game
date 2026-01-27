@@ -491,11 +491,38 @@ def _run_alliance_war_battle():
         logger.exception(f"[Scheduler] 盟战自动对战任务异常: {e}")
 
 
+def _check_and_compensate_dungeon_reset():
+    """检查并补偿执行副本重置（启动时调用）"""
+    try:
+        from datetime import date
+        today = date.today()
+        
+        # 检查是否有需要重置的副本（当前层数>1 且 上次重置日期不是今天）
+        records = execute_query("""
+            SELECT COUNT(*) as count 
+            FROM player_dungeon_progress 
+            WHERE current_floor > 1 
+            AND (last_reset_date IS NULL OR last_reset_date < CURDATE())
+        """)
+        
+        count = records[0]['count'] if records else 0
+        if count > 0:
+            logger.info(f"[Scheduler] 启动时发现 {count} 条副本需要重置，立即执行补偿重置")
+            _run_daily_dungeon_reset()
+        else:
+            logger.info("[Scheduler] 启动时检查：所有副本状态正常，无需补偿重置")
+    except Exception as e:
+        logger.exception(f"[Scheduler] 启动时补偿检查失败: {e}")
+
+
 def start_scheduler():
     """启动后台调度器（应在应用启动时调用一次）"""
     global _scheduler
     if _scheduler is not None:
         return  # 已启动
+
+    # 启动时检查并补偿执行副本重置
+    _check_and_compensate_dungeon_reset()
 
     # 使用中国时区（UTC+8）
     china_tz = timezone(timedelta(hours=8))
