@@ -85,6 +85,61 @@ def get_beast_max_realm(template_realms: Iterable[str]) -> str:
     return max_realm
 
 
+def get_buff_skill_bonuses(skills: List[str]) -> Dict[str, float]:
+    """计算增幅技能的属性加成百分比
+    
+    Args:
+        skills: 幻兽当前技能列表
+        
+    Returns:
+        各属性的加成百分比字典，例如：
+        {
+            'hp': 0.10,  # 10%加成
+            'physical_attack': 0.09,
+            'magic_attack': 0.0,
+            'physical_defense': 0.05,
+            'magic_defense': 0.0,
+            'speed': 0.10
+        }
+    """
+    bonuses = {
+        'hp': 0.0,
+        'physical_attack': 0.0,
+        'magic_attack': 0.0,
+        'physical_defense': 0.0,
+        'magic_defense': 0.0,
+        'speed': 0.0
+    }
+    
+    # 加载技能配置
+    config_path = os.path.join(
+        os.path.dirname(__file__), "..", "..", "configs", "skills.json"
+    )
+    try:
+        with open(config_path, "r", encoding="utf-8") as f:
+            skill_config = json.load(f)
+    except Exception:
+        return bonuses
+    
+    # 获取增幅技能配置
+    buff_skills = skill_config.get("buff_skills", {})
+    all_buffs = {}
+    for category in ["normal", "advanced"]:
+        all_buffs.update(buff_skills.get(category, {}))
+    
+    # 遍历幻兽技能，累加增幅效果
+    for skill_name in skills:
+        if skill_name in all_buffs:
+            buff_config = all_buffs[skill_name]
+            stat = buff_config.get("stat")
+            modifier = buff_config.get("modifier", 0.0)
+            
+            if stat and modifier:
+                bonuses[stat] = bonuses.get(stat, 0.0) + modifier
+    
+    return bonuses
+
+
 def calc_beast_attributes(
     hp_aptitude: int,
     speed_aptitude: int,
@@ -97,6 +152,7 @@ def calc_beast_attributes(
     max_realm: str = "地界",
     growth_score: int = 840,
     nature: str = "",
+    skills: List[str] = None,
 ) -> Dict[str, int]:
     """统一的幻兽属性计算函数
     
@@ -112,6 +168,7 @@ def calc_beast_attributes(
         max_realm: 最高可达境界（必须传入真实上限，不再默认天界）
         growth_score: 成长率评分
         nature: 特性(物系/法系/物系善攻/法系善攻/物系高速/法系高速)
+        skills: 幻兽技能列表（用于计算增幅技能加成）
     
     返回:
         {hp, speed, physical_attack, magic_attack, 
@@ -120,13 +177,14 @@ def calc_beast_attributes(
     realm_mult = get_realm_multiplier(realm, max_realm)
     growth_mult = get_growth_multiplier(growth_score)
     
+    # 计算基础属性（不含增幅技能）
     hp_level_bonus = (level - 1) * 50 * realm_mult * growth_mult
     hp_base = hp_aptitude * 0.102 * realm_mult * growth_mult
-    hp = int(hp_base + hp_level_bonus)
+    hp_naked = int(hp_base + hp_level_bonus)
     
     base_speed_lv1 = calc_level1_speed_from_aptitude(speed_aptitude)
     speed_level_bonus = (level - 1) * growth_mult * realm_mult * base_speed_lv1
-    speed = max(1, int(base_speed_lv1 + speed_level_bonus))
+    speed_naked = max(1, int(base_speed_lv1 + speed_level_bonus))
     
     is_good_attack = str(nature).endswith('善攻')
     is_physical = '物系' in str(nature)
@@ -138,13 +196,13 @@ def calc_beast_attributes(
     
     if is_good_attack:
         atk_level_bonus = (level - 1) * growth_mult * realm_mult * 1.5 * 35
-        atk_value = max(10, int(base_attack_lv1 * 1.5 + atk_level_bonus))
+        atk_value_naked = max(10, int(base_attack_lv1 * 1.5 + atk_level_bonus))
     else:
         atk_level_bonus = (level - 1) * growth_mult * realm_mult * 35
-        atk_value = max(10, int(base_attack_lv1 + atk_level_bonus))
+        atk_value_naked = max(10, int(base_attack_lv1 + atk_level_bonus))
     
-    phys_atk = atk_value if is_physical else 0
-    magic_atk = atk_value if not is_physical else 0
+    phys_atk_naked = atk_value_naked if is_physical else 0
+    magic_atk_naked = atk_value_naked if not is_physical else 0
     
     is_high_speed = nature in ("物系高速", "法系高速")
     def_level_bonus = (level - 1) * growth_mult * realm_mult * 22
@@ -160,8 +218,19 @@ def calc_beast_attributes(
         elif int(magic_def_aptitude or 0) < int(phys_def_aptitude or 0):
             magic_mult = 0.85
     
-    phys_def = max(10, int((phys_def_lv1 + def_level_bonus) * phys_mult))
-    magic_def = max(10, int((magic_def_lv1 + def_level_bonus) * magic_mult))
+    phys_def_naked = max(10, int((phys_def_lv1 + def_level_bonus) * phys_mult))
+    magic_def_naked = max(10, int((magic_def_lv1 + def_level_bonus) * magic_mult))
+    
+    # 计算增幅技能加成
+    buff_bonuses = get_buff_skill_bonuses(skills or [])
+    
+    # 应用增幅技能加成（基于裸属性）
+    hp = int(hp_naked * (1 + buff_bonuses.get('hp', 0.0)))
+    speed = int(speed_naked * (1 + buff_bonuses.get('speed', 0.0)))
+    phys_atk = int(phys_atk_naked * (1 + buff_bonuses.get('physical_attack', 0.0)))
+    magic_atk = int(magic_atk_naked * (1 + buff_bonuses.get('magic_attack', 0.0)))
+    phys_def = int(phys_def_naked * (1 + buff_bonuses.get('physical_defense', 0.0)))
+    magic_def = int(magic_def_naked * (1 + buff_bonuses.get('magic_defense', 0.0)))
     
     combat_power = (
         round(hp / 9.0906) +

@@ -3,7 +3,7 @@
     {
       "id": "diamond_10",
       "name": "10宝石",
-      "price": "0.01",
+      "price": "10.00",
       "diamond": 10,
       "vip_exp": 1000,
       "description": "充值10宝石"

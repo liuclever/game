@@ -20,21 +20,21 @@ RANDOM_EVENT_FLOORS = {5, 10, 15, 20, 25, 30}
 
 # 楼层事件类型概率
 def generate_floor_event_type(floor):
-    """根据楼层生成事件类型"""
+    """根据楼层生成事件类型
+    
+    规则：
+    - 第5, 10, 15, 20, 25, 30层：随机事件（攀登/活力泉/猜拳）
+    - 第35层（BOSS层）：BOSS
+    - 其他层：100%幻兽（移除宝箱事件，避免前端显示问题）
+    """
     if floor in RANDOM_EVENT_FLOORS:
         return random.choice(['climb', 'vitality_spring', 'rps'])
     
     if floor in BOSS_FLOORS:
         return 'boss'
     
-    # 非 BOSS 层：75% 幻兽，10% 巨型宝箱，15% 神秘宝箱
-    roll = random.random()
-    if roll < 0.75:
-        return 'beast'
-    elif roll < 0.85:
-        return 'giant_chest'
-    else:
-        return 'mystery_chest'
+    # 所有其他层都是幻兽事件
+    return 'beast'
 
 def load_dungeon_beasts_config():
     config_path = os.path.join(os.path.dirname(__file__), '../../configs/dungeon_beasts.json')

@@ -237,6 +237,26 @@ def _run_alliance_season_rewards():
     logger.info("[Scheduler] 盟战赛季奖励发放任务完成")
 
 
+def _run_daily_dungeon_reset():
+    """每日00:00重置所有副本进度到第1层"""
+    logger.info("[Scheduler] 开始执行副本每日重置任务")
+    try:
+        # 重置所有玩家的所有副本进度到第1层
+        result = execute_update("""
+            UPDATE player_dungeon_progress
+            SET current_floor = 1,
+                floor_cleared = TRUE,
+                floor_event_type = 'beast',
+                resets_today = 0,
+                last_reset_date = CURDATE(),
+                loot_claimed = TRUE
+            WHERE current_floor > 1
+        """)
+        logger.info(f"[Scheduler] 副本每日重置完成，共重置 {result} 条记录")
+    except Exception as e:
+        logger.exception(f"[Scheduler] 副本每日重置失败: {e}")
+
+
 def _run_alliance_war_battle():
     """每周三和周六20:00自动执行盟战对战"""
     logger.info("[Scheduler] 开始执行盟战自动对战任务")
@@ -471,11 +491,38 @@ def _run_alliance_war_battle():
         logger.exception(f"[Scheduler] 盟战自动对战任务异常: {e}")
 
 
+def _check_and_compensate_dungeon_reset():
+    """检查并补偿执行副本重置（启动时调用）"""
+    try:
+        from datetime import date
+        today = date.today()
+        
+        # 检查是否有需要重置的副本（当前层数>1 且 上次重置日期不是今天）
+        records = execute_query("""
+            SELECT COUNT(*) as count 
+            FROM player_dungeon_progress 
+            WHERE current_floor > 1 
+            AND (last_reset_date IS NULL OR last_reset_date < CURDATE())
+        """)
+        
+        count = records[0]['count'] if records else 0
+        if count > 0:
+            logger.info(f"[Scheduler] 启动时发现 {count} 条副本需要重置，立即执行补偿重置")
+            _run_daily_dungeon_reset()
+        else:
+            logger.info("[Scheduler] 启动时检查：所有副本状态正常，无需补偿重置")
+    except Exception as e:
+        logger.exception(f"[Scheduler] 启动时补偿检查失败: {e}")
+
+
 def start_scheduler():
     """启动后台调度器（应在应用启动时调用一次）"""
     global _scheduler
     if _scheduler is not None:
         return  # 已启动
+
+    # 启动时检查并补偿执行副本重置
+    _check_and_compensate_dungeon_reset()
 
     # 使用中国时区（UTC+8）
     china_tz = timezone(timedelta(hours=8))
@@ -487,6 +534,15 @@ def start_scheduler():
         hour=0,
         minute=5,
         id="daily_battlefield",
+        replace_existing=True,
+    )
+    # 每天 00:00 重置副本进度
+    _scheduler.add_job(
+        _run_daily_dungeon_reset,
+        trigger="cron",
+        hour=0,
+        minute=0,
+        id="daily_dungeon_reset",
         replace_existing=True,
     )
     # 每分钟增加活力值
@@ -574,7 +630,7 @@ def start_scheduler():
     )
     
     _scheduler.start()
-    logger.info("[Scheduler] 后台调度器已启动，包含召唤之王定时任务、盟战赛季奖励任务和盟战自动对战任务")
+    logger.info("[Scheduler] 后台调度器已启动，包含副本每日重置、召唤之王定时任务、盟战赛季奖励任务和盟战自动对战任务")
 
 
 def shutdown_scheduler():

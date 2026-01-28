@@ -14,6 +14,11 @@
         当前连胜王: <a class="link username" @click="viewPlayer(streakKing.user_id)" v-if="streakKing.user_id">{{ streakKing.nickname }}</a><span v-else>{{ streakKing.nickname }}</span> - {{ streakKing.streak }}连胜
       </div>
 
+      <!-- 昨日连胜王 -->
+      <div class="section" v-if="yesterdayKing.user_id">
+        昨日连胜王: <a class="link username" @click="viewPlayer(yesterdayKing.user_id)">{{ yesterdayKing.nickname }}</a> - {{ yesterdayKing.streak }}连胜
+      </div>
+
       <!-- 我的连胜 -->
       <div class="section">
         当前连胜: {{ currentStreak }}次. 今日最高: {{ maxStreakToday }}次
@@ -57,10 +62,11 @@
       <!-- 连胜大奖 -->
       <div class="section">
         <div class="section indent">
-          连胜大奖（全服连胜王专属，每日限领1次）: 铜钱60万+追魂法宝1+金袋5+招财神符1. 
-          <a class="link" @click="claimGrandPrize" v-if="isStreakKing && !claimedGrandPrize">领取</a>
-          <span v-else-if="claimedGrandPrize">[已领取]</span>
-          <span v-else-if="!isStreakKing">[仅连胜王可领取]</span>
+          连胜大奖（昨日连胜王专属，领取时间{{ grandPrizeTimeWindow }}）: 铜钱60万+追魂法宝1+金袋5+招财神符1. 
+          <a class="link" @click="claimGrandPrize" v-if="canClaimGrandPrize">领取</a>
+          <span v-else-if="isYesterdayKing && currentHour >= 8">[已过期]</span>
+          <span v-else-if="isYesterdayKing && !canClaimGrandPrize">[已领取]</span>
+          <span v-else-if="!isYesterdayKing">[仅昨日连胜王可领取]</span>
         </div>
       </div>
 
@@ -115,8 +121,13 @@ export default {
       opponents: [],
       refreshSeconds: 300,
       streakKing: { nickname: '暂无', streak: 0 },
+      yesterdayKing: { nickname: '暂无', streak: 0 },
       claimedRewards: [],
       claimedGrandPrize: false,
+      isYesterdayKing: false,
+      canClaimGrandPrize: false,
+      grandPrizeTimeWindow: '00:00-08:00',
+      currentHour: 0,
       ranking: [],
       history: [],
       showRanking: false,
@@ -127,10 +138,6 @@ export default {
     };
   },
   computed: {
-    isStreakKing() {
-      // 检查当前用户是否是连胜王
-      return this.streakKing.user_id && this.streakKing.user_id === this.$root.userId;
-    },
     energyCost() {
       // 计算活力消耗：未达成6连胜之前消耗100活力，达成6连胜之后消耗15活力
       return this.maxStreakToday >= 6 ? 15 : 100;
@@ -155,15 +162,25 @@ export default {
           this.opponents = res.data.opponents || [];
           this.refreshSeconds = res.data.refresh_seconds || 300;
           this.streakKing = res.data.streak_king || { nickname: '暂无', streak: 0 };
+          this.yesterdayKing = res.data.yesterday_king || { nickname: '暂无', streak: 0 };
           // 确保 claimedRewards 始终是数组
           this.claimedRewards = Array.isArray(res.data.claimed_rewards) ? res.data.claimed_rewards : [];
           this.claimedGrandPrize = res.data.claimed_grand_prize || false;
+          
+          // 新增：大奖领取相关字段
+          this.isYesterdayKing = res.data.is_yesterday_king || false;
+          this.canClaimGrandPrize = res.data.can_claim_grand_prize || false;
+          this.grandPrizeTimeWindow = res.data.grand_prize_time_window || '00:00-08:00';
+          this.currentHour = res.data.current_hour || 0;
           
           // 调试日志
           console.log('连胜竞技场信息加载成功:');
           console.log('  当前连胜:', this.currentStreak);
           console.log('  今日最高:', this.maxStreakToday);
           console.log('  已领取奖励:', this.claimedRewards);
+          console.log('  是否昨日连胜王:', this.isYesterdayKing);
+          console.log('  是否可领取大奖:', this.canClaimGrandPrize);
+          console.log('  当前小时:', this.currentHour);
         } else {
           if (res.data.error && res.data.error.includes('开放时间')) {
             this.isOpen = false;
@@ -306,11 +323,13 @@ export default {
         const res = await axios.post('/api/arena-streak/claim-grand-prize');
         
         if (res.data.ok) {
-          this.claimedGrandPrize = true;
+          this.canClaimGrandPrize = false;  // 更新为不可领取
           this.battleResult = {
             victory: true,
             message: res.data.message || '恭喜！领取连胜大奖成功！'
           };
+          // 重新加载信息以更新状态
+          await this.loadInfo();
           setTimeout(() => {
             this.battleResult = null;
           }, 5000);
