@@ -139,10 +139,6 @@ const goMonthCard = () => {
   router.push('/sponsor/month-card')
 }
 
-const goVipTest = () => {
-  router.push('/vip-test')
-}
-
 onMounted(() => {
   if (route.query.result === 'success') {
     alert('支付完成，宝石将在几秒内到账')
@@ -271,7 +267,6 @@ onMounted(() => {
     </div>
     <div class="section nav-links">
       <a class="link" @click="goHome">返回游戏首页</a>
-      | <a class="link" @click="goVipTest">VIP测试面板</a>
     </div>
   </div>
 </template>
