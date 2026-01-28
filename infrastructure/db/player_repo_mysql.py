@@ -405,7 +405,21 @@ def get_player_by_id(user_id: int) -> Optional[dict]:
 
 
 def update_gold(user_id: int, delta: int) -> bool:
-    """更新玩家铜钱（增加或减少）"""
-    sql = "UPDATE player SET gold = gold + %s WHERE user_id = %s"
-    affected = execute_update(sql, (delta, user_id))
+    """更新玩家铜钱（增加或减少）
+    
+    Args:
+        user_id: 玩家ID
+        delta: 铜钱变化量（正数为增加，负数为减少）
+    
+    Returns:
+        bool: 操作是否成功（扣钱时余额不足会返回 False）
+    """
+    if delta < 0:
+        # 扣钱时检查余额是否足够，防止铜钱变成负数
+        sql = "UPDATE player SET gold = gold + %s WHERE user_id = %s AND gold >= %s"
+        affected = execute_update(sql, (delta, user_id, abs(delta)))
+    else:
+        # 加钱不需要检查
+        sql = "UPDATE player SET gold = gold + %s WHERE user_id = %s"
+        affected = execute_update(sql, (delta, user_id))
     return affected > 0
