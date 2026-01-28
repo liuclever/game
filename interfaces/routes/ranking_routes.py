@@ -54,7 +54,7 @@ def get_ranking_list():
     if ranking_type not in allow_types:
         ranking_type = 'level'
 
-    # 二级筛选参数（用于“战力段位筛选/竞技擂台参与者战力排行”“擂台英豪榜周/总&赛区/全部”）
+    # 二级筛选参数（用于"战力段位筛选/竞技擂台参与者战力排行""擂台英豪榜周/总&赛区/全部"）
     filter_rank = request.args.get("rank")  # 段位/赛区名：黄阶/玄阶/地阶/天阶/飞马/天龙/战神
     arena_scope = request.args.get("scope", "zone")  # zone|all
     arena_time = request.args.get("time", "total")  # week|total
@@ -98,7 +98,7 @@ def get_ranking_list():
             my_rank = rank_rows[0]['rank'] if rank_rows else None
     
     elif ranking_type == 'power':
-        # 战力：取出战队伍的总战力（与游戏内“出战战力”概念一致）
+        # 战力：取出战队伍的总战力（包含装备加成）
         tier = None
         if filter_rank:
             filter_rank = _normalize_rank_name(filter_rank)
@@ -108,7 +108,7 @@ def get_ranking_list():
                     tier = (int(min_lv), int(max_lv))
                     break
 
-            # 如果传了 rank 但不认识：不要回落到“总排行”，直接返回空（避免出现“我在所有段位都有排名”的错觉）
+            # 如果传了 rank 但不认识：不要回落到"总排行"，直接返回空（避免出现"我在所有段位都有排名"的错觉）
             if tier is None:
                 return jsonify({
                     "ok": True,
@@ -137,37 +137,63 @@ def get_ranking_list():
             )
 
         where_sql = ("WHERE " + " AND ".join(where_parts)) if where_parts else ""
+        
+        # 查询所有符合条件的玩家
         sql = f"""
-            SELECT p.user_id as userId, p.nickname, p.level, p.vip_level as vipLevel,
-                   COALESCE(SUM(b.combat_power), 0) as power
+            SELECT p.user_id as userId, p.nickname, p.level, p.vip_level as vipLevel
             FROM player p
-            LEFT JOIN player_beast b ON p.user_id = b.user_id AND b.is_in_team = 1
             {where_sql}
-            GROUP BY p.user_id, p.nickname, p.level, p.vip_level
-            ORDER BY power DESC, p.level DESC
-            LIMIT %s OFFSET %s
+            ORDER BY p.user_id
         """
-        params.extend([size, offset])
-        rows = execute_query(sql, tuple(params))
-
-        if where_parts:
-            count_sql = f"SELECT COUNT(*) as total FROM player p {where_sql}"
-            total_rows = execute_query(count_sql, tuple(params[:-2]))
-        else:
-            total_rows = execute_query("SELECT COUNT(*) as total FROM player")
-        total = total_rows[0]['total'] if total_rows else 0
+        players = execute_query(sql, tuple(params)) if params else execute_query(sql)
+        
+        # 计算每个玩家的总战力（包含装备加成）
+        from interfaces.routes.beast_routes import _calc_total_combat_power_with_equipment
+        from infrastructure.db.player_beast_repo_mysql import MySQLPlayerBeastRepo
+        
+        beast_repo = MySQLPlayerBeastRepo()
+        player_powers = []
+        
+        for player in (players or []):
+            player_user_id = player['userId']
+            team_beasts = beast_repo.get_team_beasts(player_user_id)
+            
+            # 只有有出战幻兽的玩家才计入排行
+            if not team_beasts:
+                continue
+            
+            total_power = 0
+            for beast in team_beasts:
+                # 计算包含装备加成的战力
+                power = _calc_total_combat_power_with_equipment(beast)
+                total_power += power
+            
+            # 只有战力大于0的玩家才计入排行
+            if total_power > 0:
+                player_powers.append({
+                    "userId": player_user_id,
+                    "nickname": player['nickname'],
+                    "level": player['level'],
+                    "vipLevel": player['vipLevel'],
+                    "power": total_power
+                })
+        
+        # 按战力排序
+        player_powers.sort(key=lambda x: (-x['power'], -x['level']))
+        
+        # 分页
+        total = len(player_powers)
+        paginated = player_powers[offset:offset + size]
+        rows = paginated
 
         if user_id:
-            # 关键：只有当“我属于当前筛选人群”时，才展示我的排名
+            # 关键：只有当"我属于当前筛选人群"时，才展示我的排名
             # - 分段战力榜：我的等级必须落在该段位区间内
             # - 擂台参与者战力榜：我必须参与过擂台（arena_battle_log 有记录）
             my_info_rows = execute_query("SELECT level FROM player WHERE user_id = %s", (user_id,))
             my_level = int(my_info_rows[0].get("level", 0) or 0) if my_info_rows else 0
             if tier and not (tier[0] <= my_level <= tier[1]):
                 my_rank = None
-                # 直接跳过后续排名计算，避免出现“跨段位也有名次”的错觉
-                # （前端会将 None 兜底成 0，但模板已用 v-if myRank>0 控制不展示）
-                # continue 不可用（不在循环内），所以用 else 结构控制
             else:
                 if str(power_scope) == "arena":
                     participated_rows = execute_query(
@@ -181,65 +207,34 @@ def get_ranking_list():
                     )
                     if not participated_rows:
                         my_rank = None
-                        # 不参与擂台则不在该榜单人群中
-                        # 同样跳过后续排名计算
                     else:
-                        my_power_rows = execute_query(
-                            "SELECT COALESCE(SUM(combat_power), 0) as power FROM player_beast WHERE user_id = %s AND is_in_team = 1",
-                            (user_id,),
-                        )
-                        my_power = int(my_power_rows[0].get("power", 0) or 0) if my_power_rows else 0
-
-                        rank_rows = execute_query(
-                            f"""
-                            SELECT COUNT(*) + 1 as `rank` FROM (
-                              SELECT p.user_id, COALESCE(SUM(b.combat_power), 0) as power
-                              FROM player p
-                              LEFT JOIN player_beast b ON p.user_id = b.user_id AND b.is_in_team = 1
-                              {where_sql}
-                              GROUP BY p.user_id
-                            ) t
-                            WHERE t.power > %s
-                            """,
-                            tuple(list(params[:-2]) + [my_power]),
-                        )
-                        my_rank = rank_rows[0]['rank'] if rank_rows else None
+                        # 计算我的总战力（包含装备加成）
+                        my_team_beasts = beast_repo.get_team_beasts(user_id)
+                        my_power = 0
+                        for beast in my_team_beasts:
+                            my_power += _calc_total_combat_power_with_equipment(beast)
+                        
+                        # 计算排名：比我战力高的玩家数量 + 1
+                        my_rank = 1
+                        for p in player_powers:
+                            if p['power'] > my_power:
+                                my_rank += 1
+                            else:
+                                break
                 else:
-                    my_power_rows = execute_query(
-                        "SELECT COALESCE(SUM(combat_power), 0) as power FROM player_beast WHERE user_id = %s AND is_in_team = 1",
-                        (user_id,),
-                    )
-                    my_power = int(my_power_rows[0].get("power", 0) or 0) if my_power_rows else 0
-
-                    if tier:
-                        rank_rows = execute_query(
-                            f"""
-                            SELECT COUNT(*) + 1 as `rank` FROM (
-                              SELECT p.user_id, COALESCE(SUM(b.combat_power), 0) as power
-                              FROM player p
-                              LEFT JOIN player_beast b ON p.user_id = b.user_id AND b.is_in_team = 1
-                              {where_sql}
-                              GROUP BY p.user_id
-                            ) t
-                            WHERE t.power > %s
-                            """,
-                            tuple(list(params[:-2]) + [my_power]),
-                        )
-                        my_rank = rank_rows[0]['rank'] if rank_rows else None
-                    else:
-                        rank_rows = execute_query(
-                            """
-                            SELECT COUNT(*) + 1 as `rank` FROM (
-                              SELECT p.user_id, COALESCE(SUM(b.combat_power), 0) as power
-                              FROM player p
-                              LEFT JOIN player_beast b ON p.user_id = b.user_id AND b.is_in_team = 1
-                              GROUP BY p.user_id
-                            ) t
-                            WHERE t.power > %s
-                            """,
-                            (my_power,),
-                        )
-                        my_rank = rank_rows[0]['rank'] if rank_rows else None
+                    # 计算我的总战力（包含装备加成）
+                    my_team_beasts = beast_repo.get_team_beasts(user_id)
+                    my_power = 0
+                    for beast in my_team_beasts:
+                        my_power += _calc_total_combat_power_with_equipment(beast)
+                    
+                    # 计算排名：比我战力高的玩家数量 + 1
+                    my_rank = 1
+                    for p in player_powers:
+                        if p['power'] > my_power:
+                            my_rank += 1
+                        else:
+                            break
     
     elif ranking_type == 'arena':
         # 擂台英豪榜：总榜/周榜都从 arena_battle_log 查询，区别只是时间范围
@@ -358,7 +353,11 @@ def get_ranking_list():
     # 补充 rank 字段（用于前端展示）
     rankings = []
     for idx, r in enumerate(rows or []):
-        obj = dict(r)
+        # 如果 r 已经是字典（如 power 类型），直接使用；否则转换
+        if isinstance(r, dict):
+            obj = r.copy()  # 使用 copy() 而不是 dict()
+        else:
+            obj = dict(r)
         obj["rank"] = int(offset + idx + 1)
         rankings.append(obj)
 

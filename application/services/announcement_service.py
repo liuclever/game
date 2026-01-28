@@ -112,36 +112,59 @@ class AnnouncementService:
             return {"ok": False, "error": "无效的等级段"}
 
         min_level, max_level = level_ranges[level_bracket]
-        offset = (page - 1) * size
 
-        # 查询战力排行
+        # 查询所有符合等级段的玩家及其出战幻兽
         sql = """
-            SELECT p.user_id as userId, p.nickname, p.level, p.vip_level as vipLevel,
-                   COALESCE(SUM(b.combat_power), 0) as power
-            FROM player p
-            LEFT JOIN player_beast b ON p.user_id = b.user_id AND b.is_in_team = 1
-            WHERE p.level BETWEEN %s AND %s
-            GROUP BY p.user_id, p.nickname, p.level, p.vip_level
-            ORDER BY power DESC, p.level DESC
-            LIMIT %s OFFSET %s
-        """
-        rows = execute_query(sql, (min_level, max_level, size, offset))
-
-        # 总数
-        count_sql = """
-            SELECT COUNT(DISTINCT p.user_id) as total
+            SELECT p.user_id as userId, p.nickname, p.level, p.vip_level as vipLevel
             FROM player p
             WHERE p.level BETWEEN %s AND %s
         """
-        count_rows = execute_query(count_sql, (min_level, max_level))
-        total = count_rows[0]['total'] if count_rows else 0
+        players = execute_query(sql, (min_level, max_level))
 
+        # 计算每个玩家的总战力（包含装备加成）
+        from interfaces.routes.beast_routes import _calc_total_combat_power_with_equipment
+        from infrastructure.db.player_beast_repo_mysql import MySQLPlayerBeastRepo
+        
+        beast_repo = MySQLPlayerBeastRepo()
+        player_powers = []
+        
+        for player in (players or []):
+            user_id = player['userId']
+            team_beasts = beast_repo.get_team_beasts(user_id)
+            
+            # 只有有出战幻兽的玩家才计入排行
+            if not team_beasts:
+                continue
+            
+            total_power = 0
+            for beast in team_beasts:
+                # 计算包含装备加成的战力
+                power = _calc_total_combat_power_with_equipment(beast)
+                total_power += power
+            
+            # 只有战力大于0的玩家才计入排行
+            if total_power > 0:
+                player_powers.append({
+                    "userId": user_id,
+                    "nickname": player['nickname'],
+                    "level": player['level'],
+                    "vipLevel": player['vipLevel'],
+                    "power": total_power
+                })
+        
+        # 按战力排序
+        player_powers.sort(key=lambda x: (-x['power'], -x['level']))
+        
+        # 分页
+        total = len(player_powers)
+        offset = (page - 1) * size
+        paginated = player_powers[offset:offset + size]
+        
         # 添加排名
         rankings = []
-        for idx, r in enumerate(rows or []):
-            obj = dict(r)
-            obj["rank"] = offset + idx + 1
-            rankings.append(obj)
+        for idx, p in enumerate(paginated):
+            p["rank"] = offset + idx + 1
+            rankings.append(p)
 
         total_pages = max(1, (total + size - 1) // size)
 
