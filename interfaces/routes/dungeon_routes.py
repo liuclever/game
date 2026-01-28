@@ -1028,6 +1028,11 @@ def challenge_beasts():
         rating = "C"
         victory_text = "失败"
     
+    # 获取实际战斗的第一个幻兽名称（用于捕捉）
+    actual_beast_name = None
+    if is_victory and floor not in BOSS_FLOORS and defender_pvp_beasts:
+        actual_beast_name = defender_pvp_beasts[0].name
+    
     battle_data = {
         "is_victory": is_victory,
         "rating": rating,
@@ -1052,7 +1057,7 @@ def challenge_beasts():
             "floor": floor,
             "has_loot": is_victory
         },
-        "capturable_beast": dungeon_beasts_data[0]['name'] if (is_victory and floor not in BOSS_FLOORS) else None
+        "capturable_beast": actual_beast_name
     })
 
 
