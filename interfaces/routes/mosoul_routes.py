@@ -918,8 +918,10 @@ def do_hunting():
         if gold < cost:
             return jsonify({'ok': False, 'error': '铜钱不足'})
         
-        # 扣除铜钱
-        player_repo.update_gold(user_id, -cost)
+        # 扣除铜钱，如果失败说明余额不足
+        if not player_repo.update_gold(user_id, -cost):
+            return jsonify({'ok': False, 'error': '铜钱不足'})
+        
         gold -= cost
 
         global_copper_consumed = _get_global_copper_consumed(NORMAL_HEAVEN_PITY_COUNTER_KEY)
@@ -1172,7 +1174,15 @@ def batch_hunting():
                 })
                 break
 
-            player_repo.update_gold(user_id, -cost)
+            # 尝试扣除铜钱，如果失败说明余额不足（可能被其他操作消耗了）
+            if not player_repo.update_gold(user_id, -cost):
+                results.append({
+                    'hunt_num': hunt_num + 1,
+                    'stopped': True,
+                    'reason': '铜钱不足',
+                })
+                break
+            
             gold -= cost
             total_cost += cost
 

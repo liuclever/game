@@ -357,11 +357,23 @@ def buy_item():
             
             # 5. 所有检查通过，开始执行购买操作
             
-            # 5.1 扣除货币
+            # 5.1 扣除货币（使用安全的更新方式，防止负数）
             if currency == "gold":
-                cursor.execute("UPDATE player SET gold = gold - %s WHERE user_id = %s", (total_price, user_id))
+                cursor.execute(
+                    "UPDATE player SET gold = gold - %s WHERE user_id = %s AND gold >= %s", 
+                    (total_price, user_id, total_price)
+                )
+                if cursor.rowcount == 0:
+                    error_msg = "铜钱不足"
+                    raise Exception(error_msg)
             else:
-                cursor.execute("UPDATE player SET yuanbao = yuanbao - %s WHERE user_id = %s", (total_price, user_id))
+                cursor.execute(
+                    "UPDATE player SET yuanbao = yuanbao - %s WHERE user_id = %s AND yuanbao >= %s", 
+                    (total_price, user_id, total_price)
+                )
+                if cursor.rowcount == 0:
+                    error_msg = "元宝不足"
+                    raise Exception(error_msg)
             
             # 5.2 添加物品到背包（正确处理99的限制和拆分）
             # 先尝试填充已有的未满99的格子

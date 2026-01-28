@@ -28,6 +28,7 @@ from infrastructure.db.alliance_repo_mysql import MySQLAllianceRepo
 from application.services.battlefield_service import BattlefieldService
 from application.services.immortalize_pool_service import ImmortalizePoolService
 from application.services.alliance_service import AllianceService
+from infrastructure.config.immortalize_config import ImmortalizeConfig
 from application.services.inventory_service import InventoryService
 from domain.services.king_final_service import (
     reset_weekly_registration,
@@ -138,9 +139,11 @@ def _run_immortalize_formation():
 
     pool_repo = MySQLImmortalizePoolRepo()
     player_repo = MySQLPlayerRepo()
+    config = ImmortalizeConfig()
     service = ImmortalizePoolService(
         pool_repo=pool_repo,
         player_repo=player_repo,
+        config=config,
     )
 
     for row in rows:

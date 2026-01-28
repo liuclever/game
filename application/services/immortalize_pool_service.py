@@ -293,7 +293,8 @@ class ImmortalizePoolService:
             raise ImmortalizeError(str(exc)) from exc
 
         if copper_cost > 0:
-            update_gold(user_id, -copper_cost)
+            if not update_gold(user_id, -copper_cost):
+                raise ImmortalizeError("铜钱不足")
 
         pool.pool_level += 1
         self.pool_repo.upsert(pool)
