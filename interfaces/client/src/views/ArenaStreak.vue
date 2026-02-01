@@ -62,11 +62,7 @@
       <!-- 连胜大奖 -->
       <div class="section">
         <div class="section indent">
-          连胜大奖（昨日连胜王专属，领取时间{{ grandPrizeTimeWindow }}）: 铜钱60万+追魂法宝1+金袋5+招财神符1. 
-          <a class="link" @click="claimGrandPrize" v-if="canClaimGrandPrize">领取</a>
-          <span v-else-if="isYesterdayKing && currentHour >= 8">[已过期]</span>
-          <span v-else-if="isYesterdayKing && !canClaimGrandPrize">[已领取]</span>
-          <span v-else-if="!isYesterdayKing">[仅昨日连胜王可领取]</span>
+          连胜大奖（当天全服连胜次数最高者，系统将在23:00自动发放到背包）: 铜钱60万+追魂法宝1+金袋5+招财神符1
         </div>
       </div>
 

@@ -174,6 +174,77 @@ def _run_king_weekly_reset():
         logger.exception(f"[Scheduler] 召唤之王周报名重置失败: {e}")
 
 
+def _run_arena_streak_grand_prize():
+    """每天23:00执行：自动发放连胜大奖给当天的全服连胜王"""
+    logger.info("[Scheduler] 开始执行连胜大奖自动发放任务")
+    try:
+        from datetime import datetime
+        from interfaces.web_api.bootstrap import services
+        
+        today = datetime.now().date()
+        
+        # 获取今天的全服连胜王
+        streak_king = execute_query(
+            """SELECT user_id, max_streak_today 
+               FROM arena_streak 
+               WHERE record_date = %s 
+               ORDER BY max_streak_today DESC LIMIT 1""",
+            (today,)
+        )
+        
+        if not streak_king:
+            logger.info("[Scheduler] 今日暂无连胜记录，跳过大奖发放")
+            return
+        
+        king_user_id = streak_king[0]['user_id']
+        king_streak = streak_king[0]['max_streak_today']
+        
+        # 检查连胜次数是否大于0
+        if king_streak <= 0:
+            logger.info("[Scheduler] 连胜王连胜次数为0，跳过大奖发放")
+            return
+        
+        # 检查是否已发放
+        already_claimed = execute_query(
+            """SELECT claimed_grand_prize 
+               FROM arena_streak 
+               WHERE user_id = %s AND record_date = %s""",
+            (king_user_id, today)
+        )
+        
+        if already_claimed and already_claimed[0].get('claimed_grand_prize'):
+            logger.info(f"[Scheduler] 用户 {king_user_id} 今日大奖已发放，跳过")
+            return
+        
+        # 发放奖励
+        # 1. 发放铜钱
+        execute_update(
+            "UPDATE player SET gold = gold + 600000 WHERE user_id = %s",
+            (king_user_id,)
+        )
+        
+        # 2. 发放道具到背包
+        # 追魂法宝×1 (item_id: 6019)
+        services.inventory_service.add_item(king_user_id, 6019, 1)
+        
+        # 金袋×5 (item_id: 6005)
+        services.inventory_service.add_item(king_user_id, 6005, 5)
+        
+        # 招财神符×1 (item_id: 6004)
+        services.inventory_service.add_item(king_user_id, 6004, 1)
+        
+        # 3. 标记已发放
+        execute_update(
+            "UPDATE arena_streak SET claimed_grand_prize = 1 WHERE user_id = %s AND record_date = %s",
+            (king_user_id, today)
+        )
+        
+        logger.info(f"[Scheduler] 连胜大奖发放成功: user_id={king_user_id}, streak={king_streak}")
+        
+    except Exception as e:
+        logger.exception(f"[Scheduler] 连胜大奖发放失败: {e}")
+
+
 def _run_king_advance_to_finals():
     """每周四23:59执行：选出各赛区前16名进入正赛"""
     logger.info("[Scheduler] 开始执行召唤之王晋级正赛任务")
@@ -562,6 +633,17 @@ def start_scheduler():
         trigger="interval",
         hours=1,
         id="immortalize_formation",
+        replace_existing=True,
+    )
+    
+    # ===== 连胜竞技场定时任务 =====
+    # 每天 23:00 - 自动发放连胜大奖
+    _scheduler.add_job(
+        _run_arena_streak_grand_prize,
+        trigger="cron",
+        hour=23,
+        minute=0,
+        id="arena_streak_grand_prize",
         replace_existing=True,
     )
     
