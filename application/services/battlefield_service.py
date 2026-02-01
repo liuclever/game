@@ -78,8 +78,11 @@ class BattlefieldService:
         for idx, p in enumerate(participants):
             p.team = "red" if idx < half else "blue"
 
-        last_period = self.battle_repo.get_latest_period(battlefield_type) or 0
-        period = last_period + 1
+        # 基于日期计算期数：以 2024-01-01 为第1期，每天递增
+        from datetime import date
+        reference_date = date(2024, 1, 1)
+        today = date.today()
+        period = (today - reference_date).days + 1
 
         remaining: List[BattlefieldParticipant] = participants[:]
         next_round: List[BattlefieldParticipant] = []

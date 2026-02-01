@@ -1,0 +1,66 @@
+{
+  "战王奖励": {
+    "description": "战王宝藏礼包",
+    "gold": 1000000,
+    "items": [
+      {"item_id": 6019, "quantity": 2, "name": "追魂法宝"},
+      {"item_id": 6005, "quantity": 10, "name": "金袋"},
+      {"item_id": 6004, "quantity": 3, "name": "招财神符"}
+    ]
+  },
+  "阵营奖励": {
+    "胜利阵营": {
+      "description": "胜利阵营奖励",
+      "gold": 300000,
+      "items": [
+        {"item_id": 6005, "quantity": 3, "name": "金袋"},
+        {"item_id": 6004, "quantity": 1, "name": "招财神符"}
+      ]
+    },
+    "失败阵营": {
+      "description": "失败阵营安慰奖",
+      "gold": 100000,
+      "items": [
+        {"item_id": 6005, "quantity": 1, "name": "金袋"}
+      ]
+    }
+  },
+  "杀敌奖励": {
+    "1": {
+      "description": "击杀1人奖励",
+      "gold": 50000,
+      "items": [
+        {"item_id": 6005, "quantity": 1, "name": "金袋"}
+      ]
+    },
+    "2": {
+      "description": "击杀2人奖励",
+      "gold": 100000,
+      "items": [
+        {"item_id": 6005, "quantity": 2, "name": "金袋"}
+      ]
+    },
+    "3": {
+      "description": "击杀3人奖励",
+      "gold": 150000,
+      "items": [
+        {"item_id": 6005, "quantity": 3, "name": "金袋"}
+      ]
+    },
+    "4": {
+      "description": "击杀4人奖励",
+      "gold": 200000,
+      "items": [
+        {"item_id": 6005, "quantity": 4, "name": "金袋"}
+      ]
+    },
+    "5+": {
+      "description": "击杀5人及以上奖励",
+      "gold": 300000,
+      "items": [
+        {"item_id": 6005, "quantity": 5, "name": "金袋"},
+        {"item_id": 6004, "quantity": 1, "name": "招财神符"}
+      ]
+    }
+  }
+}

@@ -96,11 +96,16 @@ def _run_daily_battlefield():
     player_repo = MySQLPlayerRepo()
     beast_repo = MySQLPlayerBeastRepo()
     battle_repo = MySQLBattlefieldBattleRepo()
+    
+    # 导入并创建 BeastPvpService
+    from application.services.beast_pvp_service import BeastPvpService
+    beast_pvp_service = BeastPvpService()
 
     service = BattlefieldService(
         player_repo=player_repo,
         player_beast_repo=beast_repo,
         battle_repo=battle_repo,
+        beast_pvp_service=beast_pvp_service,
     )
 
     for bf_type in ("tiger", "crane"):
